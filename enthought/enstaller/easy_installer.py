@@ -19,8 +19,14 @@ import shutil
 from os import path
 import warnings
 
-from run_enstaller import \
-     TextIO, Downloader, URLUtil, IS_WINDOWS
+from enthought.enstaller.api import \
+     IS_WINDOWS
+from enthought.enstaller.text_io import \
+     TextIO
+from enthought.enstaller.downloader import \
+     Downloader
+from enthought.enstaller.url_util import \
+     URLUtil
 
 #
 # THIS MODULE CANNOT USE TRAITS SINCE IT IS USED FOR BOOTSTRAPPING.

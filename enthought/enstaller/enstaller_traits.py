@@ -17,7 +17,7 @@ from os import path
 from enthought.traits.api import \
      Trait, TraitHandler, Bool
      
-from enstaller.run_enstaller import \
+from enthought.enstaller.api import \
      IS_WINDOWS
 
 

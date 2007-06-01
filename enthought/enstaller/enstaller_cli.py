@@ -17,9 +17,12 @@ from os import path
 from enthought.traits.api import \
      TraitError, HasTraits, Instance
 
-from enstaller.run_enstaller import \
-     TextIO, Downloader
-from enstaller.enstaller_session import EnstallerSession
+from enthought.enstaller.text_io import \
+     TextIO
+from enthought.enstaller.downloader import \
+     Downloader
+
+from enthought.enstaller.enstaller_session import EnstallerSession
 
 
 class EnstallerCLI( HasTraits, TextIO ) :

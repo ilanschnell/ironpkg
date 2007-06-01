@@ -16,17 +16,17 @@ from os import path
 from enthought.traits.api import \
      Property, Instance
 
-from enstaller.run_enstaller import \
+from enthought.enstaller.url_util import \
      URLUtil
-from enstaller.enstaller_traits import \
+from enthought.enstaller.enstaller_traits import \
      Url
-from enstaller.repository import \
+from enthought.enstaller.repository import \
      Repository
-from enstaller.package import \
+from enthought.enstaller.package import \
      Package
-from enstaller.html_parsing import \
+from enthought.enstaller.html_parsing import \
      EggHTMLFormatter, EggHTMLPyPIParser
-from enstaller.pypi_xmlrpc import \
+from enthought.enstaller.pypi_xmlrpc import \
      PypiXMLRPCEggFinder
 
 

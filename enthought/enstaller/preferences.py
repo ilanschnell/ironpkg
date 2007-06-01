@@ -16,10 +16,6 @@ from types import ListType
 from enthought.traits.api import \
      HasTraits, List, Str, Bool, Property, Instance
 
-from enthought.traits.ui.api import \
-     View, Group, HGroup, Item, \
-     TextEditor, FileEditor, DirectoryEditor
-
 
 ################################################################################
 ## Helper functions for converting data read from text files to Python objects
@@ -95,28 +91,6 @@ class Preference( HasTraits ) :
     # Flag indicating value was changed and needs to be saved.
     #
     modified = Bool
-
-    #
-    # The default view for a preference.
-    #
-    traits_view = View(
-        Group(
-            HGroup( 
-               Item( name="label",
-                     show_label=False,
-                     style="readonly",
-                     ),
-               Item( name="value",
-                     show_label=False,
-                     style="custom",
-                     ),),
-           Item( name="description",
-                 show_label=False,
-                 style="readonly",
-                 ),
-           show_border=True,
-           ),
-        )
 
 
     def update_config( self, config_obj ) :
@@ -196,28 +170,6 @@ class FindLinks( EasyInstallPreference ) :
 <http://code.enthought.com/enstaller/eggs>, is always used.
 """ )
 
-    traits_view = View(
-        Group(
-            HGroup( 
-               Item( name="label",
-                     show_label=False,
-                     style="readonly",
-                     ),
-               Item( name="value",
-                     show_label=False,
-                     style="simple",
-                     resizable = True,
-                     height = 100,
-                     width = 300
-                     ),),
-           Item( name="description",
-                 show_label=False,
-                 style="readonly",
-                 ),
-           show_border=True,
-           ),
-        )
-
 
 class AllowHosts( EasyInstallPreference ) :
     value = List( Str )
@@ -236,30 +188,6 @@ URL(s). For example, '*.python.org' does NOT allow a URL like
 'http://python.org/foo' or 'http://www.python.org:8080/'. The default pattern 
 is '*', which matches anything.
 """ )
-    traits_view = View(
-        Group(
-            HGroup(
-               Item( name="label",
-                     show_label=False,
-                     style="readonly",
-                     ),
-               Item( name="value",
-                     show_label=False,
-                     style="custom",
-                     ),),
-           Group(
-              Item( name="same_as_find_links",
-                    label="Only allow hosts specified in Repository URLs (above)",
-                    ),
-              ),
-           Item( name="description",
-                 show_label=False,
-                 editor=TextEditor(),
-                 style="readonly",
-                 ),
-           show_border=True,
-           ),
-        )
 
     def _same_as_find_links_changed( self, old, new ) :
         if( new == True ) :
@@ -295,24 +223,7 @@ their associated package installations. Otherwise, this setting defaults to the
 location where the distutils would normally install scripts, taking any 
 distutils configuration file settings into account.
 """ )
-    traits_view = View(
-        Group(
-           Item( name="label",
-                 show_label=False,
-                 style="readonly",
-                 ),
-           Item( name="value",
-                 show_label=False,
-                 editor=DirectoryEditor(),
-                 ),
-           Item( name="description",
-                 show_label=False,
-                 editor=TextEditor(),
-                 style="readonly",
-                 ),
-           show_border=True,
-           ),
-        )
+
 
 class ExcludeScripts( EasyInstallPreference ) :
     value = Bool
@@ -324,6 +235,7 @@ but do not want to reset the version that will be run by scripts that are
 already installed.
 """ )
 
+
 class Record( EasyInstallPreference ) :
     value = Str
     label = "Record files to:"
@@ -333,21 +245,3 @@ This option is basically the same as the option for the standard distutils
 'install' command, and is included for compatibility with tools that expect to
 pass this option to 'setup.py install'.
 """ )
-    traits_view = View(
-        Group(
-           Item( name="label",
-                 show_label=False,
-                 style="readonly",
-                 ),
-           Item( name="value",
-                 show_label=False,
-                 editor=FileEditor(),
-                 ),
-           Item( name="description",
-                 show_label=False,
-                 editor=TextEditor(),
-                 style="readonly",
-                 ),
-           show_border=True,
-           ),
-        )

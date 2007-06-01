@@ -21,7 +21,7 @@ from setuptools.command.setopt import \
 from enthought.traits.api import \
      HasTraits, List, Str, Instance
 
-from enstaller.preferences import \
+from enthought.enstaller.preferences import \
      AllowHosts, AlwaysUnzip, ExcludeScripts, FindLinks, Record, \
      ScriptDir, ShowAllAvailableVersions
 

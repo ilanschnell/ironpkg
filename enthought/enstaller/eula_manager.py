@@ -14,13 +14,15 @@ import sys
 from os import path
 
 from enthought.traits.api import \
-     HasTraits, Instance, Constant, File, List, Str, Dict
+     HasTraits, Instance, Constant, List, Str, Dict
 from enthought.ets.api import \
      ETS
 
-from enstaller.run_enstaller import \
-     TextIO, URLUtil
-from enstaller.enstaller_traits import \
+from enthought.enstaller.text_io import \
+     TextIO
+from enthought.enstaller.url_util import \
+     URLUtil
+from enthought.enstaller.enstaller_traits import \
      CreatableDir, Url
 
 
@@ -32,8 +34,11 @@ class EULAManager( HasTraits, TextIO ) :
     #
     # Variables used for defining the state file for EULAs that Enstaller
     # has encountered before.
+    # (for some reason, this trait cannot be a File...if it is, a windowing
+    # display must be available even if using the CLI.
     #
-    eula_state_file = File
+    #eula_state_file = File
+    eula_state_file = Str
     _eula_state_filename = Constant( "eulas" )
     _eula_state_dir = CreatableDir( abspath=True, create=True )
 

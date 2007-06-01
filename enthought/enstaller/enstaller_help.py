@@ -15,7 +15,7 @@ from os import path
 from enthought.traits.api import \
      HasTraits, HTML
 
-from enstaller.enstaller_traits import \
+from enthought.enstaller.enstaller_traits import \
      ExistingFile
 
 #

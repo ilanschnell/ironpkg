@@ -14,9 +14,9 @@ import sys
 import os
 from os import path
 
-from run_enstaller import \
+from enthought.enstaller.api import \
      PYVER, IS_WINDOWS
-from easy_installer import \
+from enthought.enstaller.easy_installer import \
      EasyInstaller
 
 

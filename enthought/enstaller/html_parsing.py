@@ -25,9 +25,11 @@ import htmllib
 from threading import \
      Thread
 
-from enstaller.run_enstaller import \
-     TextIO, URLUtil
-from enstaller.package import \
+from enthought.enstaller.text_io import \
+     TextIO
+from enthought.enstaller.url_util import \
+     URLUtil
+from enthought.enstaller.package import \
      is_egg_installable
 
 

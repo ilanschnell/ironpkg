@@ -30,21 +30,25 @@ import xmlrpclib
 from enthought.traits.api import \
      Trait, HasTraits, Str, List, Instance, Property
 
-from enstaller.enstaller_traits import \
+from enthought.enstaller.enstaller_traits import \
      CreatableDir, Url
-from enstaller.run_enstaller import \
-     IS_WINDOWS, TextIO, Downloader
-from enstaller.local_repository import \
+from enthought.enstaller.api import \
+     IS_WINDOWS
+from enthought.enstaller.text_io import \
+     TextIO
+from enthought.enstaller.downloader import \
+     Downloader
+from enthought.enstaller.local_repository import \
      LocalRepository
-from enstaller.repository import \
+from enthought.enstaller.repository import \
      Repository
-from enstaller.enstaller_engine import \
+from enthought.enstaller.enstaller_engine import \
      EnstallerEngine
-from enstaller.preference_manager import \
+from enthought.enstaller.preference_manager import \
      PreferenceManager
-from enstaller.eula_manager import \
+from enthought.enstaller.eula_manager import \
      EULAManager
-from enstaller.repository_factory import \
+from enthought.enstaller.repository_factory import \
      create_repository
 
 version_cmp = Downloader.version_cmp

@@ -19,7 +19,7 @@ from types import ListType
 from enthought.traits.api import \
      Str, Bool
 
-from enstaller.run_enstaller import \
+from enthought.enstaller.api import \
      IS_WINDOWS
 from repository import \
      Repository

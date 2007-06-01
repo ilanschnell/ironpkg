@@ -13,10 +13,10 @@
 import socket
 import xmlrpclib
 
-from enstaller.run_enstaller import IS_WINDOWS
-from enstaller.local_repository import LocalRepository
-from enstaller.remote_repository import RemoteRepository
-from enstaller.pypi_repository import PypiRepository
+from enthought.enstaller.api import IS_WINDOWS
+from enthought.enstaller.local_repository import LocalRepository
+from enthought.enstaller.remote_repository import RemoteRepository
+from enthought.enstaller.pypi_repository import PypiRepository
 
 
 def create_repository( url, verbose, prompting, logging_handle ) :

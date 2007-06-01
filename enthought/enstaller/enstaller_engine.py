@@ -25,7 +25,7 @@ from setuptools.archive_util import unpack_archive
 from enthought.traits.api import \
      HasTraits, Str
 
-from enstaller.easy_installer import EasyInstaller
+from enthought.enstaller.easy_installer import EasyInstaller
 
 
 class EnstallerEngine( EasyInstaller, HasTraits ) :

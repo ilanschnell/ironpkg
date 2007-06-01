@@ -19,11 +19,11 @@ from pkg_resources import \
 from enthought.traits.api import \
      HasTraits, List, Str
 
-from enstaller.run_enstaller import \
+from enthought.enstaller.text_io import \
      TextIO
-from enstaller.enstaller_traits import \
+from enthought.enstaller.enstaller_traits import \
      ExistingDir
-from enstaller.package import \
+from enthought.enstaller.package import \
      Package, is_egg_installable
 
 

@@ -21,9 +21,11 @@ from pkg_resources import \
 from enthought.traits.api import \
      HasTraits, List, Str, Enum, Bool, Int, Property
 
-from enstaller.run_enstaller import \
-     IS_WINDOWS, Downloader
-from enstaller.egg import \
+from enthought.enstaller.api import \
+     IS_WINDOWS
+from enthought.enstaller.downloader import \
+     Downloader
+from enthought.enstaller.egg import \
      Egg
 
 version_cmp = Downloader.version_cmp
