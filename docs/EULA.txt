@@ -1,0 +1,444 @@
+ENTHOUGHT PACKAGE REPOSITORY SUBSCRIPTION AGREEMENT
+
+PLEASE READ THIS AGREEMENT CAREFULLY BEFORE ACCESSING THE ENTHOUGHT  
+PACKAGE REPOSITORY (EPR). ANY PERSON OR ENTITY ACCESSING THE EPR  
+("SUBSCRIBER" or "you"), BY THE ACT OF ACCESSING THE EPR, SIGNIFIES  
+THEIR ASSENT TO THIS AGREEMENT. IF YOU ARE ACTING ON BEHALF OF AN  
+ENTITY, THEN YOU REPRESENT THAT YOU HAVE THE AUTHORITY TO ENTER INTO  
+THIS AGREEMENT ON BEHALF OF THAT ENTITY. IF SUBSCRIBER DOES NOT  
+ACCEPT THE TERMS OF THIS AGREEMENT, THEN THEY MUST NOT ACCESS THE  
+EPR.  The Enthought Package Repository is provided by Enthought,  
+Inc., a Delaware corporation, with a principal place of business at  
+515 Congress Avenue, Suite 2100, Austin, Texas, 78701 ("Enthought").
+
+     In consideration of the mutual covenants contained herein and  
+for other good and valuable consideration, the receipt and  
+sufficiency of which are hereby acknowledged, Enthought and the  
+Subscriber (collectively the "parties") hereto agree as follows:
+
+
+1.    DEFINITIONS
+
+1.1       "Enthought Package Repository" ("EPR") shall mean the  
+collection of services and technology used for the delivery of  
+software packages and related information from an electronic  
+repository managed by Enthought.
+
+1.2     "Services" shall mean access to and provision of the EPR and  
+any support or maintenance that is provided to Subscriber to enable  
+such access or provision.
+
+1.2    "Effective Date" shall mean the first date of your use of the  
+EPR.
+
+1.3     "Accessing System" shall mean a system with which the  
+Subscriber accesses the EPR which may be, without limitation, a  
+server, work station, virtual machine, blade, node, partition, or  
+engine, as applicable.  Systems accessing the information or Software  
+delivered from the EPR through a proxy or systems hosted by the  
+Subscriber are also considered Accessing Systems.
+
+1.4    "Software" shall mean computer software programs accessed  
+through or retrieved from the EPR, together with all related text or  
+HTML files, Source Code, graphics files, animation files, data files,  
+scripts, security devices, updates, current bug fixes or patches, or  
+any other modifications to such programs, which have been made  
+available by Enthought as of the Effective Date of this Agreement.
+
+1.5    "Source Code" shall mean the source language code (human- 
+readable program instructions) for the Software as it exists as of  
+the Effective Date, together with any documentation (technical or  
+otherwise), which exists as of the Effective Date and which would  
+enable a reasonably skilled computer programmer or analyst to  
+maintain or change the Source Code without the aid of Licensor.
+
+1.6     "Governmental Use" shall mean the Subscription to EPR by a  
+representative, contractor, or assign of a government entity,  
+department, agency, bureau, corporation, office, lab, or research  
+facility to aid in the delivery of services or computer software  
+programs or licenses paid for under a contract, grant or purchase  
+order.  Subscription for the purpose of performing research for  
+obtaining a degree, diploma, or certification--funded or not--is  
+excluded from the definition of Governmental Use.
+
+1.7     "Commercial Use" shall mean the Subscription to EPR by a for- 
+profit commercial entity for use in the development or delivery of  
+services or computer software programs or licenses.
+
+1.8    "Term" shall have the meaning set forth in Section 4.1.
+
+
+2.    SUBSCRIPTION TO EPR
+
+2.1    Subscription.  Enthought hereby grants to Subscriber access to  
+the Enthought Package Repository under the terms of this Agreement.
+
+2.2    EPR Access.  Subscriber acknowledges that, subject to the  
+terms and conditions of this Agreement, access to the software and  
+services provided though the EPR will be monitored and recorded for  
+use by Enthought and its assigns for the sole purpose of provision of  
+the services, invoicing, and security analysis.  The Subscription  
+granted herein is not a sale of the Software.  All software provided  
+under this Subscription is subject to the license and ownership  
+provided with the software Source Code and included in the  
+distributed packages.
+
+2.3    Trademarks and Publicity.  Each party acknowledges that it  
+will acquire no rights in any trademarks, service marks, trade names,  
+or logos of the other party pursuant to this Agreement and that such  
+marks are and shall remain the exclusive property of such other  
+party.  Except as otherwise provided herein, nothing contained in  
+this Agreement shall be construed as conferring any right to use in  
+advertising, publicity or other promotional activities any name,  
+trade name, trademark, or other designation (including any  
+contraction, abbreviation, or simulation of any of the foregoing) of  
+the other party without the express written approval of such other  
+party.
+
+2.4     Hosting EPR Content.  It is forbidden for a Subscriber to  
+host or otherwise make available to the general public, content  
+originally obtained from the EPR.  Hosting EPR content for internal  
+use is allowed, provided the text of this agreement is included with  
+the EPR content and all conditions of this agreement, including  
+Section 8.1 (Reporting) are met.
+
+
+3.    FEES AND PAYMENTS
+
+3.1     Fees and Expenses.  Fees for the Services ("Fees") are stated  
+in United States Dollars, must be paid in United States Dollars, and  
+are exclusive of out-of-pocket expenses. Fees shall be charged by  
+price per Accessing System. The parties agree that the terms of this  
+Agreement will govern future purchases by Subscriber of additional  
+units of any or all of the Services listed herein. Unless otherwise  
+stated in this Agreement, any renewal of this Agreement will be at  
+the same price per Accessing System paid during the initial term.  
+Unless otherwise agreed by the parties in writing, such additional  
+units can be purchased and renewed, during the term of this  
+Agreement, at the rates set forth herein, exclusive of expenses, if any.
+
+3.2     Non-Commercial Use.  EPR Subscription is provided free of  
+charge to non-governmental, non-commercial users for the purpose of  
+research and education.  Governmental Use and Commercial Use will be  
+subject to stated "Fees."
+
+3.2     Invoices.  If Subscriber is paying by credit card, Subscriber  
+authorizes Enthought to bill Subscriber's credit card for the  
+Services for the initial term and for the amount due at the time of  
+renewal. If Enthought has approved Subscriber to be invoiced,  
+Enthought will invoice Subscriber for the Fees at the time of  
+execution of this Agreement and upon the submission of any future  
+purchase order. Any and all payments made by Subscriber pursuant to  
+this Agreement are non-refundable. Subscriber will make payment  
+within thirty (30) days of the date of the invoice.  Enthought  
+reserves the right to suspend or cancel performance of all or part of  
+the Services, or change its credit terms, or both, if actual payment  
+has not been received within sixty (60) days of the invoice date.
+
+3.3     Taxes.  All Fees are exclusive of any Taxes. Subscriber will  
+pay to Enthought an amount equal to any Taxes arising from or  
+relating to this Agreement, including without limitation, sales,  
+service, use or value added taxes, which are paid by or are payable  
+by Enthought. "Taxes" means any form of taxation, levy, duty, customs  
+fee, charge, contribution or impost of whatever nature and by  
+whatever authority imposed (including without limitation any fine,  
+penalty, surcharge, or interest), excluding, however, any taxes based  
+solely on the net income of Enthought. If Subscriber is required  
+under any applicable law or regulation, domestic or foreign, to  
+withhold or deduct any portion of the payments due to Enthought, then  
+the sum payable to Enthought will be increased by the amount  
+necessary so that Enthought receives an amount equal to the sum it  
+would have received had Subscriber made no withholdings or deductions.
+
+
+4.    TERM AND TERMINATION
+
+4.1    Term.  The term of this Agreement shall commence on the  
+Effective Date and shall extend for a period of one (1) year unless  
+earlier terminated as provided in this Section 4 (the "Term").   
+Thereafter, the term shall automatically renew for successive one (1)  
+year periods unless one party notifies the other in writing, no later  
+than 15 days prior to the end of the then current term, of its  
+intention not to renew.
+
+4.2    Remedy on Breach.   In the event of a material breach of this  
+Agreement, the non-breaching party shall give written notice of the  
+material breach to the breaching party.  Upon receipt of such notice,  
+the breaching party shall have thirty (30) days from the date of  
+actual receipt of the written notice to cure such breach.  If the  
+breaching party is unable to cure such breach within thirty (30)  
+days, then the parties shall seek to resolve the matter as provided  
+in Section 9 of this Agreement.
+
+4.3    Effect of Termination. Each party agrees to pay the fees,  
+costs, and expenses (including attorneys' fees and expenses)  
+reasonably incurred by the other party in connection with or related  
+to the other party's enforcement of its rights under this Agreement  
+or as a result of any material breach by the other party of its  
+obligations under this Agreement.
+
+4.4    Survival.  Sections 1 (Definitions), 2.3 (Trademarks and  
+Publicity) 4.4 (Survival), 5 (Confidentiality), 6 (Representations  
+and Warranties), 7 (Indemnifications), 9 (Dispute Resolution) and 10  
+(General Provisions) shall survive any expiration or termination of  
+this Agreement.
+
+
+5.      CONFIDENTIALITY
+
+Subscriber and Enthought agree to maintain the confidentiality of  
+Enthought's pricing as well as other proprietary information received  
+by the other party that is marked confidential, including non-public  
+technical and business information for a period of two (2) years  
+after the termination of this Agreement. This section shall not apply  
+to any publicly available or independently developed information.
+
+
+6.    REPRESENTATIONS AND WARRANTIES
+
+6.1    No Infringement.  Enthought represents and warrants to  
+Subscriber that it has the full legal right to distribute the  
+Software in accordance with this Agreement and that there is no  
+claim, litigation, or proceeding pending or threatened against  
+Enthought with respect to the Software or any component thereof  
+alleging infringement or misappropriation of any patent, copyright,  
+trade secret, or any other proprietary right of any third party.
+
+6.2    Other Warranties.   Enthought represents and warrants that:  
+(a) it has full power and authority to execute, deliver, and perform  
+its obligations under this Agreement; (b) there are no actions,  
+proceedings or investigations, pending or, to the best of its  
+knowledge, threatened against Enthought, which may in any manner  
+whatsoever materially affect the enforceability of this Agreement or  
+the rights, duties, and obligations hereunder; and (c) the execution,  
+delivery and performance of this Agreement will not constitute a  
+breach or default under any agreement, law, or court order under  
+which Enthought is a party or may be bound or affected by or which  
+may affect the rights, duties, and obligations hereunder.
+
+6.3    Limitation of Liability.  NEITHER PARTY SHALL HAVE ANY  
+LIABILITY UNDER THIS AGREEMENT OR OTHERWISE FOR CONSEQUENTIAL,  
+EXEMPLARY, SPECIAL, INCIDENTAL, OR PUNITIVE DAMAGES EVEN IF SUCH  
+PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.  IN ANY  
+EVENT, THE LIABILITY OF EACH PARTY TO THE OTHER FOR ANY REASON AND  
+UPON ANY CAUSE OF ACTION SHALL BE LIMITED TO THE FEES PAID BY  
+SUBSCRIBER PURSUANT TO THE EXISTING AGREEMENT.  THIS LIMITATION  
+APPLIES TO ALL CAUSES OF ACTION IN THE AGGREGATE, INCLUDING WITHOUT  
+LIMITATION, TO BREACH OF CONTRACT, BREACH OF WARRANTY, NEGLIGENCE,  
+STRICT LIABILITY, MISREPRESENTATION, AND OTHER TORTS.  BOTH PARTIES  
+UNDERSTAND AND AGREE THAT THE REMEDIES AND LIMITATIONS HEREIN  
+ALLOCATE THE RISKS OF PRODUCT AND SERVICE NONCONFORMITY BETWEEN THE  
+PARTIES AS AUTHORIZED BY THE UNIFORM COMMERCIAL CODE AND OF OTHER  
+APPLICABLE LAWS.
+
+
+7.    INDEMNIFICATIONS
+
+7.1    Subscriber Indemnification.  Subscriber shall defend,  
+indemnify and hold harmless Enthought from and against any claims,  
+demands, causes of action, expenses, damages, losses, costs, fees,  
+royalties, or penalties (including reasonable attorneys' fees)  
+(collectively, "Claims") to the extent any such Claim arises out of  
+Enthought's breach of any representation, warranty, or obligation  
+under this Agreement.  Enthought may, at its sole option, conduct the  
+defense in any such third party action arising as described herein  
+and Subscriber promises fully to cooperate with such defense at  
+Enthought's expense. This provision shall survive any expiration or  
+termination of this Agreement.
+
+
+8.      REPORTING AND INSPECTION
+
+8.1     Reporting. Subscriber will promptly notify Enthought if the  
+number of Accessing Systems exceeds the number of Accessing Systems  
+for which Subscriber has paid the applicable fee. In its notice,  
+Subscriber will include both the number of additional Accessing  
+Systems and the date(s) on which such Accessing Systems were put into  
+use. Enthought will invoice Subscriber for the applicable Services  
+for such Accessing Systems on a pro-rata basis and Subscriber will  
+pay for such Services in accordance with this Agreement.
+
+8.2     Inspection. During the term of this Agreement and for one (1)  
+year thereafter, Enthought or its designated agent may inspect and  
+review Subscriber's facilities and records in order to verify  
+Subscriber's compliance with this Agreement. Any such inspection and  
+review will take place only during Subscriber's normal business hours  
+and upon no less than ten (10) days prior written notice from  
+Enthought. Enthought will give Subscriber written notice of any non- 
+compliance, including the number of underreported Accessing Systems,  
+and Subscriber will have fifteen (15) days from the date of such  
+notice to make payment to Enthought for the applicable Services  
+provided to the underreported Accessing Systems. If Subscriber had  
+underreported the number of Accessing Systems by more than five  
+percent (5%), Subscriber will also pay Enthought for the cost of such  
+inspection.
+
+
+9.    DISPUTE RESOLUTION
+
+9.1    Condition Precedent.  If a claim or controversy between the  
+parties is not resolved for any reason, the authorized  
+representatives of Licensor and Licensee shall meet within thiry (30)  
+days thereafter to review and discuss such claim or controversy, and  
+shall attempt, in good faith, to settle or resolve the matter.   
+Compliance with the provisions of this paragraph shall be a condition  
+precedent to any claim in an arbitration, judicial, or other dispute  
+resolution process.
+
+9.2    Arbitration.  Any controversies or disputes arising out of or  
+relating to this Agreement that cannot be resolved by the parties'  
+authorized representatives shall be resolved by binding arbitration  
+in accordance with the then current Commercial Arbitration Rules of  
+the American Arbitration Association.  The parties shall endeavor to  
+select a mutually acceptable arbitrator knowledgeable about issues  
+relating to the subject matter of this Agreement.  In the event the  
+parties are unable to agree to such a selection, each party will  
+select an arbitrator and the two arbitrators shall in turn select a  
+third arbitrator.  The arbitration shall take place in Travis County,  
+Texas.  During the course of any arbitration proceeding, Enthought  
+shall continue to perform its obligations to Subscriber under this  
+Agreement.
+
+9.3    Document Review.  All documents, materials, and information in  
+the possession of each party that are in any way relevant to the  
+claims or disputes shall be made available to the other party for  
+review, inspection, and copying no later than sixty (60) days after  
+the notice of arbitration is served.
+
+9.4    Arbitrator's Authority.  The arbitrators shall not have the  
+authority, power, or right to alter, change, amend, modify, add, or  
+subtract from any provision of this Agreement.  The arbitrators shall  
+have the power to issue mandatory orders, restraining orders, and  
+injunctions in connection with the arbitration. The award entered by  
+the arbitrators shall be final and binding upon the parties, and  
+judgment may be entered thereon in any court of competent jurisdiction.
+
+
+10.    GENERAL PROVISIONS
+
+10.1    Governing Law.  This Agreement has been negotiated, executed  
+and delivered at, and shall be deemed to have been made, in Texas.   
+This Agreement shall be governed by and construed in accordance with  
+the domestic laws of the State of Texas without giving effect to any  
+choice or conflict of law provision or rule (whether of the State of  
+Texas or any other jurisdiction) that would cause the application of  
+the laws of any jurisdiction other than the State of Texas.
+
+10.2    Consent to Jurisdiction and Forum.  The parties hereto hereby  
+consent and agree that the District Court of Travis County, Texas or,  
+at the Licensee's option, the United States District Court for the  
+Western District of Texas, shall have exclusive jurisdiction to hear  
+and determine any claims or disputes between the parties hereto  
+pertaining to this Agreement or to any matter arising out of or  
+related to this Agreement.  The parties hereto expressly submit and  
+consent in advance to such jurisdiction in any action or suit  
+commenced in any such court, and hereby waive any objection which  
+they may have based upon lack of personal jurisdiction, improper  
+venue, or forum non conveniens and hereby consent to the granting of  
+such legal or equitable relief as is deemed appropriate by such  
+court.  Each party hereto irrevocably consents to the service of  
+process by registered or certified mail, postage prepaid, to it at  
+its address given pursuant to this Agreement.  Nothing in this  
+Agreement shall be deemed or operate to affect the right of either  
+party to serve legal process in any other manner permitted by law, or  
+to preclude the enforcement by either party of any judgment or order  
+obtained in such forum or the taking of any action under this  
+Agreement to enforce same in any other appropriate forum or  
+jurisdiction.
+
+10.3    Construction.  The parties have participated jointly in the  
+negotiation and drafting of this Agreement. In the event an ambiguity  
+or question of intent or interpretation arises, this Agreement shall  
+be construed as if drafted jointly by the parties and no presumption  
+or burden of proof shall arise favoring or disfavoring any party by  
+virtue of the authorship of any of the provisions of this Agreement.   
+Whenever the context of this Agreement requires, the gender of all  
+words herein shall include the masculine, feminine, and neuter, and  
+the number of all words herein shall include the singular and  
+plural.  All references to section numbers in this Agreement shall be  
+references to sections in this Agreement, unless otherwise  
+specifically indicated.  The captions used herein are for convenience  
+only and are not to be considered in the construction of this Agreement.
+
+10.4    Amendments; Waiver.  This Agreement may be amended from time  
+to time only by written agreement of the parties.  No term or  
+provisions of this Agreement may be waived or modified unless such  
+waiver or modification is in writing and signed by the party against  
+whom such waiver or modification is sought to be enforced.  No  
+failure on the part of any party to exercise and no delay in  
+exercising, any right, power, or remedy under this Agreement shall  
+operate as a waiver thereof, nor shall any single or partial exercise  
+of any right under this Agreement preclude any other or further  
+exercise thereof or the exercise of any other right.  The remedies  
+provided in this Agreement are cumulative and not exclusive of any  
+remedies provided by law.
+
+10.5    Entire Agreement.  This Agreement is the entire agreement of  
+the parties with respect to the subject matter herein, and supersedes  
+all prior agreements between them, whether oral or written, of any  
+nature whatsoever with respect to the subject matter hereof.  No  
+amendment, alteration, or modification of this Agreement or the Term  
+Sheet shall be valid unless in each instance such amendment,  
+alteration, or modification is expressed in a written instrument duly  
+executed by the parties hereto.
+
+10.6    Severability.  If any provision of this Agreement is held by  
+final judgment of a court of competent jurisdiction to be invalid,  
+illegal, or unenforceable, such invalid, illegal, or unenforceable  
+provision shall be severed from the remainder of this Agreement, and  
+the remainder of this Agreement shall be enforced.  In addition, the  
+invalid, illegal, or unenforceable provision shall be deemed to be  
+automatically modified, and, as so modified, to be included in this  
+Agreement, with such modification being made to the minimum extent  
+necessary to render the provision valid, legal and enforceable.   
+Notwithstanding the foregoing, however, if the severed or modified  
+provision concerns all or a portion of the essential consideration to  
+be delivered under this Agreement by one party to the other, the  
+remaining provisions of this Agreement shall also be modified to the  
+extent necessary to equitably adjust the parties' respective rights  
+and obligations hereunder.
+
+10.7    Notices. All notices, requests, demands, and other  
+communications hereunder shall be in writing and shall be deemed to  
+have been duly given, if delivered in person or by courier, by  
+facsimile transmission, by first class U.S. mail, postage prepaid, or  
+by e-mail to the addresses shown below.  If notice is mailed by first  
+class U.S. mail, such notice shall be deemed to be delivered three  
+business days after such notice was deposited with the U.S. Postal  
+Service.  If by e-mail, an e-mailed notice is deemed received 24  
+hours after the notice is electronically transmitted to the  
+recipient's e-mail address.  If the sending party receives  
+notification within that period of time that such notice was  
+undeliverable, sending party shall make commercially reasonable  
+efforts to contact the intended recipient by telephone to correct the  
+problem and to resend the notice by e-mail.  If the sending party is  
+unable to contact the intended recipient by telephone or to resend  
+the notice by e-mail, the sending party shall send such notice by  
+first class U.S. mail, or by another method provided in this  
+Section.  Each party will give the other at least 10 days prior  
+written notice if such e-mail address changes, and the sending party  
+will not be liable to the receiving party if the receiving party  
+changes such e-mail address without informing the other party.
+
+10.8    Authority to Sign.  The parties represent and warrant that  
+each person signing this Agreement in a representative capacity has  
+the authority to sign on behalf of all of the entities and persons  
+for whom he is signing and that he and the represented entities and  
+persons are empowered to enter into and to perform this Agreement.
+
+10.9    No Reliance. Each party expressly warrants and represents and  
+does hereby state and represent that no promise or agreement which is  
+not herein expressed has been made to such party in executing this  
+Agreement, and that no party is relying upon any statement or  
+representation of any other party, its agents or its  
+representatives.  Each party represents and warrants that it is  
+relying on its own judgment and each has been represented by legal  
+counsel in this matter.  Each party represents and warrants that it  
+has had its legal counsel read and explain to it the entire contents  
+of this Agreement in full, as well as the legal consequences of this  
+Agreement.
+
+10.10    Conflicts.  In the event of any conflict between the terms  
+of this Agreement and the terms of any written agreement between the  
+parties, the terms of this Agreement shall govern and control for all  
+purposes.
