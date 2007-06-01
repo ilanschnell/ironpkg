@@ -1,0 +1,261 @@
+Enstaller design document
+
+Rick Ratzel - 2007-03-07
+
+================================================================================
+
+run_enstaller.py
+
+   The primary "entry point" for Enstaller is the run_enstaller.py script.
+
+   run_enstaller.py defines three classes used for launching the app and
+"bootstrapping" it if necessary:
+
+   TextIO:
+      A mixin which provides methods for logging output messages and reading
+      user input.  The methods assume a logging_handle has been set (usually
+      sys.stdout) has standard file object methods.  Just about every class in
+      Enstaller inherits from this mixin.
+
+   Downloader:
+      Class containing a minimum set of utility functions for downloading
+      packages from a URL (local or remote).
+
+   EnstallerLauncher:
+      Class used to start a standalone Enstaller app.  This class also contains
+      other objects and methods for launching an app, such as a command-line
+      processor, an top-level exception handler, and the method for
+      starting a bootstrap of Enstaller.
+
+   These classes in run_enstaller.py are used elsewhere in Enstaller.  The
+reason there are three seemingly unrelated classes in this file is so that a new
+user can simply download the run_enstaller.py file, execute it, and have
+Enstaller automatically installed (bootstrapped) then launched.  They can then
+use the same script to launch Enstaller from that point on.  All three of those
+classes are required to be able to do this.
+
+   When run_enstaller.py is executed, it instantiates an EnstallerLauncher which
+immediately tries to import enstaller.main.  If the import is NOT successful
+(ImportError), the following takes place:
+
+   - The command line is processed with a subset of known options available.
+     This is so options like verbosity, alternate URLs, install locations, etc.
+     can be set.
+
+   - Using an instance of a Downloader, the latest enstaller egg is downloaded
+     to a temp directory.
+
+   - The bootstrap module is imported (directly from the zipped egg) and run.
+
+   - Once "bootstrapped" (all Enstaller eggs are downloaded and installed to the
+     install location), an attempt is made to import and run enstaller.main
+     again.  NOTE: Looping back to the enstaller.main import is only allowed to
+     happen once, otherwise a broken install could cause an infinite loop!
+
+   When enstaller.main is finally imported (either it was already installed or
+just bootstrapped), the "main" function is called and the command-line is passed
+to it for "complete" processing (not just the subset of args known to an
+EnstallerLauncher for bootstrapping).  The return value of main is returned to
+the shell as the exit code for Enstaller.
+
+--------------------------------------------------------------------------------
+bootstrapper.py
+
+   This module is only used when Enstaller needs to be bootstrapped.  Unlike
+run_enstaller.py, if this module is called it can be assumed that the entire
+Enstaller package is available for import (but not all of the Enstaller
+dependencies!) and that it is probably being run from an unzipped egg in a
+temporary directory.
+
+   The Bootstrapper class inherits from EasyInstaller, so it has all the
+functionality of easy_install (assuming setuptools is installed).  The only
+method a caller ever uses is bootstrap(), which is passed a destination dir and
+an egg name.  For Enstaller, the EnstallerLauncher object calls bootstrap(),
+giving it an install location and the path to the latest Enstaller egg it just
+downloaded to a temp dir.
+
+   The first thing bootstrap() does is to download and install setuptools if it
+cannot be imported.  This is done using the same code for finding the latest
+version and downloading it that the EnstallerLauncher used to get the Enstaller
+egg (a Downloader object).  Once the setuptools egg is available, it is
+imported, giving the Bootstrapper the easy_install functionality it needs to
+complete the bootstrap() call.  At this point, the Bootstrapper uses
+easy_install (via the now-functional EasyInstaller methods it inherited) to
+install the Enstaller egg previously downloaded to the temp dir.  easy_install
+installs the Enstaller egg to its final location, examines its dependencies
+(stored in the egg's EGG-INFO dir) and downloads and installs them as well.
+
+   Once the bootstrap() call has completed, the call returns control to the
+EnstallerLauncher which presumably attempts to launch Enstaller again.
+
+--------------------------------------------------------------------------------
+main.py
+
+   This module sets up the appropriate objects for a standalone Enstaller
+session.  Developers wishing to embed Enstaller into their application should
+look at this module to see how it can be done.
+
+   There are no classes in this module, instead only a series of free functions
+for processing the command-line ("inherits" from the EnstallerLauncher
+command-line processor to get the subset of known args, then adds processing for
+the rest of the known args...this allows Enstaller maintainers to add/change
+args without requiring users to get a new run_enstaller.py script), and one for
+starting a standalone Enstaller app named main().
+
+   main() simply calls the command-line processor, gets the processed args and
+uses them to instantiate an EnstallerSession object.  The EnstallerSession is
+the "heart" of the app and is the object which the CLI, GUI, and any other
+Enstaller-embedded app will use.  The EnstallerSession is immediately
+initialized, triggering a scan of all the installed packages on the
+interpreter's search path (sys.path).  This scan is required for all Enstaller
+operations.
+
+   Once the EnstallerSession is initialized, the command-line args are used to
+determine if a GUI is to be used, or a CLI.  The appropriate UI is instantiated
+and the session is assigned to it.  If a CLI is used, the command issued via the
+command-line is used to determine which method on the CLI instance to call, it
+is called and the return code is returned from main.  If a GUI is used, the
+show() method is called which basically starts the GUI mainloop.  The return
+value from show() is returned from main.
+
+--------------------------------------------------------------------------------
+enstaller_session.py
+
+   As mentioned above, this module can be considered the "heart" of Enstaller.
+The EnstallerSession is responsible for all Enstaller operations: installing,
+removing, activating, deactivating, finding/listing installed and repository
+packages, etc.  Both the Enstaller CLI and GUI share it, making these interface
+layers (especially the CLI) relatively thin.
+
+   The EnstallerSession has an install_dir trait, a list of URLs used to look
+for installable packages, an instance of an EnstallerEngine for doing the actual
+package installing, removing, etc., an instance of a PreferenceManager for
+reading and writing prefs to/from config files, a list of Repository objects
+containing data on packages available for download, and a list of 
+LocalRepository objects for installed packages (installed package dirs use 
+LocalRepository objects...need less confusing name since repository is used 
+mainly for something you download from?).
+
+   While the EnstallerEngine performs the "actual" installing, removing,
+downloading, etc.  The EnstallerSession is important for maintaining the state
+of the session and the environment Enstaller is working in.  The EnstallerEngine
+knows nothing of what packages are available or what package directories to look
+at until the EnstallerSession informs it of them and keeping it up-to-date when
+something changes.  All Enstaller operations go through EnstallerSession before
+EnstallerEngine and never go directly to EnstallerEngine.
+
+--------------------------------------------------------------------------------
+enstaller_engine.py
+easy_installer.py
+
+   EnstallerEngine extends EasyInstaller with features unique to Enstaller, such
+as removing, post-install, modifying RPATHs in binaries (*nix only), and
+promoting .pth files.  Some embedders may wish to embed this class in their app
+instead of an EnstallerSession, but it should be noted that functionality that
+requires knowledge of the packages installed or available for download/install,
+as well as using user configuration file settings will be absent.
+
+   EasyInstaller embeds the "main" of setuptools' easy_install entry point, and
+at the moment provides only an install() method which accepts a destination dir
+and pacakge spec (same spec style used by easy_install).  Attributes on
+EasyInstaller include find_links, always_unzip, script_dir, and several others
+which correspond to easy_install command-line args.  This class does not use
+Traits (EnstallerEngine does though) since it is used by the bootstrapping code,
+and Traits may not be installed at that time.
+
+--------------------------------------------------------------------------------
+repository.py
+local_repository.py
+remote_repository.py
+pypi_repository.py
+repository_factory.py
+
+   With the exception of repository_factory, these classes maintain a list of
+Package objects.  The Repository classes differ in how they populate the list of
+packages.  When a Repository class is destroyed, all package objects it
+maintains are destroyed too (using standard Python GC rules).
+
+   The Repository class is almost an abstract base class.  Most of its methods
+are overridden in derived classes.  The two that usually are not are
+build_package_list() and find_packages(), both of which operate on a list of
+packages that has already been populated.
+
+   The LocalRepository class is used for repositories that are local (on disk
+accessible through the file system).  It is also used for maintaining a list of
+packages which are already installed, which could be confusing since the term
+repository is used for a group of packages *not* installed.
+
+   The RemoteRepository class is used for repositories that are not local,
+accessed through the internet with a series of http calls.
+
+   The PypiRepository class is used for PyPI-style repositories, like
+cheeseshop, which support either XMLRPC calls, or have a specific heirarchy of
+html pages used for organizing the packages.
+
+   The repository_factory module contains a single function, create_repository()
+which returns an instance of a Repository object based on the type of URL it is
+passed (a local path or file:// returns a LocalRepository, a URL which accepts
+XMLRPC returns a PypiRepository, all others return a RemoteRepository).
+
+--------------------------------------------------------------------------------
+package.py
+
+   The Package class maintains all information about any given package.
+Multiple versions of the same package result in multiple Package objects...only
+one version of a package per Package instance.
+
+   Package objects are instantiated within the various Repository classes.  Each
+Package object keeps several traits describing information on the package mainly
+gathered from reading meta-data files and dissecting the file name.  The only
+action a Package object can do is toggle its active state, and even then it
+simply passes the call through to the Repository object which owns it (maybe
+this method should be removed).  Beyond that, Package objects exist primarily
+for holding package data.
+
+--------------------------------------------------------------------------------
+enstaller_cli.py
+
+   The EnstallerCLI class is the command-line interface to an EnstallerSession.
+It is instantiated from main() in main.py and contains an instance of a single
+EnstallerSession, setup in main() and assigned to an EnstallerCLI object.
+
+   An EnstallerCLI usually accepts only a single method call from main(), passes
+the call through to the EnstallerSession, reads the result and formats it into
+text to output to STDOUT.  There is no reason several method calls couldn't be
+made, but at the moment, main() processes only a single action from the
+command-line.
+
+--------------------------------------------------------------------------------
+enstaller_gui*.py
+package_row.py   
+package_table*.py
+
+   These modules make up the Enstaller GUI.  There are two types of views used
+in the GUI: the "main" GUI view for displaying the log output, tables of
+packages, and top button row, and the "table" view used for displaying the table
+of packages, the meta-data pane, and the action buttons for each table.
+
+   The EnstallerGUI class is the model for the "main" view, and like the CLI,
+consists primarily of an instance of an EnstallerSession.  Unlike the CLI, it
+adds button objects and the ability to run several EnstallerSession operations
+in a single session, in a background thread.
+
+   enstaller_gui_view.py contains the view and controller instances/classes for
+the EnstallerGUI model.
+
+   The PackageTable classes (PackageTable and RepositoryPackageTable) are the
+models for the tables of packages to display.  Each package is represented by a
+PackageRow, and the different types of PackageTables use different types of
+packageRows.
+
+   package_table_view.py and package_table_columns.py contain the view and
+controller instances/classes for the PackageTable models.
+
+   The PackageRow classes (PackageRow, InstalledPackageRow,
+RepositoryPackageRow) contain references to one or more Package objects (the
+only reason for multiple package objects is so multiple versions of the same
+package only use one row in the table).  The PackageRow classes (and the
+PackageTable handlers/controllers which operate on them) are fairly complex in
+order to support the GUI features they provide (state-dependent actions,
+selecting multiple versions, etc.).
+

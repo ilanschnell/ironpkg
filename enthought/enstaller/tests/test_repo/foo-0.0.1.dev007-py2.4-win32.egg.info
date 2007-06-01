@@ -1,0 +1,14 @@
+Metadata-Version: 1.0
+Name: foo
+Version: 0.0.1.dev007
+Summary: A prototype egg full of 'foo'
+Home-page: 
+Author: 
+Author-email: 
+License: 
+Description: 
+Platform: 
+
+Depends:
+
+Provides:

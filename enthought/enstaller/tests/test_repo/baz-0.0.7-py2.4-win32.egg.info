@@ -1,0 +1,15 @@
+Metadata-Version: 1.0
+Name: baz
+Version: 0.0.7
+Summary: A prototype egg full of 'baz'
+Home-page: 
+Author: 
+Author-email: 
+License: 
+Description: 
+Platform: 
+
+Depends:
+foo
+
+Provides:
