@@ -10,14 +10,20 @@
 # Rick Ratzel - 5/14/2006
 #------------------------------------------------------------------------------
 
+#
+# DO NOT IMPORT API IN THE MODULE...it will cause a bootstrapping error since
+# it makes pkg_resources calls
+# 
 import sys
 import os
 from os import path
 
-from enthought.enstaller.api import \
-     PYVER, IS_WINDOWS
+
 from enthought.enstaller.easy_installer import \
      EasyInstaller
+
+PYVER = "%s.%s" % (sys.version_info[0], sys.version_info[1])
+IS_WINDOWS = sys.platform.lower().startswith( "win" )
 
 
 class Bootstrapper( EasyInstaller ) :
@@ -73,7 +79,7 @@ class Bootstrapper( EasyInstaller ) :
             (package_name, version) = path.basename( egg ).split( "-" )[0:2]
         tmp_repo = ""
 
-        self.install( install_dir, egg, self.gui )
+        self.install( install_dir, egg )
         
         #
         # if the temp dir was added, remove it from the list of repos
@@ -88,15 +94,38 @@ class Bootstrapper( EasyInstaller ) :
         standard install step is not adequate...in addition, the new package
         has to be seen by the interpreter, meaning the .pth file must be reread.
         """
+        orig_find_links = self.find_links
+        egg_spec = egg
         #
-        # Also, add -m (manage independently) so egg is not added to .pth file
+        # If the gui is to be installed, change the abs path to the egg to a
+        # combination of an additional find_links and a package spec so the
+        # "gui" extra can be specified.
         #
-        new_dists = super( Bootstrapper, self ).install( install_dir, egg, "-m" )
+        if( self.gui ) :
+            (egg_dir, full_egg_name) = path.split( egg )
+            try :
+                (egg_name, egg_ver) = full_egg_name.split( "-" )[0:2]
+            except :
+                msg = "Unrecogonized egg name format: %s" % full_egg_name + \
+                      "...expecting enstaller-<version>-<extra_tags>.egg"
+                self.log( msg )
+                raise AssertionError, msg
+
+            self.find_links.insert( 0, egg_dir )
+            egg_spec = "%s[gui]==%s" % (egg_name, egg_ver)
+        
+        #
+        # Also, add -m (multi-version) so egg is not added to .pth file
+        #
+        new_dists = super( Bootstrapper, self ).install( install_dir,
+                                                         egg_spec, "-m" )
         #
         # make the new package(s) visible to this interpreter
         #
         self._reread_easy_install_pth()
 
+        self.find_links = orig_find_links
+        
         return new_dists
 
 

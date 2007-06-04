@@ -245,9 +245,11 @@ class EasyInstaller( TextIO ) :
             fl = [l.replace( " ", "\ " ) for l in fl]
             ei_args += ["--find-links=%s" % " ".join( fl )]
 
-        ei_args += [package_spec]
-
+        #
+        # Add any extra args, then add the pacakge spec last
+        #
         ei_args += extra_args.split()
+        ei_args += [package_spec]
         
         return ei_args
     
