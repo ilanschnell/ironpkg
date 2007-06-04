@@ -16,19 +16,23 @@ setup(
     packages     = find_packages(),
     ext_modules  = [],
     include_package_data = True,
-    
+
+    entry_points = {"console_scripts":
+                    ["enstaller = enthought.enstaller.launcher:launch"],
+                    },
+
     install_requires = [
        "enthought.traits>=2.1",
        "enthought.ets>=2.0",
-    ],
+       ],
     
     extras_require = {
-        "gui": ["enthought.enstaller.gui>=2.0.0, <2.0.1" ],
-    },
+        "gui": ["enthought.enstaller.gui>=2.0.0, <2.0.1"],
+        },
     
     namespace_packages = [
         "enthought",
         "enthought.enstaller",
-    ],
+        ],
 )
 
