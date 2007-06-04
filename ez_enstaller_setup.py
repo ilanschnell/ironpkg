@@ -7,7 +7,7 @@
 # redistributed only under the conditions described in the aforementioned
 # license.
 #
-# Rick Ratzel - 2006-06-27
+# Rick Ratzel - 2007-06-04
 #------------------------------------------------------------------------------
 #
 # The default repository
@@ -57,7 +57,6 @@ if( __name__ == "__main__" ) :
         sys.stderr.write( err_msg )
         sys.exit( 1 )
 
-from distutils.sysconfig import get_python_lib
 
 PYVER = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
@@ -401,19 +400,6 @@ class Downloader( TextIO ) :
         return None
 
 
-    @staticmethod
-    def get_site_packages_dir() :
-        """
-        returns the path to this interps default install location
-        (site-pacakges)
-        """
-        try :
-            return path.normcase( path.normpath( get_python_lib() ) )
-        except :
-            raise RuntimeError, \
-                  "could not find default install location (site-packages)"
-
-
     def make_cache( self, name="__enstaller_tmp" ) :
         """
         Creates a cache directory in the location specified, named after
@@ -437,7 +423,6 @@ class Downloader( TextIO ) :
         return cache
 
 
-    @staticmethod
     def version_cmp( a, b ) :
         """
         Function used in comparisons on strings which represent version numbers.
@@ -697,7 +682,7 @@ class Downloader( TextIO ) :
 
 
 ################################################################################
-####  EnstallerLauncher
+####  Installer
 ####
 ####  Class used to start a standalone Enstaller session.
 ####
@@ -706,14 +691,14 @@ class Downloader( TextIO ) :
 ####  "bootstrapped" (downloaded and installed) prior to starting if it had not
 ####  been installed before.
 ################################################################################
-class EnstallerLauncher( TextIO ) :
+class Installer( TextIO ) :
     """
     Class used to start a standalone Enstaller session.
     """
     #
     # The postmortem file...if a crash occurs, send this file to the authors
     #
-    postmortem_file = path.abspath( "ENSTALLER_POSTMORTEM.txt" )
+    postmortem_file = path.abspath( "EZ_ENSTALLER_SETUP_POSTMORTEM.txt" )
     #
     # the Enstaller egg name pattern to match.
     # Note the $ at the end...needed to avoid matching things like foo.egg.info
@@ -722,14 +707,6 @@ class EnstallerLauncher( TextIO ) :
     #
     # Output messages
     #
-    enstaller_import_error = """
-The Enstaller package could not be imported...this means Enstaller is not
-installed or is broken or missing (need to set PYTHONPATH?)
-"""
-
-    install_enstaller_prompt = """
-Proceed to download and install Enstaller? (y/n) """
-
     bootstrapping_enstaller = """
 Attempting to download the Enstaller package...
 """
@@ -740,29 +717,21 @@ Use the --find-links option to specify a URL which has an Enstaller egg
 for Python version %s
 """ % PYVER
 
-    unknown_option_msg = """
-Enstaller does not appear to be installed and the option "%s"
-is not recognized...it is either invalid or requires the complete Enstaller
-package to be processed.  The options available at this time are:
-
-"""
-
 
     def __init__( self, *args, **kwargs ) :
         """
         Construct with an optional logging_handle (must support file methods
         write() and flush()) used for outputting messages to the user.
         """
-        super( EnstallerLauncher, self ).__init__( *args, **kwargs )
+        super( Installer, self ).__init__( *args, **kwargs )
         #
         # assign defaults to attributes
-        # (overridden when command-line is processed
+        # (overridden when command-line is processed)
         #
         self.argv = []
         self.gui = True
         self.install_dir = ""
         self.find_links = []
-        self.bootstrap = True
         #
         # setup a file downloader
         #
@@ -771,56 +740,7 @@ package to be processed.  The options available at this time are:
                                       prompting=self.prompting )
         
 
-    def bootstrap_bootstrap( self ) :
-        """
-        Downloads the latest Enstaller egg to a temp directory to access its
-        bootstrap code, where the bootstrap code will then handle the formal
-        installation of Enstaller and all necessary dependencies.
-
-        The egg in the temp dir is added to the current sys.path, the bootstrap
-        module is imported from it and ran, then the temp egg is "unimported"
-        and removed.
-        """
-        self.log( self.bootstrapping_enstaller )
-        #
-        # get the URL for the Enstaller egg...this may involve asking the user
-        # which version they want.
-        #
-        url = self.get_enstaller_url()
-        #
-        # open a temp file to save the egg contents to...it will be installed
-        # properly at the end of the bootstrap process
-        #
-        cache = self.downloader.make_cache()
-        egg = self.downloader.download_file( url, cache )
-        #
-        # import the bootstrap code from the temporary egg and run it
-        #
-        sys.path.insert( 0, egg )
-        from enthought.enstaller.bootstrapper import Bootstrapper
-        bs = Bootstrapper( self.find_links, self.gui,
-                           logging_handle=self.logging_handle,
-                           verbose=self.verbose,
-                           prompting=self.prompting )
-
-        try :
-            bs.bootstrap( self.install_dir, egg )
-        except AssertionError :
-            sys.exit( 1 )
-        #
-        # "unimport" the temporary egg since it may be deleted from disk
-        # (assumed to be properly installed at this point)
-        #
-        sys.path.remove( egg )
-        allmods = sys.modules.keys()
-        for mod in allmods :
-            if( mod.startswith( "enstaller" ) and (mod in sys.modules.keys()) ) :
-                del sys.modules[mod]
-
-
-    @staticmethod
-    def build_option_parser( program_name=sys.argv[0],
-                             opt_parser_class=OptionParser ) :
+    def build_option_parser( program_name=sys.argv[0] ) :
         """
         Returns a basic option parser which supports options primarily used for
         bootstrapping Enstaller.  Other Enstaller operations defined in the
@@ -838,13 +758,13 @@ package to be processed.  The options available at this time are:
                         parser.values.find_links.append( arg )
                     del parser.rargs[0]
 
-        opt_parser = opt_parser_class( prog=program_name, usage=usage,
-                                       version=VERSION_STRING )
+        opt_parser = OptionParser( prog=program_name, usage=usage,
+                                   version=VERSION_STRING )
 
         opt_parser.add_option( "-c", "--command-line",
                                dest="gui", default=True,
                                action="store_false",
-                               help="do not use/install the Enstaller GUI" )
+                               help="do not install the Enstaller GUI" )
 
         opt_parser.add_option( "-d", "--install-dir",
                                dest="install_dir", metavar="<dir>",
@@ -859,11 +779,6 @@ package to be processed.  The options available at this time are:
                                action="callback", callback=add_link,
                                help="add a package repository URL to the " + \
                                "search list" )
-
-        opt_parser.add_option( "-n", "--no-bootstrap",
-                               dest="bootstrap", default=True,
-                               action="store_false",
-                               help="do not attempt to bootstrap Enstaller" )
 
         opt_parser.add_option( "-t", "--batch",
                                dest="prompting", default=True,
@@ -923,12 +838,12 @@ package to be processed.  The options available at this time are:
         return enstaller_url
 
 
-    def launch( self, argv ) :
+    def install( self, argv ) :
         """
         Launches the app, gracefully handling any uncaught exceptions.
         """
         try :
-            retcode = self.run( argv )
+            retcode = self._install( argv )
 
         except SystemExit, code:
             retcode = code
@@ -941,16 +856,60 @@ package to be processed.  The options available at this time are:
         return retcode
 
 
-    def run( self, argv, bootstrapping=False ) :
+    def _bootstrap( self ) :
         """
-        Runs the "main" function in the Enstaller package used to start a
-        standalone session of Enstaller.
+        Downloads the latest Enstaller egg to a temp directory to access its
+        bootstrap code, where the bootstrap code will then handle the formal
+        installation of Enstaller and all necessary dependencies.
 
-        An attempt to import the Enstaller package is made, and if that is
-        successful Enstaller is started.  If it could not be imported and the
-        user has not disabled bootstrapping, the latest Enstaller egg is
-        downloaded and the bootstrap process defined in that egg is run.
+        The egg in the temp dir is added to the current sys.path, the bootstrap
+        module is imported from it and ran, then the temp egg is "unimported"
+        and removed.
         """
+        self.log( self.bootstrapping_enstaller )
+        #
+        # get the URL for the Enstaller egg...this may involve asking the user
+        # which version they want.
+        #
+        url = self.get_enstaller_url()
+        #
+        # open a temp file to save the egg contents to...it will be installed
+        # properly at the end of the bootstrap process
+        #
+        cache = self.downloader.make_cache()
+        egg = self.downloader.download_file( url, cache )
+        #
+        # import the bootstrap code from the temporary egg and run it
+        #
+        sys.path.insert( 0, egg )
+        from enthought.enstaller.bootstrapper import Bootstrapper
+        bs = Bootstrapper( self.find_links, self.gui,
+                           logging_handle=self.logging_handle,
+                           verbose=self.verbose,
+                           prompting=self.prompting )
+
+        try :
+            bs.bootstrap( self.install_dir, egg )
+        except AssertionError :
+            sys.exit( 1 )
+        #
+        # "unimport" the temporary egg since it may be deleted from disk
+        # (assumed to be properly installed at this point)
+        #
+        sys.path.remove( egg )
+        allmods = sys.modules.keys()
+        for mod in allmods :
+            if( mod.startswith( "enstaller" ) and (mod in sys.modules.keys()) ) :
+                del sys.modules[mod]
+
+
+    def _install( self, argv, bootstrapping=False ) :
+        """
+        Checks if the enstaller app egg can be imported, and if not begins the
+        bootstrapping process.
+        """
+
+        retcode = 0
         #
         # without processing the args, check for the verbose flag for debugging
         #
@@ -962,9 +921,11 @@ package to be processed.  The options available at this time are:
         # line args to the main function.
         #
         try :
-            from enthought.enstaller.main import main
-            return main( argv, self.logging_handle )
-
+            # FIXME: add the pkg_resources calls to find the non-active
+            # enstaller app egg.
+            from enthought.enstaller.api import __version__ as version
+            self.log( "Enstaller version %s has been installed.\n" % version )
+            
         #
         # If this point is reached Enstaller is not installed (or is broken).
         # Use the arg processor in this script to examine the command line and
@@ -978,19 +939,12 @@ package to be processed.  The options available at this time are:
             if( args_ok != 0 ) :
                 return args_ok
             #
-            # bootstrap Enstaller--if permitted--by installing the latest
-            # Enstaller egg and using its bootstrap module and call run() again.
+            # bootstrap Enstaller by installing the latest Enstaller egg and
+            # using its bootstrap module and call run() again.
             #
             if( not( bootstrapping ) ) :
-                self.log( self.enstaller_import_error )
-                self.log( "\nThe import error was: %s\n" % err )
-
-                if( self.bootstrap ) :
-                    if( self.prompt( self.install_enstaller_prompt, True ) ) :
-                        self.bootstrap_bootstrap()                    
-                        return self.run( argv, bootstrapping=True )
-                    else :
-                        return 1
+                self._bootstrap()                    
+                return self._install( argv, bootstrapping=True )
             #
             # if this point is reached, there is a bug.
             #
@@ -1000,31 +954,15 @@ package to be processed.  The options available at this time are:
 
             raise
 
+        return retcode
+    
 
     def _process_command_line( self, argv ) :
         """
         Read the command line and set attributes on this object.
         """
         logging_handle = self.logging_handle
-        unknown_option_msg = self.unknown_option_msg
-        #
-        # For parsing options for the bootstrap operation, override the error
-        # handler to print a message explaining that unknown options may be valid
-        # once Enstaller is installed, but not recognized with this opt parser.
-        #
-        class TempOptParser( OptionParser ) :
-            def error( self, msg ) :
-                exit_msg = ""
-                if( msg.startswith( "no such option: " ) ) :
-                    bad_opt = msg.split( ": " )[1]
-                    logging_handle.write( unknown_option_msg % bad_opt )
-                else :
-                    exit_msg = "%s: error: %s\n" % (self.get_prog_name(), msg)
-
-                self.print_help( logging_handle )
-                self.exit( 2, exit_msg )
-
-        opt_parser = self.build_option_parser( argv[0], TempOptParser )
+        opt_parser = self.build_option_parser( argv[0] )
 
         #
         # prevent OptionParser from shutting down the app
@@ -1039,7 +977,6 @@ package to be processed.  The options available at this time are:
         self.gui = args_obj.gui
         self.install_dir = args_obj.install_dir
         self.find_links = args_obj.find_links
-        self.bootstrap = args_obj.bootstrap
         self.prompting = args_obj.prompting
         self.verbose = args_obj.verbose
         #
@@ -1101,7 +1038,5 @@ package to be processed.  The options available at this time are:
 #### "main" for running as a script.
 ################################################################################
 if( __name__ == "__main__" ) :
-    launcher = EnstallerLauncher()
-    ret_code = launcher.launch( sys.argv )
-    sys.exit( ret_code )
+    sys.exit( Installer().install( sys.argv ) )
 
