@@ -83,11 +83,11 @@ def build_option_parser( program_name=sys.argv[0] ) :
             msg += " %s" % ", ".join( ['"--%s"' % a for a in all_actions] )
             raise optparse.OptionValueError( msg )
         #
-        # Check if at least one pacakge was given, if needed
+        # Check if at least one package was given, if needed
         #
         if( option.get_opt_string() in need_package_actions ) :
             found_package_spec = False
-            for arg in (parser.largs + parser.rargs)[1:] :
+            for arg in (parser.largs + parser.rargs) :
                 if( not( arg.startswith( "-" ) ) ) :
                     found_package_spec = True
                     break
