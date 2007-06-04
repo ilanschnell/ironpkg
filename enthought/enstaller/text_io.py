@@ -1,16 +1,19 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2007, Enthought, Inc.
+# All rights reserved.
+#
+# This software is provided without warranty under the terms of the BSD license
+# available at http://www.enthought.com/licenses/BSD.txt and may be
+# redistributed only under the conditions described in the aforementioned
+# license.
+#
+# Rick Ratzel - 2007-05-27
+#------------------------------------------------------------------------------
+
 import sys
 import types
 
-################################################################################
-####  TextIO
-####
-####  A mixin class that adds basic text-based I/O functionality.
-####
-####  These functions will most likely be used elsewhere in Enstaller.  They
-####  provide methods for logging output messages and reading user input.  The
-####  logging methods assume a logging_handle has been set (usually sys.stdout)
-####  which has standard file object methods.
-################################################################################
+
 class TextIO( object ) :
     """
     A mixin which provides methods for logging output messages and reading user

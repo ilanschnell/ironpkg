@@ -1,16 +1,22 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2007, Enthought, Inc.
+# All rights reserved.
+#
+# This software is provided without warranty under the terms of the BSD license
+# available at http://www.enthought.com/licenses/BSD.txt and may be
+# redistributed only under the conditions described in the aforementioned
+# license.
+#
+# Rick Ratzel - 2007-05-27
+#------------------------------------------------------------------------------
+
 import re
 import urllib
 
 from enthought.enstaller.text_io import \
      TextIO
 
-################################################################################
-####  URLUtil
-####  
-####  Wraps various urllib functions with exception handlers to gracefully
-####  handle timeouts, etc.
-####  
-################################################################################
+
 class URLUtil( TextIO ) :
     """
     Class to gracefully handle timeouts, etc. for urllib functions.
