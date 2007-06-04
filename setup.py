@@ -23,7 +23,7 @@ setup(
     ],
     
     extras_require = {
-        "gui": ["enthought.enstaller.gui==2.0.0" ],
+        "gui": ["enthought.enstaller.gui>=2.0.0, <2.0.1" ],
     },
     
     namespace_packages = [
