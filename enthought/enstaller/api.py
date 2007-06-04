@@ -13,11 +13,6 @@
 import sys
 
 #
-# Revision number is from SVN
-#
-revision = "$Rev$"[6:-2]
-
-#
 # Version number is from the egg/setuptools
 #
 from pkg_resources import require
@@ -37,7 +32,7 @@ def get_version_string() :
     """
     Returns the version string for this package.
     """
-    return "version %s rev. %s" % (__version__, revision)
+    return "version %s" % __version__
 
 
 def get_app_version_string() :
