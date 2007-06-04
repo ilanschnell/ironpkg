@@ -898,7 +898,9 @@ for Python version %s
         sys.path.remove( egg )
         allmods = sys.modules.keys()
         for mod in allmods :
-            if( mod.startswith( "enstaller" ) and (mod in sys.modules.keys()) ) :
+            if( (mod.startswith( "enstaller" ) or
+                 mod.startswith( "enthought.enstaller" )) and
+                (mod in sys.modules.keys()) ) :
                 del sys.modules[mod]
 
 
@@ -947,7 +949,7 @@ for Python version %s
                     self.log( "\nAn error was encountered while " + \
                               "bootstrapping Enstaller!\n" )
 
-                raise
+                    raise
 
         return retcode
     
