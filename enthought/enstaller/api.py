@@ -11,13 +11,26 @@
 #------------------------------------------------------------------------------
 
 import sys
+from os import path
 
 #
 # Version number is from the egg/setuptools
 #
-from pkg_resources import require
-__version__ = require( "enthought.enstaller" )[0].version
+# ...this is a hack...since the package is named differently depending on if
+# it is the bundled standalone app egg or the library module, the require()
+# call must be different...use the path to this file to try and determine which
+# egg must be required.
+#
+is_standalone_app = path.basename( path.dirname( path.dirname(
+    path.dirname( __file__ ) ) ) ).startswith( "enstaller-" )
 
+if( is_standalone_app ) :
+    package_name = "enstaller"
+else :
+    package_name = "enthought.enstaller"
+
+from pkg_resources import require
+__version__ = require( package_name )[0].version
 
 PYVER = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 IS_WINDOWS = sys.platform.lower().startswith( "win" )
