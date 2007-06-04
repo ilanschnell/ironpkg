@@ -79,20 +79,21 @@ installed or is broken or missing.
                 self.err_handle.write( pm_text )
             retcode = 1
 
-        #
-        # Run the Enstaller main, catch all uncaught exceptions.
-        #
-        try :
-            retcode = main( self.argv )
+        else :
+            #
+            # Run the Enstaller main, catch all uncaught exceptions.
+            #
+            try :
+                retcode = main( self.argv )
 
-        except SystemExit, code:
-            retcode = code
+            except SystemExit, code:
+                retcode = code
 
-        except Exception, err:
-            pm_text = self._write_postmortem()
-            if( self.debug ) :
-                self.err_handle.write( pm_text )
-            retcode = 1
+            except Exception, err:
+                pm_text = self._write_postmortem()
+                if( self.debug ) :
+                    self.err_handle.write( pm_text )
+                retcode = 1
 
         return retcode
     
