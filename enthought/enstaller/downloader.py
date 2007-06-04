@@ -21,12 +21,12 @@ from tempfile import gettempdir
 from getpass import getuser
 from urlparse import urljoin
 
-from enthought.enstaller.api import \
-     IS_WINDOWS
 from enthought.enstaller.text_io import \
      TextIO
 from enthought.enstaller.url_util import \
      URLUtil
+
+IS_WINDOWS = sys.platform.lower().startswith( "win" )
 
 
 class Downloader( TextIO ) :

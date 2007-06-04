@@ -19,8 +19,6 @@ import shutil
 from os import path
 import warnings
 
-from enthought.enstaller.api import \
-     IS_WINDOWS
 from enthought.enstaller.text_io import \
      TextIO
 from enthought.enstaller.downloader import \
