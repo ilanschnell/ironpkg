@@ -91,44 +91,69 @@ class EasyInstaller( TextIO ) :
         self._urlutil = URLUtil( *args, **kwargs )
 
 
-    def install( self, install_dir, package_spec ) :
+    def install( self, install_dir, package_spec, extra_args="" ) :
         """
-        Calls either the standard install() or one for installing Enstaller.
-        If the package_spec is an enstaller egg, this call was most likely
-        made as part of an upgrade attempt, since bootstrapping calls
-        _enstaller_install() directly.
+        Uses easy_install to install a package satisfying package_spec.
         """
-        #
-        # FIXME: If a GUI is not to be installed/updated, look for [NO_GUI]
-        # in the spec.
-        #
-        if( isinstance( package_spec, basestring ) and
-            ("[NO_GUI]" in package_spec) ) :
-            gui = False
-        else :
-            gui = True
-            
-        #
-        # Handle the case of a real file (like when bootstrapping or local repo)
-        #
-        if( path.exists( package_spec ) ) :
 
-            package_file = path.basename( package_spec )
+        self.newly_installed_dists = []
+        self.newly_installed_files = {}
+        
+        #
+        # import this here so code like the bootstrapper can import this module
+        # even if setuptools is not installed.
+        #
+        from setuptools.command.easy_install import main as easy_install
 
-            if( package_file.split( "-" )[0].lower() == "enstaller" ) :
-                return self._enstaller_install( install_dir, package_spec, gui )
+        self._set_install_dir( install_dir )
+        #
+        # use a custom easy_install command which overrides the standard
+        # setuptools output mechanism...just because
+        #
+        cmd_map = self._build_easy_install_cmd_map()
+        #
+        # build the list of args to pass easy_install
+        #
+        ei_args = self._build_easy_install_arg_list( package_spec, extra_args )
+        #
+        # easy_install uses print for logging...replace sys.stdout with
+        # this class and setup methods to make it look like a file handle
+        #
+        orig_stdout = sys.stdout
+        self.write = self._easy_install_log
+        self.flush = self.logging_handle.flush
+        sys.stdout = self
+        #
+        # call easy_install and catch all errors and have Enstaller report them
+        #
+        self.log( "Installing %s...\n" % package_spec )
+        self.debug( "Calling easy_install with options: %s\n" % ei_args )
+        try :
+            easy_install( ei_args, cmdclass=cmd_map )
+
+        except Exception, err :
+            self.log( "Error installing %s: %s\n" % (package_spec, err) )
+            del self.flush
+            del self.write
+            sys.stdout = orig_stdout
+            raise
+        #
+        # return stdout and this class back to normal
+        #
+        sys.stdout = orig_stdout
+        del self.flush
+        del self.write
 
         #
-        # Handle a package spec
+        # Remove any install files from dists that were not just installed
         #
-        spec_name = re.split( "[\[\]\_\-\<\>\=]+", package_spec )[0].lower() 
-        if( spec_name == "enstaller" ) :
-            return self._enstaller_install( install_dir, package_spec, gui )
+        new_dist_dirs = [d.location for d in self.newly_installed_dists]
 
-        #
-        # Otherwise, perform a normal install
-        #
-        return self._install( install_dir, package_spec )
+        for files_dir in self.newly_installed_files.keys() :
+            if( not( files_dir in new_dist_dirs ) ) :
+                self.newly_installed_files.pop( files_dir )
+                
+        return self.newly_installed_dists
 
 
     #############################################################################
@@ -164,7 +189,7 @@ class EasyInstaller( TextIO ) :
             pass
 
 
-    def _build_easy_install_arg_list( self, package_spec ) :
+    def _build_easy_install_arg_list( self, package_spec, extra_args="" ) :
         """
         Returns a list of strings which are used as args to the easy_install
         "main" call, equivalent to calling it from the command-line.
@@ -224,6 +249,8 @@ class EasyInstaller( TextIO ) :
 
         ei_args += [package_spec]
 
+        ei_args += extra_args.split()
+        
         return ei_args
     
 
@@ -404,140 +431,6 @@ class EasyInstaller( TextIO ) :
             msg = "easy_install> %s" % msg.lstrip( "\n" )
         self.log( msg )
 
-
-    def _enstaller_install( self, install_dir, package_spec, gui ) :
-        """
-        Called specifically to enstall or upgrade an Enstaller egg.
-        This method installs Enstaller to the isntall dir, but installs all of
-        its dependencies into a separate subdir of the install_dir.
-        """
-
-        #
-        # Install the egg, but not the dependencies
-        #
-        self.no_deps = True
-
-        new_dists = self._install( install_dir, package_spec )
-        self._reread_easy_install_pth()
-
-        self.no_deps = False
-
-        #
-        # Install all of the dependencies to the "enstaller_deps" subdir of
-        # the install directory (a peer to the enstaller egg just installed).
-        # ...assume it is safe to create a dir there (should be)
-        #
-        enstaller_deps_dir = path.join( self._install_dir, "enstaller_deps" )
-
-        #
-        # Scan a .pth file in here, in case it existed...this prevents packages
-        # from being re-installed.
-        #
-        self._reread_easy_install_pth( enstaller_deps_dir )
-
-        #
-        # Save the installed files
-        #
-        installed_files = {}
-        installed_files.update( self.newly_installed_files )
-        
-        #
-        # Iterate through all the distributions just installed (should only be
-        # one) and install their deps...this time, do not set no_deps.
-        #
-        return_dists = new_dists[:]
-        
-        for dist in new_dists :
-
-            extras = []
-            if( gui and (dist.key.lower() == "enstaller") ) :
-                if( IS_WINDOWS ) :
-                    extras = ["GUI_win"]
-                else :
-                    extras = ["GUI_linux"]
-
-            for req in dist.requires( extras ) :
-
-                req_str = "%s[%s]" % (req.key, ", ".join( req.extras ))
-                specs = ["%s%s" % (op, vnum) for (op, vnum) in req.specs]
-                req_str += ", ".join( specs )
-                            
-                return_dists += self._install( enstaller_deps_dir, req_str )
-                installed_files.update( self.newly_installed_files )
-                self._reread_easy_install_pth()
-
-        #
-        # Save the bookkepping vars just as if it were a regular install.
-        #
-        self.newly_installed_files = installed_files
-        self.newly_installed_dists = return_dists
-        
-        return return_dists
-        
-
-    def _install( self, install_dir, package_spec ) :
-        """
-        Uses easy_install to install a package satisfying package_spec.
-        """
-
-        self.newly_installed_dists = []
-        self.newly_installed_files = {}
-        
-        #
-        # import this here so code like the bootstrapper can import this module
-        # even if setuptools is not installed.
-        #
-        from setuptools.command.easy_install import main as easy_install
-
-        self._set_install_dir( install_dir )
-        #
-        # use a custom easy_install command which overrides the standard
-        # setuptools output mechanism...just because
-        #
-        cmd_map = self._build_easy_install_cmd_map()
-        #
-        # build the list of args to pass easy_install
-        #
-        ei_args = self._build_easy_install_arg_list( package_spec )
-        #
-        # easy_install uses print for logging...replace sys.stdout with
-        # this class and setup methods to make it look like a file handle
-        #
-        orig_stdout = sys.stdout
-        self.write = self._easy_install_log
-        self.flush = self.logging_handle.flush
-        sys.stdout = self
-        #
-        # call easy_install and catch all errors and have Enstaller report them
-        #
-        self.log( "Installing %s...\n" % package_spec )
-        self.debug( "Calling easy_install with options: %s\n" % ei_args )
-        try :
-            easy_install( ei_args, cmdclass=cmd_map )
-
-        except Exception, err :
-            self.log( "Error installing %s: %s\n" % (package_spec, err) )
-            del self.flush
-            del self.write
-            sys.stdout = orig_stdout
-            raise
-        #
-        # return stdout and this class back to normal
-        #
-        sys.stdout = orig_stdout
-        del self.flush
-        del self.write
-
-        #
-        # Remove any install files from dists that were not just installed
-        #
-        new_dist_dirs = [d.location for d in self.newly_installed_dists]
-
-        for files_dir in self.newly_installed_files.keys() :
-            if( not( files_dir in new_dist_dirs ) ) :
-                self.newly_installed_files.pop( files_dir )
-                
-        return self.newly_installed_dists
 
 
     def _reread_easy_install_pth( self, install_dir=None ) :

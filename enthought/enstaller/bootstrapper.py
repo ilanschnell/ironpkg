@@ -73,11 +73,7 @@ class Bootstrapper( EasyInstaller ) :
             (package_name, version) = path.basename( egg ).split( "-" )[0:2]
         tmp_repo = ""
 
-        #
-        # Call the method to enstall an Enstaller package (puts dependencies in
-        # a separate subdir).
-        #
-        self._enstaller_install( install_dir, egg, self.gui )
+        self.install( install_dir, egg, self.gui )
         
         #
         # if the temp dir was added, remove it from the list of repos
@@ -92,7 +88,10 @@ class Bootstrapper( EasyInstaller ) :
         standard install step is not adequate...in addition, the new package
         has to be seen by the interpreter, meaning the .pth file must be reread.
         """
-        new_dists = super( Bootstrapper, self )._install( install_dir, egg )
+        #
+        # Also, add -m (manage independently) so egg is not added to .pth file
+        #
+        new_dists = super( Bootstrapper, self ).install( install_dir, egg, "-m" )
         #
         # make the new package(s) visible to this interpreter
         #

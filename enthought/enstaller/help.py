@@ -25,7 +25,7 @@ HELP_FILE_PATH = path.join( path.dirname( path.abspath( __file__ ) ),
                             "Enstaller_Help.html" )
 
 
-class EnstallerHelp( HasTraits ) :
+class Help( HasTraits ) :
     """
     Class used for presenting help text to users.
     """

@@ -22,18 +22,18 @@ from enthought.enstaller.text_io import \
 from enthought.enstaller.downloader import \
      Downloader
 
-from enthought.enstaller.enstaller_session import EnstallerSession
+from enthought.enstaller.session import Session
 
 
-class EnstallerCLI( HasTraits, TextIO ) :
+class CLI( HasTraits, TextIO ) :
     """
-    The command-line interface to an EnstallerSession.
+    The command-line interface to an Enstaller Session.
     """
 
     #
     # The underlying session object which the CLI manipulates
     #
-    session = Instance( EnstallerSession )
+    session = Instance( Session )
 
 
     def __init__( self, **kwargs ) :
@@ -46,7 +46,7 @@ class EnstallerCLI( HasTraits, TextIO ) :
         self.prompting = kwargs.pop( "prompting", True )
         self.logging_handle = kwargs.pop( "logging_handle", sys.stdout )
 
-        super( EnstallerCLI, self ).__init__( **kwargs )
+        super( CLI, self ).__init__( **kwargs )
 
 
     def install( self, install_dir, package_specs ) :

@@ -24,7 +24,7 @@ except ImportError :
 
 
 
-class EnstallerLogger( HasTraits ) :
+class Logger( HasTraits ) :
     """
     Logs messages to the list of targets, all of which are assumed to have
     write() and flush() methods.

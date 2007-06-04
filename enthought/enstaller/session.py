@@ -42,8 +42,8 @@ from enthought.enstaller.local_repository import \
      LocalRepository
 from enthought.enstaller.repository import \
      Repository
-from enthought.enstaller.enstaller_engine import \
-     EnstallerEngine
+from enthought.enstaller.engine import \
+     Engine
 from enthought.enstaller.preference_manager import \
      PreferenceManager
 from enthought.enstaller.eula_manager import \
@@ -54,7 +54,7 @@ from enthought.enstaller.repository_factory import \
 version_cmp = Downloader.version_cmp
 
 
-class EnstallerSession( HasTraits, TextIO ) :
+class Session( HasTraits, TextIO ) :
     """
     Class containing the high-level APIs for all Enstaller operations.
     Instances of this class are used in the Enstaller GUI and CLI as well as
@@ -117,7 +117,7 @@ class EnstallerSession( HasTraits, TextIO ) :
     # Enstaller, such as installing, removing, activating, upgrading, etc.
     # Note: the ', ()' means construct an instance by default instead of None.
     #
-    engine = Instance( EnstallerEngine )
+    engine = Instance( Engine )
 
     #
     # Object which stores settings read in from user config file(s)
@@ -135,7 +135,7 @@ class EnstallerSession( HasTraits, TextIO ) :
         self.prompting = kwargs.pop( "prompting", True )
         self.logging_handle = kwargs.pop( "logging_handle", sys.stdout )
 
-        super( EnstallerSession, self ).__init__( **kwargs )
+        super( Session, self ).__init__( **kwargs )
 
     
     def initialize( self ) :
@@ -286,7 +286,7 @@ class EnstallerSession( HasTraits, TextIO ) :
 
     def install( self, package_specs ) :
         """
-        Calls the EnstallerEngine to install the packages specified in
+        Calls the Enstaller Engine to install the packages specified in
         package_specs.
         """
 
@@ -420,7 +420,7 @@ class EnstallerSession( HasTraits, TextIO ) :
 
     def remove( self, package_objs ) :
         """
-        Calls the EnstallerEngine to remove the packages referenced by
+        Calls the Enstaller Engine to remove the packages referenced by
         package_objs, then removes the package object from the repo it is
         in.  Returns 0 on success, non-zero on first failure.
         """
@@ -696,7 +696,7 @@ class EnstallerSession( HasTraits, TextIO ) :
 
     def _set_engine_preferences( self ) :
         """
-        Sets the preferences on the EnstallerEngine to those in the pref manager.
+        Sets the preferences on the Enstaller Engine to those in the pref mgr.
         """
 
         self.engine.find_links = self.find_links
@@ -712,12 +712,12 @@ class EnstallerSession( HasTraits, TextIO ) :
 
     def _engine_default( self ) :
         """
-        Return an instance of the EnstallerEngine to be used by default.
+        Return an instance of an Enstaller Engine to be used by default.
         """
 
-        engine = EnstallerEngine( logging_handle=self.logging_handle,
-                                  verbose=self.verbose,
-                                  prompting=self.prompting )
+        engine = Engine( logging_handle=self.logging_handle,
+                         verbose=self.verbose,
+                         prompting=self.prompting )
         return engine
 
 

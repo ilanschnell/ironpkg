@@ -1,3 +1,15 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2007, Enthought, Inc.
+# All rights reserved.
+#
+# This software is provided without warranty under the terms of the BSD license
+# available at http://www.enthought.com/licenses/BSD.txt and may be
+# redistributed only under the conditions described in the aforementioned
+# license.
+#
+# Rick Ratzel - 2007-06-03
+#------------------------------------------------------------------------------
+
 import sys
 import types
 import re
@@ -16,16 +28,7 @@ from enthought.enstaller.text_io import \
 from enthought.enstaller.url_util import \
      URLUtil
 
-################################################################################
-####  Downloader
-####  
-####  Downloads files from a URL or local path to a destination directory.
-####  
-####  Provides features for finding the latest version, or specific versions
-####  of files from a local or remote repository and downloading them to a
-####  target directory.  Methods for reporting the download progress are also
-####  defined and overridable for different UIs.
-################################################################################
+
 class Downloader( TextIO ) :
     """
     Class containing a minimum set of utility functions for accessing packages
@@ -277,7 +280,7 @@ class Downloader( TextIO ) :
         """
         #
         # Do this only if the logging_handle is the real stdout or if its an
-        # EnstallerLogger with no buffering (assume its going to stdout).
+        # Enstaller Logger with no buffering (assume its going to stdout).
         #
         if( (self.logging_handle == sys.__stdout__) or
             (hasattr( self.logging_handle, "copy_to_buffer" ) and
@@ -310,7 +313,7 @@ class Downloader( TextIO ) :
         """
         #
         # Do this only if the logging_handle is the real stdout or if its an
-        # EnstallerLogger with no buffering (assume its going to stdout).
+        # Enstaller Logger with no buffering (assume its going to stdout).
         #
         if( (self.logging_handle == sys.__stdout__) or
             (hasattr( self.logging_handle, "copy_to_buffer" ) and
@@ -342,7 +345,7 @@ class Downloader( TextIO ) :
         """
         #
         # Do this only if the logging_handle is the real stdout or if its an
-        # EnstallerLogger with no buffering (assume its going to stdout).
+        # Enstaller Logger with no buffering (assume its going to stdout).
         #
         if( (self.logging_handle == sys.__stdout__) or
             (hasattr( self.logging_handle, "copy_to_buffer" ) and

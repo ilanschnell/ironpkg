@@ -28,7 +28,7 @@ from enthought.traits.api import \
 from enthought.enstaller.easy_installer import EasyInstaller
 
 
-class EnstallerEngine( EasyInstaller, HasTraits ) :
+class Engine( EasyInstaller, HasTraits ) :
     """
     Performs the "core" Enstaller operations, such as install, remove,
     upgrade, de/activate, etc.
@@ -64,7 +64,7 @@ class EnstallerEngine( EasyInstaller, HasTraits ) :
             # that the install happens from the repo in the package obj only
             #
             pkg_str = self._get_package_req_string( package )
-            super( EnstallerEngine, self ).install( install_dir, pkg_str )
+            super( Engine, self ).install( install_dir, pkg_str )
 
             for dist in self.newly_installed_dists :
 

@@ -18,16 +18,14 @@ from os import path
 
 from enthought.enstaller.downloader import \
      Downloader
-from enthought.enstaller.enstaller_launcher import \
-     EnstallerLauncher
 from enthought.enstaller.api import \
-     get_app_version_string
-from enthought.enstaller.enstaller_session import \
-     EnstallerSession
-from enthought.enstaller.enstaller_cli import \
-     EnstallerCLI
-from enthought.enstaller.enstaller_logger import \
-     EnstallerLogger
+     ENTHOUGHT_REPO, get_app_version_string
+from enthought.enstaller.session import \
+     Session
+from enthought.enstaller.cli import \
+     CLI
+from enthought.enstaller.logger import \
+     Logger
 
 #
 # Set a flag indicating if the Enstaller GUI was installed.
@@ -49,13 +47,22 @@ from enthought.ets.api import \
 ETS.application_home = path.join( ETS.application_data, "enstaller" )
 
 
-def add_option_defs( opt_parser ) :
+def build_option_parser( program_name=sys.argv[0] ) :
     """
-    Adds the remaining options recognized by the Enstaller application to the
-    base set recognized by the bootstrap/launching code.  opt_parser is an
-    instance of an OptionParser, as returned by the build_option_parser()
-    method on the EnstallerLauncher class.
+    Returns an OptionParser instance for use with the Enstaller standalone app.
     """
+    usage = "USAGE: %prog [options]"
+
+    #
+    # Add a new link only if it has not been added before.
+    #
+    def add_link( option, opt_str, value, parser ) :
+        if( len( parser.rargs ) > 0 ) :
+            arg = parser.rargs[0]
+            if( not( arg.startswith( "-" ) ) ) :
+                if( not( arg in parser.values.find_links ) ) :
+                    parser.values.find_links.append( arg )
+                del parser.rargs[0]
 
     #
     # Define a callback function for the opt_parser which makes sure only one
@@ -90,14 +97,47 @@ def add_option_defs( opt_parser ) :
                 raise optparse.OptionValueError( msg )
 
     #
-    # Set the version number to be printed.
+    # Create an OptionParser and initialize with Enstaller options.
     #
-    opt_parser.version = get_app_version_string()
+    opt_parser = optparse.OptionParser( prog=program_name, usage=usage,
+                                        version=get_app_version_string() )
 
-    #
-    # Add options supported by the Enstaller package, to those supported by
-    # the bootstrapping code.
-    #
+    opt_parser.add_option( "-c", "--command-line",
+                           dest="gui", default=True,
+                           action="store_false",
+                           help="do not use the Enstaller GUI" )
+
+    opt_parser.add_option( "-d", "--install-dir",
+                           dest="install_dir", metavar="<dir>",
+                           default="",
+                           help="use an alternate directory to install" + \
+                           "packages to (defaults to site-packages for" + \
+                           "use by all users)" )
+
+    opt_parser.add_option( "-f", "--find-links",
+                           dest="find_links", metavar="<repo>",
+                           default=[],
+                           action="callback", callback=add_link,
+                           help="add a package repository URL to the " + \
+                           "search list" )
+
+    opt_parser.add_option( "-t", "--batch",
+                           dest="prompting", default=True,
+                           action="store_false",
+                           help="batch mode - do not confirm operations " + \
+                           "(command-line only)" )
+
+    opt_parser.add_option( "-v", "--verbose",
+                           dest="verbose",default=False,
+                           action="store_true",
+                           help="print debug-level messages" )
+
+    opt_parser.add_option( "--no-default-enthought-repo",
+                           dest="use_default_enthought_repo", default=True,
+                           action="store_false",
+                           help="do not use the Enthought repository " + \
+                           "by default" )
+
     opt_parser.add_option( "-l", "--list-installed",
                            dest="list_installed", default=False,
                            action="callback", callback=check_valid_action,
@@ -137,6 +177,20 @@ def add_option_defs( opt_parser ) :
                            dest="deactivate", default=False,
                            action="callback", callback=check_valid_action,
                            help="deactivate a package or packages installed" )
+
+    #
+    # Override the optparse check_values method in order to add the default
+    # Enthought repo last in the order of find_links precedence, if it is to
+    # be used at all.
+    #
+    def check_values( values, args ) :
+        find_links = values.find_links
+        use_def_en_repo = values.use_default_enthought_repo
+        if( use_def_en_repo and not( ENTHOUGHT_REPO in find_links ) ) :
+            find_links.append( ENTHOUGHT_REPO )
+        return (values, args)
+
+    opt_parser.check_values = check_values
 
     return opt_parser
 
@@ -185,12 +239,6 @@ def postprocess_args( opt_parser, options, package_specs, logging_handle ) :
     """
 
     retcode = 0
-    #
-    # the program name is in the list of package_specs...remove it
-    #
-    package_specs.reverse()
-    package_specs.pop()
-    package_specs.reverse()
 
     #
     # Sometimes, missing args to -d will cause it to treat the next option
@@ -251,10 +299,10 @@ def postprocess_args( opt_parser, options, package_specs, logging_handle ) :
 
 def main( argv=sys.argv, logging_handle=sys.stdout ) :
     """
-    Starts a new EnstallerSession, initializing it based on the command-line
-    args passed in and logging all output to logging_handle.
-    This function should not raise any exceptions...instead it will return
-    non-0 on error and log a message to the logging handle.
+    Starts a new Session, initializing it based on the command-line args passed
+    in and logging all output to logging_handle.  This function should not raise
+    any exceptions...instead it will return non-0 on error and log a message to
+    the logging handle.
     """
 
     assert (len( argv ) > 0), "argv arg to main cannot be an empty list"
@@ -262,16 +310,14 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
     #
     # Build a command-line processor that uses the logging_handle for output.
     #
-    opt_parser = add_option_defs( 
-        EnstallerLauncher.build_option_parser( argv[0] ) )
-
-    override_opt_parse_output( opt_parser, logging_handle )
+    opt_parser = build_option_parser( argv[0] )
     
     #
-    # Prevent OptionParser from shutting down the app if the args were invalid.
+    # Catch sys.exit to prevent OptionParser from shutting down the app if the
+    # args were invalid.
     #
     try :
-        (options, package_specs) = opt_parser.parse_args( argv )
+        (options, package_specs) = opt_parser.parse_args( argv[1:] )
         retcode = postprocess_args( opt_parser, options, package_specs,
                                     logging_handle )
     
@@ -288,15 +334,15 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
         # completely imported so only the GUI option imports GUI dependencies.
         #
         if( options.gui ) :
-            from enthought.enstaller.gui.enstaller_gui import EnstallerGUI
+            from enthought.enstaller.gui.gui import GUI
         #
         # Instantiate a session and a logger, used for both GUI and CLI
         #
-        logger = EnstallerLogger( targets=[logging_handle] )
-        session = EnstallerSession( logging_handle = logger,
-                                    verbose        = options.verbose,
-                                    prompting      = options.prompting,
-                                    find_links     = options.find_links )
+        logger = Logger( targets=[logging_handle] )
+        session = Session( logging_handle = logger,
+                           verbose        = options.verbose,
+                           prompting      = options.prompting,
+                           find_links     = options.find_links )
         #
         # Scan sys.path...this is needed for all actions.
         #
@@ -307,18 +353,18 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
         # Launch either the GUI or the CLI with the appropriate action.
         #
         if( options.gui ) :
-            gui = EnstallerGUI( logging_handle=logger,
-                                verbose=options.verbose,
-                                session=session )
+            gui = GUI( logging_handle=logger,
+                       verbose=options.verbose,
+                       session=session )
             gui.install_dir = install_dir
             retcode = gui.show()
 
         else :
             logger.copy_to_buffer = False
-            cli = EnstallerCLI( logging_handle=logger,
-                                verbose=options.verbose,
-                                prompting=options.prompting,
-                                session=session )
+            cli = CLI( logging_handle=logger,
+                       verbose=options.verbose,
+                       prompting=options.prompting,
+                       session=session )
 
             if( options.list_installed ) :
                 retcode = cli.list_installed( package_specs )
@@ -349,5 +395,4 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
 
 
 if( __name__ == "__main__" ) :
-    retcode = main( sys.argv )
-    sys.exit( retcode )
+    sys.exit( main( sys.argv ) )
