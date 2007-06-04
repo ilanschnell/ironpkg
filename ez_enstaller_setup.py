@@ -423,7 +423,7 @@ class Downloader( TextIO ) :
         return cache
 
 
-    def version_cmp( a, b ) :
+    def version_cmp( self, a, b ) :
         """
         Function used in comparisons on strings which represent version numbers.
         """
@@ -740,7 +740,7 @@ for Python version %s
                                       prompting=self.prompting )
         
 
-    def build_option_parser( program_name=sys.argv[0] ) :
+    def build_option_parser( self, program_name=sys.argv[0] ) :
         """
         Returns a basic option parser which supports options primarily used for
         bootstrapping Enstaller.  Other Enstaller operations defined in the
@@ -758,8 +758,7 @@ for Python version %s
                         parser.values.find_links.append( arg )
                     del parser.rargs[0]
 
-        opt_parser = OptionParser( prog=program_name, usage=usage,
-                                   version=VERSION_STRING )
+        opt_parser = OptionParser( prog=program_name, usage=usage )
 
         opt_parser.add_option( "-c", "--command-line",
                                dest="gui", default=True,
@@ -909,50 +908,46 @@ for Python version %s
         bootstrapping process.
         """
 
-        retcode = 0
         #
-        # without processing the args, check for the verbose flag for debugging
+        # read the command line, continue only if its valid
         #
-        if( ("-v" in argv) or ("--verbose" in argv) ) :
-            self.verbose = True
+        retcode = self._process_command_line( argv )
 
-        #
-        # If Enstaller is installed, set the version info and pass the command
-        # line args to the main function.
-        #
-        try :
-            # FIXME: add the pkg_resources calls to find the non-active
-            # enstaller app egg.
-            from enthought.enstaller.api import __version__ as version
-            self.log( "Enstaller version %s has been installed.\n" % version )
-            
-        #
-        # If this point is reached Enstaller is not installed (or is broken).
-        # Use the arg processor in this script to examine the command line and
-        # determine the next action (bootstrap, print traceback, etc.)
-        #
-        except ImportError, err :
+        if( retcode == 0 ) :
             #
-            # read the command line, continue only if its valid
+            # If Enstaller is installed, set the version info and pass the
+            # command line args to the main function.
             #
-            args_ok = self._process_command_line( argv )
-            if( args_ok != 0 ) :
-                return args_ok
-            #
-            # bootstrap Enstaller by installing the latest Enstaller egg and
-            # using its bootstrap module and call run() again.
-            #
-            if( not( bootstrapping ) ) :
-                self._bootstrap()                    
-                return self._install( argv, bootstrapping=True )
-            #
-            # if this point is reached, there is a bug.
-            #
-            elif( bootstrapping ) :
-                self.log( "\nAn error was encountered while " + \
-                          "bootstrapping Enstaller!\n" )
+            try :
+                from pkg_resources import require
+                require( "enstaller" )
+                from enthought.enstaller.api import __version__ as version
 
-            raise
+                self.log( "Enstaller version %s has been installed.\n" \
+                          % version )
+
+            #
+            # If this point is reached Enstaller is not installed (or is
+            # broken).  Use the arg processor in this script to examine the
+            # command line and determine the next action (bootstrap, print
+            # traceback, etc.)
+            #
+            except :
+                #
+                # bootstrap Enstaller by installing the latest Enstaller egg and
+                # using its bootstrap module and call run() again.
+                #
+                if( not( bootstrapping ) ) :
+                    self._bootstrap()                    
+                    retcode = self._install( argv, bootstrapping=True )
+                #
+                # if this point is reached, there is a bug.
+                #
+                elif( bootstrapping ) :
+                    self.log( "\nAn error was encountered while " + \
+                              "bootstrapping Enstaller!\n" )
+
+                raise
 
         return retcode
     
