@@ -922,11 +922,10 @@ for Python version %s
             #
             try :
                 from pkg_resources import require
-                require( "enstaller" )
+                dist = require( "enstaller" )
                 from enthought.enstaller.api import __version__ as version
 
-                self.log( "Enstaller version %s has been installed.\n" \
-                          % version )
+                self.log( "\nEnstaller has been installed: %s.\n" % dist )
 
             #
             # If this point is reached Enstaller is not installed (or is
