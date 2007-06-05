@@ -40,7 +40,7 @@ if( is_standalone_app ) :
     try :
         require( "enstaller.gui" )
             
-    except DistribuitionNotFound :
+    except DistributionNotFound :
         HAVE_GUI = False
 
 if( HAVE_GUI ) :
