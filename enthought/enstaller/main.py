@@ -15,11 +15,13 @@ import optparse
 import site
 import os
 from os import path
+from pkg_resources import \
+     require, DistributionNotFound
 
 from enthought.enstaller.downloader import \
      Downloader
 from enthought.enstaller.api import \
-     ENTHOUGHT_REPO, get_app_version_string
+     ENTHOUGHT_REPO, get_app_version_string, is_standalone_app
 from enthought.enstaller.session import \
      Session
 from enthought.enstaller.cli import \
@@ -28,13 +30,25 @@ from enthought.enstaller.logger import \
      Logger
 
 #
-# Set a flag indicating if the Enstaller GUI was installed.
+# Set a flag indicating if the Enstaller GUI was installed, and handle the
+# special case of this module being part of a standalone app Enstaller egg vs.
+# a library package egg.
 #
-try :
-    import enthought.enstaller.gui
-    HAVE_GUI = True
-except ImportError :
-    HAVE_GUI = False
+HAVE_GUI = True
+
+if( is_standalone_app ) :
+    try :
+        require( "enstaller.gui" )
+            
+    except DistribuitionNotFound :
+        HAVE_GUI = False
+
+if( HAVE_GUI ) :
+    try :
+        import enthought.enstaller.gui
+
+    except ImportError :
+        HAVE_GUI = False
 
 #
 # Normally, ETS.application_home is set properly, but since Enstaller may be
