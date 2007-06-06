@@ -880,7 +880,9 @@ for Python version %s
         #
         # import the bootstrap code from the temporary egg and run it
         #
+        self._clean_mods()
         sys.path.insert( 0, egg )
+
         from enthought.enstaller.bootstrapper import Bootstrapper
         bs = Bootstrapper( self.find_links, self.gui,
                            logging_handle=self.logging_handle,
@@ -896,10 +898,17 @@ for Python version %s
         # (assumed to be properly installed at this point)
         #
         sys.path.remove( egg )
+        self._clean_mods()
+        
+
+    def _clean_mods( self ) :
+        """
+        Removes all enthought and enstaller loaded modules from memory.
+        """
         allmods = sys.modules.keys()
         for mod in allmods :
             if( (mod.startswith( "enstaller" ) or
-                 mod.startswith( "enthought.enstaller" )) and
+                 mod.startswith( "enthought" )) and
                 (mod in sys.modules.keys()) ) :
                 del sys.modules[mod]
 
@@ -909,7 +918,6 @@ for Python version %s
         Checks if the enstaller app egg can be imported, and if not begins the
         bootstrapping process.
         """
-
         #
         # read the command line, continue only if its valid
         #
