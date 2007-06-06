@@ -235,7 +235,9 @@ class EasyInstaller( TextIO ) :
             ei_args += ["--index-url=%s" % self.index_url]
             
         ei_args += ["--always-copy"]
-        ei_args += ["--install-dir=%s" % self._install_dir]
+
+        if( self._install_dir != self.site_packages_dir ) :
+            ei_args += ["--install-dir=%s" % self._install_dir]
 
         #
         # Fixup find_links...easy_install does not like file://c:\... or spaces
