@@ -120,6 +120,12 @@ class Bootstrapper( EasyInstaller ) :
         new_dists = super( Bootstrapper, self ).install( install_dir,
                                                          egg_spec, "-m" )
         #
+        # Run any post-installs for each new dist
+        #
+        for dist in new_dists :
+            self._run_post_install( dist.location )
+            
+        #
         # make the new package(s) visible to this interpreter
         #
         self._reread_easy_install_pth()
@@ -187,3 +193,57 @@ class Bootstrapper( EasyInstaller ) :
                     del sys.modules[mod_name]
                     
     
+    def _run_post_install( self, installed_egg_path ) :
+        """
+        Run any post-install scripts in the newly-installed egg.
+        """
+        tmp_unpack_dir = ""
+        #
+        # if the egg installed is a dir, simply check the EGG-INFO subdir
+        # for a post_install.py script and run it, otherwise, unzip it to
+        # a temp location and do the same thing
+        #
+        if( path.isdir( installed_egg_path ) ) :
+            egg_dir = installed_egg_path
+
+        else :
+            tmp_unpack_dir = tempfile.mkdtemp( prefix="enstaller-" )
+            egg_dir = path.join( tmp_unpack_dir,
+                                 path.basename( installed_egg_path ) )
+            unpack_archive( installed_egg_path, egg_dir )
+        #
+        # check for post_install.py and run if present
+        #
+        pi_script = path.join( egg_dir, "EGG-INFO", "post_install.py" )
+        if( path.exists( pi_script ) ) :
+
+            try :
+                execfile( pi_script, {"__file__" : pi_script} )
+            except Exception, err :
+                self.log( "Error: problem running post-install script %s: %s\n" \
+                          % (pi_script, err) )
+
+        #
+        # cleanup if a temp extraction was done
+        #
+        if( tmp_unpack_dir != "" ) :
+            self._rm_rf( tmp_unpack_dir )
+
+
+    def _rm_rf( self, file_or_dir ) :
+        """
+        Removes the file or directory, returns 0 on success, 1 on failure.
+        """
+        retcode = 0
+        try :
+            if( path.exists( file_or_dir ) ) :
+                if( path.isdir( file_or_dir ) ) :
+                    shutil.rmtree( file_or_dir )
+                else :
+                    os.remove( file_or_dir )
+
+        except (IOError, OSError), err :
+            self.log( "Error: could not remove %s: %s\n" % (file_or_dir, err) )
+            retcode = 1
+
+        return retcode
