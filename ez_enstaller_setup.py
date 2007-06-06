@@ -925,6 +925,16 @@ for Python version %s
 
         if( retcode == 0 ) :
             #
+            # Make sure the install dir is on PYTHONPATH, otherwise the require()
+            # call will not work after bootstrapping.
+            #
+            if( (self.install_dir != "") and
+                not( self.install_dir in sys.path ) ) :
+                self.log( "\nInstall dir %s is not in " % self.install_dir + \
+                          "PYTHONPATH...adding it to this session only.\n" )
+                sys.path.append( self.install_dir )
+
+            #
             # If Enstaller is installed, set the version info and pass the
             # command line args to the main function.
             #
