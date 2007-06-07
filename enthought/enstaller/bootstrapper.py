@@ -96,15 +96,19 @@ class Bootstrapper( EasyInstaller ) :
         """
         orig_find_links = self.find_links
         egg_spec = egg
+        (egg_dir, full_egg_name) = path.split( egg )
+
         #
         # If the gui is to be installed, change the abs path to the egg to a
         # combination of an additional find_links and a package spec so the
         # "gui" extra can be specified.
         #
-        if( self.gui ) :
-            (egg_dir, full_egg_name) = path.split( egg )
+        if( (full_egg_name.lower().startswith( "enstaller" ) or
+             full_egg_name.lower().startswith( "enthought.enstaller" )) and
+            self.gui ) :
             try :
                 (egg_name, egg_ver) = full_egg_name.split( "-" )[0:2]
+
             except :
                 msg = "Unrecogonized egg name format: %s" % full_egg_name + \
                       "...expecting enstaller-<version>-<extra_tags>.egg"
