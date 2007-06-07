@@ -22,7 +22,7 @@ setup(
                     },
 
     install_requires = [
-       "enthought.traits>=2.1",
+       "enthought.traits>=3.0.0b1",
        "enthought.ets>=2.0",
        ],
     
