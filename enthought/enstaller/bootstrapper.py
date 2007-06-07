@@ -16,7 +16,6 @@
 # 
 import sys
 import os
-import tempfile
 from os import path
 
 
@@ -205,34 +204,21 @@ class Bootstrapper( EasyInstaller ) :
         tmp_unpack_dir = ""
         #
         # if the egg installed is a dir, simply check the EGG-INFO subdir
-        # for a post_install.py script and run it, otherwise, unzip it to
-        # a temp location and do the same thing
+        # for a post_install.py script and run it, otherwise, bail out.
         #
         if( path.isdir( installed_egg_path ) ) :
             egg_dir = installed_egg_path
+            #
+            # check for post_install.py and run if present
+            #
+            pi_script = path.join( egg_dir, "EGG-INFO", "post_install.py" )
+            if( path.exists( pi_script ) ) :
 
-        else :
-            tmp_unpack_dir = tempfile.mkdtemp( prefix="enstaller-" )
-            egg_dir = path.join( tmp_unpack_dir,
-                                 path.basename( installed_egg_path ) )
-            unpack_archive( installed_egg_path, egg_dir )
-        #
-        # check for post_install.py and run if present
-        #
-        pi_script = path.join( egg_dir, "EGG-INFO", "post_install.py" )
-        if( path.exists( pi_script ) ) :
-
-            try :
-                execfile( pi_script, {"__file__" : pi_script} )
-            except Exception, err :
-                self.log( "Error: problem running post-install script %s: %s\n" \
-                          % (pi_script, err) )
-
-        #
-        # cleanup if a temp extraction was done
-        #
-        if( tmp_unpack_dir != "" ) :
-            self._rm_rf( tmp_unpack_dir )
+                try :
+                    execfile( pi_script, {"__file__" : pi_script} )
+                except Exception, err :
+                    self.log( "Error: problem running post-install " + \
+                              "script %s: %s\n" % (pi_script, err) )
 
 
     def _rm_rf( self, file_or_dir ) :
