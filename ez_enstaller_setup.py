@@ -20,6 +20,7 @@ import types
 import time
 import re
 import urllib
+import platform
 from os import path
 from optparse import OptionParser
 from tempfile import gettempdir
@@ -56,6 +57,31 @@ if( __name__ == "__main__" ) :
 
         sys.stderr.write( err_msg )
         sys.exit( 1 )
+
+
+################################################################################
+#### Returns the platform identifier used in platform-specific egg names.
+#### (taken directly from setuptools pkg_resources.py)
+################################################################################
+def get_build_platform():
+    """Return this platform's string for platform-specific distributions
+
+    XXX Currently this is the same as ``distutils.util.get_platform()``, but it
+    needs some hacks for Linux and Mac OS X.
+    """
+    from distutils.util import get_platform
+    plat = get_platform()
+    if sys.platform == "darwin" and not plat.startswith('macosx-'):
+        try:
+            version = _macosx_vers()
+            machine = os.uname()[4].replace(" ", "_")
+            return "macosx-%d.%d-%s" % (int(version[0]), int(version[1]),
+                _macosx_arch(machine))
+        except ValueError:
+            # if someone is running a non-Mac darwin system, this will fall
+            # through to the default implementation
+            pass
+    return plat
 
 
 PYVER = "%s.%s" % (sys.version_info[0], sys.version_info[1])
@@ -703,7 +729,8 @@ class Installer( TextIO ) :
     # the Enstaller egg name pattern to match.
     # Note the $ at the end...needed to avoid matching things like foo.egg.info
     #
-    enstaller_egg_name = "enstaller-(.*)-py%s.*\.egg$" % PYVER
+    enstaller_egg_name = "enstaller-(.*)-py%s-%s.egg$" \
+                         % (PYVER, get_build_platform())
     #
     # Output messages
     #
@@ -712,10 +739,10 @@ Attempting to download the Enstaller package...
 """
 
     enstaller_egg_not_found = """
-An Enstaller egg for this Python version was not found!
+An Enstaller egg for this Python version and platform was not found!
 Use the --find-links option to specify a URL which has an Enstaller egg
-for Python version %s
-""" % PYVER
+for Python version %s on platform %s
+""" % (PYVER, get_build_platform())
 
 
     def __init__( self, *args, **kwargs ) :
