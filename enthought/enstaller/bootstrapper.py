@@ -79,7 +79,7 @@ class Bootstrapper( EasyInstaller ) :
             (package_name, version) = path.basename( egg ).split( "-" )[0:2]
         tmp_repo = ""
 
-        self.install( install_dir, egg )
+        new_dists = self.install( install_dir, egg )
         
         #
         # if the temp dir was added, remove it from the list of repos
@@ -87,6 +87,8 @@ class Bootstrapper( EasyInstaller ) :
         if( tmp_repo != "" ) :
             self.find_links.remove( tmp_repo )
 
+        return new_dists
+    
 
     def install( self, install_dir, egg ) :
         """
@@ -97,32 +99,40 @@ class Bootstrapper( EasyInstaller ) :
         orig_find_links = self.find_links
         egg_spec = egg
         (egg_dir, full_egg_name) = path.split( egg )
+        extra_args = ""
 
         #
-        # If the gui is to be installed, change the abs path to the egg to a
-        # combination of an additional find_links and a package spec so the
-        # "gui" extra can be specified.
+        # This is here primarily to distinguish between installing an enstaller
+        # egg or a setuptools egg...enstaller eggs must be installed with
+        # -m, so users cannot use the packages inside of the bundle.
         #
-        if( (full_egg_name.lower().startswith( "enstaller" ) or
-             full_egg_name.lower().startswith( "enthought.enstaller" )) and
-            self.gui ) :
-            try :
-                (egg_name, egg_ver) = full_egg_name.split( "-" )[0:2]
+        if( full_egg_name.lower().startswith( "enstaller" ) or
+            full_egg_name.lower().startswith( "enthought.enstaller" ) ) :
 
-            except :
-                msg = "Unrecogonized egg name format: %s" % full_egg_name + \
-                      "...expecting enstaller-<version>-<extra_tags>.egg"
-                self.log( msg )
-                raise AssertionError, msg
+            extra_args = "-m"
+            #
+            # If the gui is to be installed, change the abs path to the egg to a
+            # combination of an additional find_links and a package spec so the
+            # "gui" extra can be specified.
+            #
+            if( self.gui ) :
+                try :
+                    (egg_name, egg_ver) = full_egg_name.split( "-" )[0:2]
 
-            self.find_links.insert( 0, egg_dir )
-            egg_spec = "%s[gui]==%s" % (egg_name, egg_ver)
+                except :
+                    msg = "Unrecogonized egg name format: %s" % full_egg_name + \
+                          "...expecting enstaller-<version>-<extra_tags>.egg"
+                    self.log( msg )
+                    raise AssertionError, msg
+
+                self.find_links.insert( 0, egg_dir )
+                egg_spec = "%s[gui]==%s" % (egg_name, egg_ver)
         
         #
         # Also, add -m (multi-version) so egg is not added to .pth file
         #
         new_dists = super( Bootstrapper, self ).install( install_dir,
-                                                         egg_spec, "-m" )
+                                                         egg_spec, extra_args )
         #
         # Run any post-installs for each new dist
         #
@@ -195,8 +205,8 @@ class Bootstrapper( EasyInstaller ) :
             for mod_name in allmods :
                 if( not( mod_name in orig_mods ) ) :
                     del sys.modules[mod_name]
-                    
-    
+
+
     def _run_post_install( self, installed_egg_path ) :
         """
         Run any post-install scripts in the newly-installed egg.
