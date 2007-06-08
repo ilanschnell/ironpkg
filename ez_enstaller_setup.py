@@ -909,7 +909,6 @@ for Python version %s on platform %s
         #
         self._clean_mods()
         sys.path.insert( 0, egg )
-
         from enthought.enstaller.bootstrapper import Bootstrapper
         bs = Bootstrapper( self.find_links, self.gui,
                            logging_handle=self.logging_handle,
@@ -917,16 +916,12 @@ for Python version %s on platform %s
                            prompting=self.prompting )
 
         try :
-            bs.bootstrap( self.install_dir, egg )
+            new_dists = bs.bootstrap( self.install_dir, egg )
         except AssertionError :
             sys.exit( 1 )
-        #
-        # "unimport" the temporary egg since it may be deleted from disk
-        # (assumed to be properly installed at this point)
-        #
-        sys.path.remove( egg )
-        self._clean_mods()
-        
+
+        return new_dists
+    
 
     def _clean_mods( self ) :
         """
@@ -940,11 +935,12 @@ for Python version %s on platform %s
                 del sys.modules[mod]
 
 
-    def _install( self, argv, bootstrapping=False ) :
+    def _install( self, argv ) :
         """
         Checks if the enstaller app egg can be imported, and if not begins the
         bootstrapping process.
         """
+        dists = []
         #
         # read the command line, continue only if its valid
         #
@@ -967,34 +963,31 @@ for Python version %s on platform %s
             #
             try :
                 from pkg_resources import require
-                dist = require( "enstaller" )
-                from enthought.enstaller.api import __version__ as version
 
-                self.log( "\nEnstaller has been installed: %s.\n" % dist )
+                dists = require( "enstaller" )
+                if( self.gui ) :
+                    dists = require( "enstaller.gui" )
 
             #
-            # If this point is reached Enstaller is not installed (or is
-            # broken).  Use the arg processor in this script to examine the
-            # command line and determine the next action (bootstrap, print
-            # traceback, etc.)
+            # bootstrap Enstaller by installing the latest Enstaller egg and
+            # using its bootstrap module.
             #
             except :
-                #
-                # bootstrap Enstaller by installing the latest Enstaller egg and
-                # using its bootstrap module and call run() again.
-                #
-                if( not( bootstrapping ) ) :
-                    self._bootstrap()                    
-                    retcode = self._install( argv, bootstrapping=True )
+                try :
+                    dists += self._bootstrap()                    
                 #
                 # if this point is reached, there is a bug.
                 #
-                elif( bootstrapping ) :
+                except :
                     self.log( "\nAn error was encountered while " + \
                               "bootstrapping Enstaller!\n" )
 
                     raise
 
+            self.log( "\nEnstaller has been installed:\n" )
+            for dist in dists :
+                self.log( "%s\n" % `dist` )
+            
         return retcode
     
 
