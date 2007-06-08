@@ -14,6 +14,8 @@
 #
 ENTHOUGHT_REPO = "http://code.enthought.com/enstaller/eggs"
 
+REVISION = "$Rev$"[6:-2]
+
 import sys
 import os
 import types
@@ -785,7 +787,8 @@ for Python version %s on platform %s
                         parser.values.find_links.append( arg )
                     del parser.rargs[0]
 
-        opt_parser = OptionParser( prog=program_name, usage=usage )
+        opt_parser = OptionParser( prog=program_name, usage=usage,
+                                   version="rev %s" % REVISION )
 
         opt_parser.add_option( "-c", "--command-line",
                                dest="gui", default=True,
