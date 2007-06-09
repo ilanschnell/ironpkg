@@ -13,11 +13,18 @@
 import sys
 from os import path
 
+################################################################################
+# IMPORTANT!
+# This module cannot import anything but standard library modules (and
+# setuptools).  If this is violted, bootstrapping as well as "standalone" app
+# Enstaller sessions could break.
+################################################################################
+
 #
 # Version number is from the egg/setuptools
 #
 # ...this is a hack...since the package is named differently depending on if
-# it is the bundled standalone app egg or the library module, the require()
+# its the bundled standalone app egg or the library module, the require()
 # call must be different...use the path to this file to try and determine which
 # egg must be required.
 #

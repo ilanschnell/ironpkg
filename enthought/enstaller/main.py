@@ -18,37 +18,57 @@ from os import path
 from pkg_resources import \
      require, DistributionNotFound
 
-from enthought.enstaller.downloader import \
-     Downloader
 from enthought.enstaller.api import \
      ENTHOUGHT_REPO, get_app_version_string, is_standalone_app
-from enthought.enstaller.session import \
-     Session
-from enthought.enstaller.cli import \
-     CLI
-from enthought.enstaller.logger import \
-     Logger
 
 #
-# Set a flag indicating if the Enstaller GUI was installed, and handle the
-# special case of this module being part of a standalone app Enstaller egg vs.
-# a library package egg.
+# If True, GUI features will be available.
 #
 HAVE_GUI = True
 
+#
+# Handle the special case of running as part of a "standalone" bundled app egg,
+# or as a "traditional" egg requiring additional egg dependencies.
+#
 if( is_standalone_app ) :
+    #
+    # Set the path to enthought to be this standalone enstaller egg.
+    # This prevents any other eggs which contribute to the enthought namespace
+    # from being found on import instead of the enthought packages bundled in
+    # this egg, which are known to be compatible.
+    #
+    import enthought
+    enthought.__path__ = [path.dirname( path.dirname( __file__ ) )]
+
+    #
+    # Try to activate the GUI...if found, this will enable GUI features.
+    #
     try :
         require( "enstaller.gui" )
             
     except DistributionNotFound :
         HAVE_GUI = False
 
-if( HAVE_GUI ) :
+#
+# If not running as a standalone app egg, determine if GUI features should be
+# enabled by attempting to import them.
+#
+else :
     try :
         import enthought.enstaller.gui
 
     except ImportError :
         HAVE_GUI = False
+
+
+from enthought.enstaller.downloader import \
+     Downloader
+from enthought.enstaller.session import \
+     Session
+from enthought.enstaller.cli import \
+     CLI
+from enthought.enstaller.logger import \
+     Logger
 
 #
 # Normally, ETS.application_home is set properly, but since Enstaller may be
