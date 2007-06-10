@@ -9,10 +9,6 @@
 #
 # Rick Ratzel - 2007-06-04
 #------------------------------------------------------------------------------
-#
-# The default repository
-#
-ENTHOUGHT_REPO = "http://code.enthought.com/enstaller/eggs"
 
 REVISION = "$Rev$"[6:-2]
 
@@ -29,6 +25,75 @@ from tempfile import gettempdir
 from getpass import getuser
 from traceback import extract_tb
 from urlparse import urljoin
+import platform
+
+#
+# Attempt to automatically detect the platform...
+#
+(PLAT, PLAT_VER) = platform.dist()[0:2]
+
+#
+# Map RedHat to Enthought repo names
+#
+if( PLAT.lower().startswith( "redhat" ) ) :
+    PLAT = "rhel"
+    if( PLAT_VER.startswith( "3" ) ) :
+        PLAT_VER = "3"
+    elif( PLAT_VER.startswith( "4" ) ) :
+        PLAT_VER = "4"
+    elif( PLAT_VER.startswith( "5" ) ) :
+        PLAT_VER = "5"
+#
+# Ubuntu returns debian...check /etc/issue too
+#
+elif( PLAT.lower().startswith( "debian" ) ) :
+    if( path.exists( "/etc/issue" ) ) :
+        fh = open( "/etc/issue", "r" )
+        lines = fh.readlines()
+        fh.close()
+        patt = re.compile( "^([\w]+) ([\w\.]+).*" )
+        for line in lines :
+            match = patt.match( line )
+            if( not( match is None ) ) :
+                plat = match.group( 1 ).lower()
+                if( plat == "ubuntu" ) :
+                    PLAT = plat
+                    PLAT_VER = match.group( 2 ).lower()
+            break
+    
+elif( os.platform.lower().startswith( "win" ) ) :
+    PLAT = "windows"
+    # Assume XP for now?
+    PLAT_VER = "xp"
+
+elif( os.platform.lower().startswith( "darwin" ) ) :
+    PLAT = "macosx"
+    # Assume tiger 10.4 for now?
+    PLAT_VER = "10.4"
+
+#
+# Check that they look reasonable, if not and no -f given, error out.
+#
+link_specified = True in [(arg.startswith( "-f" ) or \
+                           arg.startswith( "--find-links" )) for arg in sys.argv]
+
+supported = ["windows", "macosx", "debian", "rhel", "suse", "ubuntu"]
+
+if( (not( PLAT in supported ) or (PLAT_VER == "")) and \
+    not( link_specified ) ) :
+    msg = "The platform could not be automatically detected (or does not look" +\
+          "like it is supported), and no -f or --find-links option was " + \
+          "given.\nCheck http://code.enthought.com/enstaller/eggs for the " + \
+          "available platforms and specify one using -f.\n"
+    sys.stderr.write( msg )
+    sys.exit( 1 )
+    
+    
+#
+# The default repository
+#
+ENTHOUGHT_REPO = "http://code.enthought.com/enstaller/eggs/%s/%s" \
+                 % (PLAT, PLAT_VER)
 
 IS_WINDOWS = sys.platform.lower().startswith( "win" )
 #
