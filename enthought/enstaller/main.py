@@ -32,21 +32,32 @@ HAVE_GUI = True
 #
 if( is_standalone_app ) :
     #
-    # Set the path to enthought to be this standalone enstaller egg.
-    # This prevents any other eggs which contribute to the enthought namespace
-    # from being found on import instead of the enthought packages bundled in
-    # this egg, which are known to be compatible.
+    # Set the path to enthought to be this standalone enstaller egg.  This
+    # prevents any other eggs which contribute to the enthought namespace from
+    # being found instead of the enthought packages bundled in this egg, which
+    # are known to be compatible.
     #
     import enthought
     enthought.__path__ = [path.dirname( path.dirname( __file__ ) )]
 
     #
+    # Also, remove any wxPython and numpy installs from the path...this only
+    # works because these packages are not namespace packages.
+    #
+    syspath = sys.path[:]
+    removes = ["wxpython", "numpy"]
+    
+    for d in syspath :
+        matches = [path.basename( d ).lower().startswith( r ) for r in removes]
+        if( True in matches ) :
+            sys.path.remove( d )
+    #
     # Try to activate the GUI...if found, this will enable GUI features.
     #
     try :
         require( "enstaller.gui" )
-            
-    except DistributionNotFound :
+
+    except :
         HAVE_GUI = False
 
 #
@@ -59,7 +70,6 @@ else :
 
     except ImportError :
         HAVE_GUI = False
-
 
 from enthought.enstaller.downloader import \
      Downloader
