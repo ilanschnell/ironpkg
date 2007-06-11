@@ -41,11 +41,11 @@ if( is_standalone_app ) :
     enthought.__path__ = [path.dirname( path.dirname( __file__ ) )]
 
     #
-    # Also, remove any wxPython and numpy installs from the path...this only
-    # works because these packages are not namespace packages.
+    # Also, remove any other bundled installs from the path...this only works
+    # because these packages are not namespace packages.
     #
     syspath = sys.path[:]
-    removes = ["wxpython", "numpy"]
+    removes = ["wxpython", "numpy", "wininst"]
     
     for d in syspath :
         matches = [path.basename( d ).lower().startswith( r ) for r in removes]
