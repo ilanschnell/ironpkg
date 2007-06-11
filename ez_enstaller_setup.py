@@ -28,8 +28,84 @@ from urlparse import urljoin
 import platform
 
 #
-# Attempt to automatically detect the platform...
+# some Python distros (on Suse, others?) do not have the distutils std library
+# module and instead package it in a separate python-devel package which is not
+# installed by default.  Since distutils is required by setuptools and
+# Enstaller, inform the user that they have a "broken" Python.
 #
+try :
+    import distutils
+
+except ImportError :
+    err_msg = """
+    Could not import distutils!  This is required to run Enstaller and is
+    normally part of the Python standard library.\n"""
+
+    if( not( IS_WINDOWS ) ) :
+        err_msg += """
+    Some Linux distributions provide a minimal Python install for their own
+    purposes which does not have a complete standard library.  The remaining
+    Python components may be found in a separate "python-devel" package,
+    depending on your distribution.\n"""
+
+    err_msg += """
+    Please ensure that you are using an install of Python with a complete
+    standard library and try again.\n\n"""
+
+    sys.stderr.write( err_msg )
+    sys.exit( 1 )
+
+#
+# Commonly used variables...
+#
+IS_WINDOWS = sys.platform.lower().startswith( "win" )
+PYVER = "%s.%s" % (sys.version_info[0], sys.version_info[1])
+
+
+################################################################################
+#### Returns the platform identifier used in platform-specific egg names.
+#### (taken directly from setuptools pkg_resources.py)
+################################################################################
+def _macosx_vers(_cache=[]):
+    if not _cache:
+        info = os.popen('/usr/bin/sw_vers').read().splitlines()
+        for line in info:
+            key, value = line.split(None, 1)
+            if key == 'ProductVersion:':
+                _cache.append(value.strip().split("."))
+                break
+        else:
+            raise ValueError, "What?!"
+    return _cache[0]
+
+def _macosx_arch(machine):
+    return {'PowerPC':'ppc', 'Power_Macintosh':'ppc'}.get(machine,machine)
+
+def get_build_platform():
+    """Return this platforms string for platform-specific distributions
+
+    XXX Currently this is the same as ``distutils.util.get_platform()``, but it
+    needs some hacks for Linux and Mac OS X.
+    """
+    from distutils.util import get_platform
+    plat = get_platform()
+    if sys.platform == "darwin" and not plat.startswith('macosx-'):
+        try:
+            version = _macosx_vers()
+            machine = os.uname()[4].replace(" ", "_")
+            return "macosx-%d.%d-%s" % (int(version[0]), int(version[1]),
+                _macosx_arch(machine))
+        except ValueError:
+            # if someone is running a non-Mac darwin system, this will fall
+            # through to the default implementation
+            pass
+    return plat
+
+
+################################################################################
+#### Attempt to automatically detect the platform to use when accessing
+#### code.enthought.com/enstaller/eggs
+################################################################################
 (PLAT, PLAT_VER) = platform.dist()[0:2]
 
 #
@@ -60,16 +136,19 @@ elif( PLAT.lower().startswith( "debian" ) ) :
                     PLAT = plat
                     PLAT_VER = match.group( 2 ).lower()
             break
-    
-elif( os.platform.lower().startswith( "win" ) ) :
+#
+# Default to XP for now for Windows.
+#
+elif( IS_WINDOWS ) :
     PLAT = "windows"
     # Assume XP for now?
     PLAT_VER = "xp"
 
+#
+# setuptools get_platform() finds the right info for OSX
+#
 elif( os.platform.lower().startswith( "darwin" ) ) :
-    PLAT = "macosx"
-    # Assume tiger 10.4 for now?
-    PLAT_VER = "10.4"
+    (PLAT, PLAT_VER) = get_build_platform().split( "-" )[0:2]
 
 #
 # Check that they look reasonable, if not and no -f given, error out.
@@ -81,77 +160,21 @@ supported = ["windows", "macosx", "debian", "rhel", "suse", "ubuntu"]
 
 if( (not( PLAT in supported ) or (PLAT_VER == "")) and \
     not( link_specified ) ) :
-    msg = "The platform could not be automatically detected (or does not look" +\
-          "like it is supported), and no -f or --find-links option was " + \
-          "given.\nCheck http://code.enthought.com/enstaller/eggs for the " + \
-          "available platforms and specify one using -f.\n"
+    msg = """
+    The platform could not be automatically detected (or does not look like it's
+    supported).  Detected platform: "%s", version: "%s"
+    Check http://code.enthought.com/enstaller/eggs for the available platforms
+    and specify one using -f.
+    """ % (PLAT, PLAT_VER)
     sys.stderr.write( msg )
     sys.exit( 1 )
     
-    
 #
-# The default repository
+# The default repository, based on the platform name and version.
 #
 ENTHOUGHT_REPO = "http://code.enthought.com/enstaller/eggs/%s/%s" \
                  % (PLAT, PLAT_VER)
 
-IS_WINDOWS = sys.platform.lower().startswith( "win" )
-#
-# some Python distros (on Suse, others?) do not have the distutils std library
-# module and instead package it in a separate python-devel package which is not
-# installed by default.  Since distutils is required by setuptools and
-# Enstaller, inform the user that they have a "broken" Python.
-#
-if( __name__ == "__main__" ) :
-    try :
-        import distutils
-
-    except ImportError :
-        err_msg = """
-        Could not import distutils!  This is required to run Enstaller and is
-        normally part of the Python standard library.\n"""
-
-        if( not( IS_WINDOWS ) ) :
-            err_msg += """
-        Some Linux distributions provide a minimal Python install for their own
-        purposes which does not have a complete standard library.  The remaining
-        Python components may be found in a separate "python-devel" package,
-        depending on your distribution.\n"""
-
-        err_msg += """
-        Please ensure that you are using an install of Python with a complete
-        standard library and try again.\n\n"""
-
-        sys.stderr.write( err_msg )
-        sys.exit( 1 )
-
-
-################################################################################
-#### Returns the platform identifier used in platform-specific egg names.
-#### (taken directly from setuptools pkg_resources.py)
-################################################################################
-def get_build_platform():
-    """Return this platform's string for platform-specific distributions
-
-    XXX Currently this is the same as ``distutils.util.get_platform()``, but it
-    needs some hacks for Linux and Mac OS X.
-    """
-    from distutils.util import get_platform
-    plat = get_platform()
-    if sys.platform == "darwin" and not plat.startswith('macosx-'):
-        try:
-            version = _macosx_vers()
-            machine = os.uname()[4].replace(" ", "_")
-            return "macosx-%d.%d-%s" % (int(version[0]), int(version[1]),
-                _macosx_arch(machine))
-        except ValueError:
-            # if someone is running a non-Mac darwin system, this will fall
-            # through to the default implementation
-            pass
-    return plat
-
-
-PYVER = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 ################################################################################
 ####  TextIO
@@ -806,7 +829,10 @@ Attempting to download the Enstaller package...
 """
 
     enstaller_egg_not_found = """
-An Enstaller egg for this Python version and platform was not found!
+An Enstaller egg for this Python version and platform was not found at:
+
+%%s
+
 Use the --find-links option to specify a URL which has an Enstaller egg
 for Python version %s on platform %s
 """ % (PYVER, get_build_platform())
@@ -926,7 +952,7 @@ for Python version %s on platform %s
         # if a URL could not be determined, abort
         #
         if( enstaller_url is None ) :
-            self.log( self.enstaller_egg_not_found )
+            self.log( self.enstaller_egg_not_found % "\n".join( find_links ) )
             sys.exit( 1 )
             
         return enstaller_url
