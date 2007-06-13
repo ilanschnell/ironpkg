@@ -209,8 +209,14 @@ class EasyInstaller( TextIO ) :
         if( self.exclude_scripts ) :
             ei_args += ["--exclude-scripts"]
 
-        if( self.always_copy ) :
-            ei_args += ["--always-copy"]
+        #
+        # If --always-copy is not given, eggs from "local" repos never get
+        # installed in the install dir, and instead simply get referenced
+        # in the easy-install.pth file...
+        #
+        #if( self.always_copy ) :
+        #    ei_args += ["--always-copy"]
+        ei_args += ["--always-copy"]
 
         if( self.no_deps ) :
             ei_args += ["--no-deps"]
