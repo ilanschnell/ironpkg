@@ -222,16 +222,30 @@ def build_option_parser( program_name=sys.argv[0] ) :
                            action="callback", callback=check_valid_action,
                            help="deactivate a package or packages installed" )
 
+    opt_parser.add_option( "--allow-unstable",
+                           dest="allow_unstable", default=False,
+                           action="store_true",
+                           help="search the enthought \"unstable\" " + \
+                           "repository if a package is not found in the " + \
+                           "stable one (and all others specified with -f)" )
+
     #
     # Override the optparse check_values method in order to add the default
     # Enthought repo last in the order of find_links precedence, if it is to
-    # be used at all.
+    # be used at all.  If allow-unstable, add the unstable URL after the default.
     #
     def check_values( values, args ) :
         find_links = values.find_links
         use_def_en_repo = values.use_default_enthought_repo
+        allow_unstable = values.allow_unstable
+        
         if( use_def_en_repo and not( ENTHOUGHT_REPO in find_links ) ) :
             find_links.append( ENTHOUGHT_REPO )
+
+            unstable_url = "%s/%s" % (ENTHOUGHT_REPO.strip( "/" ), "unstable")
+            if( allow_unstable and not( unstable_url in find_links ) ) :
+                find_links.append( unstable_url )
+                
         return (values, args)
 
     opt_parser.check_values = check_values

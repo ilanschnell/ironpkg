@@ -318,7 +318,7 @@ class Package( HasTraits ) :
         active or not.
         """
         is_active = True
-        
+
         if( not( self.repository is None ) and
             hasattr( self.repository, "is_package_active" ) ) :
             is_active = self.repository.is_package_active( self.fullname )

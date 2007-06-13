@@ -316,7 +316,14 @@ class Session( HasTraits, TextIO ) :
                 repo.build_package_list()
 
                 for pkg in repo.packages :
-                    if( pkg.fullname == egg_fullname ) :
+                    if( IS_WINDOWS ) :
+                        pfn = pkg.fullname.lower()
+                        efn = egg_fullname.lower()
+                    else :
+                        pfn = pkg.fullname
+                        efn = egg_fullname
+                        
+                    if( pfn == efn ) :
                         new_pkg_list.append( pkg )
                         break
 
@@ -487,14 +494,25 @@ class Session( HasTraits, TextIO ) :
         # could be written, but...
         #
         for pkg in package_objs :
-            if( (action == "activate") and pkg.active ) :
-                self.log( "Package %s is already active...skipping.\n" \
-                          % pkg.fullname )
-                continue
-            elif( (action == "deactivate") and not( pkg.active ) ) :
+            if( (action == "deactivate") and not( pkg.active ) ) :
                 self.log( "Package %s is already deactivated...skipping.\n" \
                           % pkg.fullname )
                 continue
+            #
+            # Handle the special case of an enstaller app egg, which is not
+            # active or deactivated.
+            #
+            elif( pkg.name in ["enstaller", "enstaller.gui"] ) :
+                self.log( "The Enstaller application eggs cannot be " + \
+                          "activated (they are activated by the \"enstaller\" "+\
+                          "script)." )
+                continue
+            
+            elif( (action == "activate") and pkg.active ) :
+                self.log( "Package %s is already active...skipping.\n" \
+                          % pkg.fullname )
+                continue
+
             else :
                 orig_state = pkg.active
                 

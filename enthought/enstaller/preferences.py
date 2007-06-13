@@ -16,6 +16,9 @@ from types import ListType
 from enthought.traits.api import \
      HasTraits, List, Str, Bool, Property, Instance
 
+from enthought.enstaller.api import \
+     ENTHOUGHT_REPO
+
 
 ################################################################################
 ## Helper functions for converting data read from text files to Python objects
@@ -167,8 +170,8 @@ class FindLinks( EasyInstallPreference ) :
     convert_to_config_type = classmethod( list_of_strings_to_config_value )
     description = Str( \
 """Find packages using the URLs specified in this list. The default URL, 
-<http://code.enthought.com/enstaller/eggs>, is always used.
-""" )
+<%s>, is always used.
+""" % ENTHOUGHT_REPO )
 
 
 class AllowHosts( EasyInstallPreference ) :

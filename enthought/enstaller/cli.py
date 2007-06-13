@@ -67,7 +67,9 @@ class CLI( HasTraits, TextIO ) :
 
             new_pkg_list = self.session.install( package_specs )
             output = self._get_installed_package_list_string( new_pkg_list )
-            self.log( "Successfully installed the following packages:\n" )
+
+            if( output != "" ) :
+                self.log( "Successfully installed the following packages:\n" )
             self.log( output )
 
         return retcode
@@ -387,7 +389,10 @@ class CLI( HasTraits, TextIO ) :
             #
             for pkg in package_list :
                 active = "Y"
-                if( not( pkg.active ) ) :
+
+                if( pkg.name in ["enstaller", "enstaller.gui"] ) :
+                    active = " "
+                elif( not( pkg.active ) ) :
                     active = "n"
                     
                 retstring += "%s%s| " % (pkg.name,

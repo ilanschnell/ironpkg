@@ -63,6 +63,7 @@ class EasyInstaller( TextIO ) :
         self._install_dir = self.site_packages_dir
         self.find_links = []
         self.always_unzip = False
+        self.always_copy = False
         self.no_deps = False
         self.script_dir = None
         self.index_url = None
@@ -207,7 +208,10 @@ class EasyInstaller( TextIO ) :
 
         if( self.exclude_scripts ) :
             ei_args += ["--exclude-scripts"]
-            
+
+        if( self.always_copy ) :
+            ei_args += ["--always-copy"]
+
         if( self.no_deps ) :
             ei_args += ["--no-deps"]
         #
@@ -234,8 +238,6 @@ class EasyInstaller( TextIO ) :
         if( not( self.index_url is None ) ) :
             ei_args += ["--index-url=%s" % self.index_url]
             
-        ei_args += ["--always-copy"]
-
         if( self._install_dir != self.site_packages_dir ) :
             ei_args += ["--install-dir=%s" % self._install_dir]
 
@@ -357,6 +359,7 @@ class EasyInstaller( TextIO ) :
                 ignores --no-deps when --always-copy is used, and --always-copy
                 will not install a package if the source is a file on disk
                 (intentional, but not desired for Enstaller).
+                Also, override to set some bookkeeping vars.
                 """
 
                 # Installation is also needed if file in tmpdir or is not an egg
