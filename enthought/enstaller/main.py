@@ -37,8 +37,16 @@ if( is_standalone_app ) :
     # being found instead of the enthought packages bundled in this egg, which
     # are known to be compatible.
     #
+    enthought_path = path.dirname( path.dirname( __file__ ) )
     import enthought
-    enthought.__path__ = [path.dirname( path.dirname( __file__ ) )]
+    enthought.__path__ = [enthought_path]
+
+    enthought_traits_path = path.join( enthought_path, "traits" )
+    import enthought.traits
+    enthought.traits.__path__ = [enthought_traits_path]
+
+    import enthought.traits.ui
+    enthought.traits.ui.__path__ = [path.join( enthought_traits_path, "ui" )]
 
     #
     # Also, remove any other bundled installs from the path...this only works
