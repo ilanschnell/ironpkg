@@ -23,7 +23,7 @@ setup(
 
     install_requires = [
        "enthought.traits>=3.0.0b1",
-       "enthought.app_data_locator>=2.0",
+       "enthought.ets>=2.0",
        ],
     
     extras_require = {

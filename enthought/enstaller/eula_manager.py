@@ -15,8 +15,8 @@ from os import path
 
 from enthought.traits.api import \
      HasTraits, Instance, Constant, List, Str, Dict
-from enthought.app_data_locator.api import \
-     AppDataLocator
+from enthought.ets.api import \
+     ETS
 
 from enthought.enstaller.text_io import \
      TextIO
@@ -284,7 +284,7 @@ class EULAManager( HasTraits, TextIO ) :
         # method for this does not fire the post_setattr method for the trait,
         # which is required for properly creating the dir if it does not exist.
         #
-        self._eula_state_dir = AppDataLocator.application_home
+        self._eula_state_dir = ETS.application_home
         
         eula_state_file = path.join( self._eula_state_dir,
                                      self._eula_state_filename )

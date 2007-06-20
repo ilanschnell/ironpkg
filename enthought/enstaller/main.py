@@ -94,9 +94,9 @@ from enthought.enstaller.logger import \
 # based on the dirname of the dir containing the startup script), manually set
 # the application_home here for other modules to use.
 #
-from enthought.app_data_locator.api import \
-     AppDataLocator
-AppDataLocator.application_home = path.join( AppDataLocator.application_data, "enstaller" )
+from enthought.ets.api import \
+     ETS
+ETS.application_home = path.join( ETS.application_data, "enstaller" )
 
 
 def build_option_parser( program_name=sys.argv[0] ) :
