@@ -14,7 +14,7 @@ import re
 from types import ListType
 
 from enthought.traits.api import \
-     HasTraits, List, Str, Bool, Property, Instance
+     HasTraits, List, Str, Bool, Property, Instance, Enum
 
 from enthought.enstaller.api import \
      ENTHOUGHT_REPO
@@ -155,14 +155,6 @@ class EnstallerPreference( Preference ) :
     section = Str( "enstaller" )
 
 
-class ShowAllAvailableVersions( EnstallerPreference ) :
-    value = Bool
-    label = "Show all available versions:"
-    convert_to_py_type = classmethod( config_value_to_bool )
-    description = Str( \
-"""For each package, show every version that is available for installation .""" )
-
-
 class FindLinks( EasyInstallPreference ) :
     value = List()
     label = "Repository URLs:"
@@ -201,30 +193,21 @@ is '*', which matches anything.
             self.value = self.allow_hosts_value
 
 
-class AlwaysUnzip( EasyInstallPreference ) :
+class AlwaysUnzip( EnstallerPreference ) :
     value = Bool
     label = "Always unzip packages:"
     convert_to_py_type = classmethod( config_value_to_bool )
     description = Str( \
 """Do not install any packages as zip files, even if the packages are marked as
-safe for running as a zip file. This option is useful if an egg does something 
-unsafe, but not in a way that can be detected when the egg was built. Use this 
-option only if you have had problems with a particular egg. 
-
-NOTE: This option affects the installation only of newly built or downloaded 
-packages that are not already installed; if you want to convert an existing 
-installed version from zipped to unzipped or vice versa, delete the existing 
-version, and then re-install it after changing this option.""" )
+safe for running as a zip file.
+""" )
 
     
-class ScriptDir( EasyInstallPreference ) :
+class BuildDirectory( EasyInstallPreference ) :
     value = Str
-    label = "Script installation directory:"
+    label = "Build directory:"
     description = Str( \
-"""This option defaults to the install directory, so that the scripts can find 
-their associated package installations. Otherwise, this setting defaults to the 
-location where the distutils would normally install scripts, taking any 
-distutils configuration file settings into account.
+"""Download/extract/build in this directory and keep the results.
 """ )
 
 
@@ -239,6 +222,40 @@ already installed.
 """ )
 
 
+class IndexUrl( EasyInstallPreference ) :
+    value = Str
+    label = "Index URL:"
+    description = Str( \
+"""Use this URL instead of the Python Cheese Shop as the package index.
+""" )
+
+
+class InstallDir( EasyInstallPreference ) :
+    value = Str
+    label = "Install dir:"
+    description = Str( \
+"""Install packages to this directory instead of the default (site-packages).
+""" )
+
+
+class NoDeps( EasyInstallPreference ) :
+    value = False
+    label = "No deps:"
+    description = Str( \
+"""Do not install dependencies.
+""" )
+
+
+class Optimize( EasyInstallPreference ) :
+    value = Enum( "-O0", "-O", "-O2" )
+    label = "Optimize:"
+    description = Str( \
+"""Install modules with optimizations (.pyo files) in addition to .pyc files.
+-O0 (the default) means no optimizations, -O is the first level (minor
+ optimizations), -O2 is -O with all docstrings removed as well.
+""" )
+
+
 class Record( EasyInstallPreference ) :
     value = Str
     label = "Record files to:"
@@ -248,3 +265,38 @@ This option is basically the same as the option for the standard distutils
 'install' command, and is included for compatibility with tools that expect to
 pass this option to 'setup.py install'.
 """ )
+
+
+class ScriptDir( EasyInstallPreference ) :
+    value = Str
+    label = "Script installation directory:"
+    description = Str( \
+"""This option defaults to the install directory, so that the scripts can find 
+their associated package installations. Otherwise, this setting defaults to the 
+location where the distutils would normally install scripts, taking any 
+distutils configuration file settings into account.
+""" )
+
+
+class ShowAllAvailableVersions( EnstallerPreference ) :
+    value = Bool
+    label = "Show all available versions:"
+    convert_to_py_type = classmethod( config_value_to_bool )
+    description = Str( \
+"""For each package, show every version that is available for installation .""" )
+
+
+class ZipOk( EasyInstallPreference ) :
+    value = Bool
+    label = "zip OK:"
+    convert_to_py_type = classmethod( config_value_to_bool )
+    description = Str( \
+"""Install eggs in zipped form, even if their zip_safe flag is not set.
+
+Setting this option is generally not necessary since eggs are installed by
+default in zipped form, unless their zip_safe flag is not set.
+
+WARNING: when an egg's zip_safe flag is not set, the egg usually will not work
+as a zipped egg.
+""" )
+

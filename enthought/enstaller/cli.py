@@ -49,30 +49,23 @@ class CLI( HasTraits, TextIO ) :
         super( CLI, self ).__init__( **kwargs )
 
 
-    def install( self, install_dir, package_specs ) :
+    def install( self, package_specs ) :
         """
         Method for supporting the implicit install command.
         """
-
         #
-        # Set the install dir on the session.
+        # Make sure all relevant EULAs are agreed to before installing.
         #
-        retcode = self._set_install_dir( install_dir )
+        self._check_eulas()
 
-        if( retcode == 0 ) :
-            #
-            # Make sure all relevant EULAs are agreed to before installing.
-            #
-            self._check_eulas()
+        new_pkg_list = self.session.install( package_specs )
+        output = self._get_installed_package_list_string( new_pkg_list )
 
-            new_pkg_list = self.session.install( package_specs )
-            output = self._get_installed_package_list_string( new_pkg_list )
+        if( output != "" ) :
+            self.log( "Successfully installed the following packages:\n" )
+        self.log( output )
 
-            if( output != "" ) :
-                self.log( "Successfully installed the following packages:\n" )
-            self.log( output )
-
-        return retcode
+        return 0
         
     
     def list_installed( self, package_specs=[] ) :
@@ -124,7 +117,7 @@ class CLI( HasTraits, TextIO ) :
         return retcode
 
 
-    def list_upgrades( self, install_dir, package_specs ) :
+    def list_upgrades( self, package_specs ) :
         """
         Method for supporting the "list_upgrades" command...logs a formatted
         string of packages matching package_specs available from the repositories
@@ -136,7 +129,7 @@ class CLI( HasTraits, TextIO ) :
         #
         # Get a list of upgrade packages...None returned if an error occurred.
         #
-        upgrades = self._get_upgrade_packages( install_dir, package_specs )
+        upgrades = self._get_upgrade_packages( package_specs )
 
         if( not( upgrades is None ) ) :
 
@@ -163,7 +156,7 @@ class CLI( HasTraits, TextIO ) :
         return self._process_packages( package_specs, "remove" )
         
 
-    def upgrade( self, install_dir, package_specs ) :
+    def upgrade( self, package_specs ) :
         """
         Upgrades the packages specified by the package_specs, or all installed
         packages, if upgrades are available.
@@ -174,7 +167,7 @@ class CLI( HasTraits, TextIO ) :
         #
         # Get a list of upgrade packages...None returned if an error occurred.
         #
-        upgrades = self._get_upgrade_packages( install_dir, package_specs )
+        upgrades = self._get_upgrade_packages( package_specs )
 
         self.debug( "The following upgrades were found:\n%s\n" % \
                     self._get_repos_package_list_string( upgrades ) )
@@ -476,7 +469,7 @@ class CLI( HasTraits, TextIO ) :
         return retstring
 
 
-    def _get_upgrade_packages( self, install_dir, package_specs ) :
+    def _get_upgrade_packages( self, package_specs ) :
         """
         Return a list of package objects matching package_specs (or all)
         that will upgrade installed packages.
@@ -488,24 +481,16 @@ class CLI( HasTraits, TextIO ) :
         upgrades = None
         
         #
-        # Set the install dir where the upgrades will be installed to.
-        # Do this before creating the list of upgrade packages so the install
-        # dir is included when looking for packages already installed.
+        # Read the remote repos to build a list of packages available for
+        # install.
         #
-        retcode = self._set_install_dir( install_dir )
+        self._read_repositories()
 
-        if( retcode == 0 ) :
-            #
-            # Read the remote repos to build a list of packages available for
-            # install.
-            #
-            self._read_repositories()
-
-            #
-            # Get a list of packages that are upgrades to the installed ones (if
-            # no package_specs given, look for upgrades for all installed pkgs).
-            #
-            upgrades = self.session.get_upgrade_packages( package_specs )
+        #
+        # Get a list of packages that are upgrades to the installed ones (if
+        # no package_specs given, look for upgrades for all installed pkgs).
+        #
+        upgrades = self.session.get_upgrade_packages( package_specs )
 
         return upgrades
 

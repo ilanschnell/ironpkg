@@ -24,7 +24,13 @@ from enthought.enstaller.api import \
 #
 # If True, GUI features will be available.
 #
-HAVE_GUI = True
+try :
+    import wx
+    import numpy
+    HAVE_GUI = True
+
+except ImportError :
+    HAVE_GUI = False
 
 #
 # Handle the special case of running as part of a "standalone" bundled app egg,
@@ -52,13 +58,18 @@ if( is_standalone_app ) :
     # Also, remove any other bundled installs from the path...this only works
     # because these packages are not namespace packages.
     #
-    syspath = sys.path[:]
-    removes = ["wxpython", "numpy", "wininst"]
+    # UPDATE: do not remove these other bundled pacakges for now, since not all
+    # platforms are supported and users should be able to use the system
+    # wxPython, for example.
+    #
+    #syspath = sys.path[:]
+    #removes = ["wxpython", "numpy", "wininst"]
+    #
+    #for d in syspath :
+    #    matches = [path.basename( d ).lower().startswith( r ) for r in removes]
+    #    if( True in matches ) :
+    #        sys.path.remove( d )
     
-    for d in syspath :
-        matches = [path.basename( d ).lower().startswith( r ) for r in removes]
-        if( True in matches ) :
-            sys.path.remove( d )
     #
     # Try to activate the GUI...if found, this will enable GUI features.
     #
@@ -72,15 +83,13 @@ if( is_standalone_app ) :
 # If not running as a standalone app egg, determine if GUI features should be
 # enabled by attempting to import them.
 #
-else :
+elif( HAVE_GUI ) :
     try :
         import enthought.enstaller.gui
 
     except ImportError :
         HAVE_GUI = False
 
-from enthought.enstaller.downloader import \
-     Downloader
 from enthought.enstaller.session import \
      Session
 from enthought.enstaller.cli import \
@@ -89,14 +98,40 @@ from enthought.enstaller.logger import \
      Logger
 
 #
-# Normally, ETS.application_home is set properly, but since Enstaller may be
-# started by a script that is not in the application dir (application_home is
-# based on the dirname of the dir containing the startup script), manually set
-# the application_home here for other modules to use.
+# Normally, AppDataLocator.application_home is set properly, but since Enstaller
+# may be started by a script that is not in the application dir
+# (application_home is based on the dirname of the dir containing the startup
+# script), manually set the application_home here for other modules to use.
 #
+## from enthought.app_data_locator.api import \
+##      AppDataLocator
 from enthought.ets.api import \
      ETS
+## AppDataLocator.application_home = path.join( AppDataLocator.application_data,
+##                                              "enstaller" )
 ETS.application_home = path.join( ETS.application_data, "enstaller" )
+
+
+#
+# List all of the enstaller options so the easy_install ones can be separated
+# out and passed directory to the EasyInstaller class.
+#
+enstaller_options = [
+    "gui",
+    "install_dir",
+    "find_links",
+    "prompting",
+    "verbose",
+    "use_default_enthought_repo",
+    "list_installed",
+    "list_repos",
+    "remove",
+    "upgrade",
+    "list_upgrades",
+    "activate",
+    "deactivate",
+    "allow_unstable",
+]
 
 
 def build_option_parser( program_name=sys.argv[0] ) :
@@ -236,7 +271,77 @@ def build_option_parser( program_name=sys.argv[0] ) :
                            help="search the enthought \"unstable\" " + \
                            "repository if a package is not found in the " + \
                            "stable one (and all others specified with -f)" )
+    #
+    # Add other options which are basically passed-through to easy_install
+    #
+    opt_parser.add_option( "-Z", "--always-unzip",
+                           dest="always_unzip", default=False,
+                           action="store_true",
+                           help="never install as a zipped egg." )
 
+    opt_parser.add_option( "-z", "--zip-ok",
+                           dest="zip_ok", default=False,
+                           action="store_true",
+                           help="always install as a zipped egg." )
+
+    opt_parser.add_option( "-N", "--no-deps",
+                           dest="no_deps", default=False,
+                           action="store_true",
+                           help="do not install dependencies." )
+    
+    opt_parser.add_option( "-s", "--script-dir",
+                           dest="script_dir", metavar="<dir>",
+                           default=None,
+                           help="install scripts to <dir>." )
+
+    opt_parser.add_option( "-i", "--index-url",
+                           dest="index_url", metavar="<url>",
+                           default=None,
+                           help="base URL of Python Package Index." )
+
+    opt_parser.add_option( "--record",
+                           dest="record", metavar="<file>",
+                           default=None,
+                           help="filename in which to record list of " + \
+                           "installed files." )
+
+    opt_parser.add_option( "-x", "--exclude-scripts",
+                           dest="exclude_scripts", default=False,
+                           action="store_true",
+                           help="do not install scripts." )
+
+    opt_parser.add_option( "-m", "--multi-version",
+                           dest="multi_version", default=False,
+                           action="store_true",
+                           help="make apps require() the package...this " + \
+                           "installs the egg \"deactivated\"." )
+    
+    opt_parser.add_option( "-b", "--build-directory",
+                           dest="build_directory", metavar="<dir>",
+                           default=None,
+                           help="download/extract/build/ in <dir> and " + \
+                           "keep the results." )
+
+##     opt_parser.add_option( "-O", "--optimize",
+##                            dest="optimize", metavar="<level>",
+##                            default="0",
+##                            help="install modules with optimizations " + \
+##                            "(.pyo files) in addition to .pyc files.  -O0 " + \
+##                            "(the default) means no optimizations, -O is the " + \
+##                            "first level (minor optimizations), -O2 is -O " + \
+##                            "with all docstrings removed as well." )
+ 
+    opt_parser.add_option( "-e", "--editable",
+                           dest="editable", default=False,
+                           action="store_true",
+                           help="install specified packages in editable form." )
+
+    opt_parser.add_option( "-H", "--allow-hosts",
+                           dest="allow_hosts", metavar="<patterns>",
+                           default=[],
+                           action="callback", callback=add_link,
+                           help="pattern(s) that hostnames must match." )
+    
     #
     # Override the optparse check_values method in order to add the default
     # Enthought repo last in the order of find_links precedence, if it is to
@@ -260,6 +365,30 @@ def build_option_parser( program_name=sys.argv[0] ) :
 
     return opt_parser
 
+
+def get_easy_install_options( options_obj ) :
+    """
+    Returns a dictionary of easy_install options given to enstaller which are to
+    be passed through to the EasyInstaller class.
+    """
+    args = {}
+
+    for arg in dir( options_obj ) :
+        argval = getattr( options_obj, arg )
+        if( not( arg in ["ensure_value", "read_file", "read_module"] ) and \
+            not( arg in enstaller_options ) and \
+            not( arg.startswith( "_" ) ) and \
+            not( argval is None ) and \
+            not( argval is False ) and \
+            not( argval == [] ) ) :
+
+            if( argval == "" ) :
+                argval = '""'
+                
+            args[arg] = argval
+
+    return args
+            
 
 def override_opt_parse_output( opt_parser, logging_handle ) :
     """
@@ -409,11 +538,23 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
                            verbose        = options.verbose,
                            prompting      = options.prompting,
                            find_links     = options.find_links )
+
         #
         # Scan sys.path...this is needed for all actions.
         #
         session.initialize()
-        install_dir = (options.install_dir or Downloader.get_site_packages_dir())
+        
+        #
+        # Set the install dir here if specified on the command line so its not
+        # overridden by any preference file settings.
+        #
+        if( options.install_dir != "" ) :
+            session.install_dir = options.install_dir
+
+        #
+        # Add all other options specified on the command-line to the session.
+        #
+        session.extra_easy_install_args = get_easy_install_options( options )
         
         #
         # Launch either the GUI or the CLI with the appropriate action.
@@ -422,7 +563,6 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
             gui = GUI( logging_handle=logger,
                        verbose=options.verbose,
                        session=session )
-            gui.install_dir = install_dir
             retcode = gui.show()
 
         else :
@@ -442,10 +582,10 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
                 retcode = cli.remove( package_specs )
 
             elif( options.upgrade ) :
-                retcode = cli.upgrade( install_dir, package_specs )
+                retcode = cli.upgrade( package_specs )
 
             elif( options.list_upgrades ) :
-                retcode = cli.list_upgrades( install_dir, package_specs )
+                retcode = cli.list_upgrades( package_specs )
 
             elif( options.activate ) :
                 retcode = cli.activate( package_specs )
@@ -454,8 +594,7 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
                 retcode = cli.deactivate( package_specs )
 
             else :
-                retcode = cli.install( install_dir, package_specs )
-
+                retcode = cli.install( package_specs )
 
     return retcode
 

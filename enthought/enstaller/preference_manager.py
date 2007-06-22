@@ -22,8 +22,9 @@ from enthought.traits.api import \
      HasTraits, List, Str, Instance
 
 from enthought.enstaller.preferences import \
-     AllowHosts, AlwaysUnzip, ExcludeScripts, FindLinks, Record, \
-     ScriptDir, ShowAllAvailableVersions
+     AllowHosts, AlwaysUnzip, BuildDirectory, ExcludeScripts, FindLinks, \
+     IndexUrl, InstallDir, NoDeps, Optimize, Record, ScriptDir, \
+     ShowAllAvailableVersions, ZipOk
 
     
 class PreferenceManager( HasTraits ) :
@@ -38,11 +39,17 @@ class PreferenceManager( HasTraits ) :
     #
     allow_hosts = Instance( AllowHosts, () )
     always_unzip = Instance( AlwaysUnzip, () )
+    build_directory = Instance( BuildDirectory, () )
     exclude_scripts = Instance( ExcludeScripts, () )
     find_links = Instance( FindLinks, () )
-    show_all_available_versions = Instance( ShowAllAvailableVersions, () )
+    index_url = Instance( IndexUrl, () )
+    install_dir = Instance( InstallDir, () )
+    no_deps = Instance( NoDeps, () )
+    optimize = Instance( Optimize, () )
     record = Instance( Record, () )
     script_dir = Instance( ScriptDir, () )
+    show_all_available_versions = Instance( ShowAllAvailableVersions, () )
+    zip_ok = Instance( ZipOk, () )
 
     #
     # Maintain an easy-to-reference list of all the known preferences.
@@ -80,10 +87,10 @@ class PreferenceManager( HasTraits ) :
                     value = cls.convert_to_py_type( raw_value )
                     setattr( self, option, cls( value=value ) )
 
-         #
-         # special case...let allow_hosts know about find_links
-         #
-         #self.allow_hosts.find_links = self.find_links
+        #
+        # special case...let allow_hosts know about find_links
+        #
+        self.allow_hosts.find_links = self.find_links
         
 
     def write( self ) :
@@ -121,11 +128,15 @@ class PreferenceManager( HasTraits ) :
         return [
             "allow_hosts",
             "always_unzip",
+            "build_directory",
             "exclude_scripts",
             "find_links",
-            "show_all_available_versions",
+            "index_url",
+            "install_dir",
+            "no_deps",
+            "optimize",
             "record",
             "script_dir",
+            "show_all_available_versions",
+            "zip_ok",
             ]
-    
-

@@ -4,7 +4,7 @@ from setuptools \
 
 setup(
     name         = "enthought.enstaller",
-    version      = "2.1.0b2",
+    version      = "2.2.0b1",
     description  = "The Enthought installer.  Enhances setuptools by adding " \
                    "query options, support for post-install scripts, and much " \
                    "more.",
@@ -23,11 +23,12 @@ setup(
 
     install_requires = [
        "enthought.traits>=3.0.0b1",
-       "enthought.ets>=2.0",
+#       "enthought.app_data_locator>=2.0b1",
+       "enthought.ets>=2.0b1",
        ],
     
     extras_require = {
-        "gui": ["enthought.enstaller.gui>=2.1.0b1, <2.1.1"],
+        "gui": ["enthought.enstaller.gui>=2.2.0b1, <2.3.0"],
         },
     
     namespace_packages = [

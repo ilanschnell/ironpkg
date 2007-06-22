@@ -28,7 +28,7 @@ from os import path
 import xmlrpclib
 
 from enthought.traits.api import \
-     Trait, HasTraits, Str, List, Instance, Property
+     Trait, HasTraits, Str, List, Instance, Property, Bool, Dict
 
 from enthought.enstaller.enstaller_traits import \
      CreatableDir, Url
@@ -124,6 +124,12 @@ class Session( HasTraits, TextIO ) :
     #
     preferences = Instance( PreferenceManager, () )
 
+    #
+    # Options set on the session which are passed on to the engine, representing
+    # various easy_install options
+    #
+    extra_easy_install_args = Dict
+
 
     def __init__( self, **kwargs ) :
         """
@@ -145,7 +151,16 @@ class Session( HasTraits, TextIO ) :
 
         self._read_preferences()
         self.read_pythonpath()
-        self._add_install_dir()
+        #
+        # After reading the prefs, set the install dir.
+        # This is done this way so the trait validator is used, rather than
+        # having a _install_dir_default() method which does not use the
+        # trait validator, etc.
+        #
+        if( self.install_dir == "" ) :
+            self.install_dir = (self.preferences.install_dir.value or \
+                                Downloader.get_site_packages_dir())
+
         self._init_for_windows()
         
 
@@ -174,7 +189,9 @@ class Session( HasTraits, TextIO ) :
                                         prompting=self.prompting,
                                         logging_handle=self.logging_handle )
 
+                self.debug( "Reading %s..." % repo_path )
                 repo.build_package_list()
+                self.debug( "done.\n" )
                 self.pythonpath.insert( 0, repo )
                 added = True
 
@@ -295,7 +312,8 @@ class Session( HasTraits, TextIO ) :
         #
         self._set_engine_preferences()
         
-        new_egg_paths = self.engine.install( self.install_dir, package_specs )
+        new_egg_paths = self.engine.install( self.install_dir, package_specs,
+                                             self.extra_easy_install_args )
 
         #
         # Have the target repo(s) rescan to find the newly-installed packages
@@ -357,7 +375,6 @@ class Session( HasTraits, TextIO ) :
         # Fixup the path so it is useable as a list of dirs to install to.
         #
         pythonpath = self._remove_eggs_from_path( sys.path, fix_names=True )
-        pythonpath = self._remove_enstaller_deps_from_path( pythonpath )
 
         #
         # (re)build the list of repositories on sys.path
@@ -678,50 +695,17 @@ class Session( HasTraits, TextIO ) :
         return new_path
 
 
-    def _remove_enstaller_deps_from_path( self, search_path ) :
-        """
-        Returns a copy of search_path with every directory path that is or is in
-        enstaller_deps removed.
-        """
-
-        #
-        # Heirarchy is like:
-        # <install_dir>/enstaller-x.x.x-pyx.x.egg/enstaller/this_file
-        # <install_dir>/enstaller_deps
-        # ...if this package is not used in an installed egg, the new path
-        # returned will be unchanged.
-        #
-        
-        this_file = path.abspath( __file__ )
-        this_package_dir = path.dirname( this_file )
-        this_egg_dir = path.dirname( this_package_dir )
-        this_egg_install_dir = path.dirname( this_egg_dir )
-        enst_deps_dir = path.normcase( path.normpath(
-            path.join( this_egg_install_dir, "enstaller_deps" ) ) )
-
-        new_path = []
-        for name in search_path :
-            #
-            # If the path in the searchpath does not start with the deps dir,
-            # add it to the list to return.
-            #
-            norm_name = path.normcase( path.normpath( path.abspath( name ) ) )
-            if( not( norm_name.startswith( enst_deps_dir ) ) ) :
-                new_path.append( name )
-
-        return new_path
-
-
     def _set_engine_preferences( self ) :
         """
         Sets the preferences on the Enstaller Engine to those in the pref mgr.
         """
 
         self.engine.find_links = self.find_links
-        self.engine.script_dir = (self.preferences.script_dir.value or None)
-        self.engine.exclude_scripts = self.preferences.exclude_scripts.value
         self.engine.always_unzip = self.preferences.always_unzip.value
-        self.engine.record = self.preferences.record.value
+        self.engine.no_deps = self.preferences.no_deps.value
+##         self.engine.script_dir = (self.preferences.script_dir.value or None)
+##         self.engine.exclude_scripts = self.preferences.exclude_scripts.value
+##         self.engine.record = self.preferences.record.value
 
 
     #############################################################################
@@ -797,7 +781,7 @@ class Session( HasTraits, TextIO ) :
         """
 
         self._add_install_dir()
-        
+
 
     def _set_find_links( self, find_links ) :
         """

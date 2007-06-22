@@ -99,7 +99,7 @@ class Bootstrapper( EasyInstaller ) :
         orig_find_links = self.find_links
         egg_spec = egg
         (egg_dir, full_egg_name) = path.split( egg )
-        extra_args = ""
+        extra_args = {}
 
         #
         # This is here primarily to distinguish between installing an enstaller
@@ -109,7 +109,8 @@ class Bootstrapper( EasyInstaller ) :
         if( full_egg_name.lower().startswith( "enstaller" ) or
             full_egg_name.lower().startswith( "enthought.enstaller" ) ) :
 
-            extra_args = "-m"
+            extra_args["multi_version"] = True
+            
             #
             # If the gui is to be installed, change the abs path to the egg to a
             # combination of an additional find_links and a package spec so the
@@ -131,8 +132,8 @@ class Bootstrapper( EasyInstaller ) :
         #
         # Also, add -m (multi-version) so egg is not added to .pth file
         #
-        new_dists = super( Bootstrapper, self ).install( install_dir,
-                                                         egg_spec, extra_args )
+        new_dists = super( Bootstrapper, self ).install( install_dir, egg_spec,
+                                                         extra_args )
         #
         # Run any post-installs for each new dist
         #

@@ -47,16 +47,19 @@ class Engine( EasyInstaller, HasTraits ) :
     rpath_additions_file = Str( "rpath_additions.txt" )
 
 
-    def install( self, install_dir, packages ) :
+    def install( self, install_dir, packages, extra_easy_install_args=None ) :
         """
         Installs the packages (either package objects or requirement strings)
         using easy_installer, then performs any postprocessing unique to
         Enstaller (post-install scripts, rpath mods, etc.)
         """
         new_egg_paths = []
-        
+
         if( type( packages ) != type( [] ) ) :
             packages = [packages]
+
+        if( extra_easy_install_args is None ) :
+            extra_easy_install_args = {}
         
         for package in packages :
             #
@@ -64,7 +67,8 @@ class Engine( EasyInstaller, HasTraits ) :
             # that the install happens from the repo in the package obj only
             #
             pkg_str = self._get_package_req_string( package )
-            super( Engine, self ).install( install_dir, pkg_str )
+            super( Engine, self ).install( install_dir, pkg_str,
+                                           extra_easy_install_args )
 
             for dist in self.newly_installed_dists :
 
@@ -79,16 +83,12 @@ class Engine( EasyInstaller, HasTraits ) :
                 # run any post-install operations or scripts in the egg
                 #
                 self._run_post_install( dist.location )
-                #
-                # promote any .pth files if the promte EGG-INFO file exists (do
-                # this after post-install since post-install may generate them
-                #
-                new_pth_files = self._promote_pth_files_if_set( dist.location )
+
                 #
                 # make the new package visible to this interpreter
                 # (this is important for bootstrapping the app)
                 #
-                self._rescan_pythonpath( new_pth_files )
+                self._rescan_pythonpath()
 
             self.log( "Successfully installed %s\n" % pkg_str )
 
@@ -120,51 +120,6 @@ class Engine( EasyInstaller, HasTraits ) :
     #############################################################################
     # Protected interface.
     #############################################################################
-
-    def _build_pth_name_contents_list( self, installed_egg_path ) :
-        """
-        returns a list of tuples containing (filename, file_contents) strings
-        used for writing the pth files for a package.  This is used primarily
-        for "promoting" the pth files which involves writing them to an install
-        dir and updating their contents
-        """
-        filename_contents_tuple_list = []
-        #
-        # zipfiles always use forward-slash, so build this path here for
-        # use in both checks
-        #
-        promote_flag_file = "EGG-INFO/%s" % self.promote_file_flag
-
-        if( path.isdir( installed_egg_path ) ) :
-
-            if( path.exists( path.join( installed_egg_path,
-                                        promote_flag_file ) ) ) :
-                for pthfile in glob( path.join( installed_egg_path, "*.pth" ) ):
-                    fh = open( pthfile, "r" )
-                    filename_contents_tuple_list.append( (pthfile, fh.read()) )
-                    fh.close()
-
-        else :
-            egg_zip = ZipFile( installed_egg_path )
-            #
-            # save the contents of the zip off for future reference, so it
-            # dosent have to be reopened later
-            #
-            self._zip_contents = egg_zip.namelist()
-
-            if( promote_flag_file in self._zip_contents ) :
-                for entry in self._zip_contents :
-                    #
-                    # only look at the top-dir
-                    #
-                    if( path.dirname( entry ) == "" ) :
-                        if( path.splitext( entry )[-1] == ".pth" ) :
-                            filename_contents_tuple_list.append(
-                                (entry, egg_zip.read( entry )) )
-            egg_zip.close()
-
-        return filename_contents_tuple_list
-
 
     def _get_installed_egg_path( self, package ) :
         """
@@ -306,61 +261,6 @@ class Engine( EasyInstaller, HasTraits ) :
         inp.close() ; out.close() ; err.close()
 
 
-    def _promote_pth_files_if_set( self, installed_egg_path ) :
-        """
-        Looks for an EGG-INFO file indicating if the .pth files in the egg
-        need to be "promoted".  This involves writing a .pth file in the
-        install dir (site-packages, for example) and fixing the contents
-        to reflect the new relative directory location. Returns the names
-        of the newly promoted pth files, or [] if none.
-        """
-        new_pth_file_names = []
-
-        (install_dir, egg_name) = path.split( installed_egg_path )
-        #
-        # (re)set the zip_contents variable incase the egg is a zipfile
-        #
-        self._zip_contents = []
-        #
-        # iterate over list of pth file names and their contents in order
-        # to write out each one
-        #
-        for (pth_name, contents) in \
-                self._build_pth_name_contents_list( installed_egg_path ) :
-
-            pth_name = path.basename( pth_name )
-
-            #
-            # the new pth file will be the name of the egg + the original
-            # pth file name, in order to make unique
-            #
-            new_pth_file_name = path.join( install_dir,
-                                           "%s__%s" % (egg_name, pth_name) )
-            new_pth_file = open( new_pth_file_name, "wu" )
-
-            new_pth_file_names.append( new_pth_file_name )
-
-            for line in contents.split( "\n" ) :
-                #
-                # since zips only use /, replace any \s for checking
-                #
-                line = re.sub( r"\\", "/", line )
-                #
-                # fix the line by prepending the new egg dir or zip to the
-                # line...do this only if it represents a dir in the egg
-                #
-                if( (line in self._zip_contents) or
-                    path.exists( path.join( installed_egg_path, line ) ) ) :
-
-                    line = path.join( egg_name, line )
-
-                new_pth_file.write( "%s\n" % line )
-
-            new_pth_file.close()
-
-        return new_pth_file_names
-
-
     def _relocate_egg_binaries( self, installed_egg_path ) :
         """
         If the egg has the rpath_additions_file set, and the system has the
@@ -482,7 +382,7 @@ class Engine( EasyInstaller, HasTraits ) :
         return retcode
 
 
-    def _rescan_pythonpath( self, new_pth_files ) :
+    def _rescan_pythonpath( self ) :
         """
         add the newly-installed packages to the path for future imports
         by rescanning the updated easy_install.pth file and any additional
@@ -495,18 +395,14 @@ class Engine( EasyInstaller, HasTraits ) :
         lib = path.dirname( self.downloader.get_site_packages_dir() )
         (site_file, site_path, site_desc) = imp.find_module( "site", [lib] )
         site = imp.load_module( "site", site_file, site_path, site_desc )
+
         try :
             # python 2.4
             site.addpackage( self._install_dir, "easy-install.pth",
                              set( sys.path ) )
-            for pth in new_pth_files :
-                site.addpackage( self._install_dir, pth, set( sys.path ) )
-
         except :
             # python 2.3
             site.addpackage( self._install_dir, "easy-install.pth" )
-            for pth in new_pth_files :
-                site.addpackage( self._install_dir, pth )
 
 
     def _rm_rf( self, file_or_dir ) :
@@ -594,6 +490,3 @@ class Engine( EasyInstaller, HasTraits ) :
             for line in files :
                 fh.write( "%s\n" % line )
             fh.close()
-
-
-        

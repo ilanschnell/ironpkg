@@ -62,13 +62,9 @@ class EasyInstaller( TextIO ) :
         #
         self._install_dir = self.site_packages_dir
         self.find_links = []
-        self.always_unzip = False
         self.always_copy = False
+        self.always_unzip = False
         self.no_deps = False
-        self.script_dir = None
-        self.index_url = None
-        self.record = ""
-        self.exclude_scripts = False
         
         #
         # A list for easy_install to populate with Distribution objects
@@ -90,14 +86,17 @@ class EasyInstaller( TextIO ) :
         self._urlutil = URLUtil( *args, **kwargs )
 
 
-    def install( self, install_dir, package_spec, extra_args="" ) :
+    def install( self, install_dir, package_spec, extra_args=None ) :
         """
         Uses easy_install to install a package satisfying package_spec.
         """
 
         self.newly_installed_dists = []
         self.newly_installed_files = {}
-        
+
+        if( extra_args is None ) :
+            extra_args = {}
+            
         #
         # import this here so code like the bootstrapper can import this module
         # even if setuptools is not installed.
@@ -127,6 +126,7 @@ class EasyInstaller( TextIO ) :
         #
         self.log( "Installing %s...\n" % package_spec )
         self.debug( "Calling easy_install with options: %s\n" % ei_args )
+        
         try :
             easy_install( ei_args, cmdclass=cmd_map )
 
@@ -188,26 +188,21 @@ class EasyInstaller( TextIO ) :
             pass
 
 
-    def _build_easy_install_arg_list( self, package_spec, extra_args="" ) :
+    def _build_easy_install_arg_list( self, package_spec, extra_args ) :
         """
         Returns a list of strings which are used as args to the easy_install
         "main" call, equivalent to calling it from the command-line.
         """
         ei_args = []
-        
-        if( self.verbose ) :
-            ei_args += ["--verbose"]
-        else :
-            ei_args += ["--quiet"]
 
-        if( self.record != "" ) :
-            ei_args += ["--record=%s" % self.record]
-            
-        if( self.always_unzip ) :
-            ei_args += ["--always-unzip"]
-
-        if( self.exclude_scripts ) :
-            ei_args += ["--exclude-scripts"]
+        #
+        # Do not use --quiet since the app appears frozen when in reality its
+        # simply checking the cheeseshop...--quiet suppresses printing that info.
+        #
+        #if( self.verbose ) :
+        #    ei_args += ["--verbose"]
+        #else :
+        #    ei_args += ["--quiet"]
 
         #
         # If --always-copy is not given, eggs from "local" repos never get
@@ -218,32 +213,12 @@ class EasyInstaller( TextIO ) :
         #    ei_args += ["--always-copy"]
         ei_args += ["--always-copy"]
 
+        if( self.always_unzip ) :
+            ei_args += ["--always-unzip"]
+
         if( self.no_deps ) :
             ei_args += ["--no-deps"]
-        #
-        # If script_dir is specified in the preferences, use it
-        # If script_dir is not specified, but install_dir is, then
-        # setuptools will install scripts to install_dir, which is not
-        # what we want.
-        #
-        if( not( self.script_dir is None ) ) :
-            ei_args += ["--script-dir=%s" % self.script_dir]
 
-        elif( not( self._install_dir is None ) ) :
-            if sys.platform == 'win32':
-                ei_args += ["--script-dir=%s" \
-                            % os.path.join( sys.prefix, "Scripts" )]
-            else:
-                #
-                # keep the scripts with the egg, the user may not have
-                # permission to write to sys.prefix/bin where scripts
-                # would normally go.
-                #
-                pass
-
-        if( not( self.index_url is None ) ) :
-            ei_args += ["--index-url=%s" % self.index_url]
-            
         if( self._install_dir != self.site_packages_dir ) :
             ei_args += ["--install-dir=%s" % self._install_dir]
 
@@ -256,9 +231,14 @@ class EasyInstaller( TextIO ) :
             ei_args += ["--find-links=%s" % " ".join( fl )]
 
         #
-        # Add any extra args, then add the pacakge spec last
+        # Add any extra args, then add the package spec last.
         #
-        ei_args += extra_args.split()
+        for (arg, argval) in extra_args.items() :
+            arg_entry = "--%s" % arg.replace( "_", "-" )
+            if( not( argval is True ) ) :
+                arg_entry += "=%s" % argval
+            ei_args += [arg_entry]
+
         ei_args += [package_spec]
         
         return ei_args
