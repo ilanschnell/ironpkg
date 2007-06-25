@@ -69,7 +69,7 @@ if( is_standalone_app ) :
     #    matches = [path.basename( d ).lower().startswith( r ) for r in removes]
     #    if( True in matches ) :
     #        sys.path.remove( d )
-    
+
     #
     # Try to activate the GUI...if found, this will enable GUI features.
     #
@@ -98,16 +98,16 @@ from enthought.enstaller.logger import \
      Logger
 
 #
-# Normally, AppDataLocator.application_home is set properly, but since Enstaller
+# Normally, ETSConfig.application_home is set properly, but since Enstaller
 # may be started by a script that is not in the application dir
 # (application_home is based on the dirname of the dir containing the startup
 # script), manually set the application_home here for other modules to use.
 #
-## from enthought.app_data_locator.api import \
-##      AppDataLocator
+## from enthought.etsconfig.api import \
+##      ETSConfig
 from enthought.ets.api import \
      ETS
-## AppDataLocator.application_home = path.join( AppDataLocator.application_data,
+## ETSConfig.application_home = path.join( ETSConfig.application_data,
 ##                                              "enstaller" )
 ETS.application_home = path.join( ETS.application_data, "enstaller" )
 
@@ -158,7 +158,7 @@ def build_option_parser( program_name=sys.argv[0] ) :
     all_actions = ["list_installed", "list_repos", "remove", "upgrade",
                    "list_upgrades", "activate", "deactivate"]
     need_package_actions = ["--remove", "--activate", "--deactivate"]
-    
+
     def check_valid_action( option, opt_str, value, parser ) :
         setattr( parser.values, option.dest, True )
         actions = [getattr( parser.values, a ) for a in all_actions]
@@ -288,7 +288,7 @@ def build_option_parser( program_name=sys.argv[0] ) :
                            dest="no_deps", default=False,
                            action="store_true",
                            help="do not install dependencies." )
-    
+
     opt_parser.add_option( "-s", "--script-dir",
                            dest="script_dir", metavar="<dir>",
                            default=None,
@@ -315,7 +315,7 @@ def build_option_parser( program_name=sys.argv[0] ) :
                            action="store_true",
                            help="make apps require() the package...this " + \
                            "installs the egg \"deactivated\"." )
-    
+
     opt_parser.add_option( "-b", "--build-directory",
                            dest="build_directory", metavar="<dir>",
                            default=None,
@@ -330,7 +330,7 @@ def build_option_parser( program_name=sys.argv[0] ) :
 ##                            "(the default) means no optimizations, -O is the " + \
 ##                            "first level (minor optimizations), -O2 is -O " + \
 ##                            "with all docstrings removed as well." )
- 
+
     opt_parser.add_option( "-e", "--editable",
                            dest="editable", default=False,
                            action="store_true",
@@ -341,7 +341,7 @@ def build_option_parser( program_name=sys.argv[0] ) :
                            default=[],
                            action="callback", callback=add_link,
                            help="pattern(s) that hostnames must match." )
-    
+
     #
     # Override the optparse check_values method in order to add the default
     # Enthought repo last in the order of find_links precedence, if it is to
@@ -351,14 +351,14 @@ def build_option_parser( program_name=sys.argv[0] ) :
         find_links = values.find_links
         use_def_en_repo = values.use_default_enthought_repo
         allow_unstable = values.allow_unstable
-        
+
         if( use_def_en_repo and not( ENTHOUGHT_REPO in find_links ) ) :
             find_links.append( ENTHOUGHT_REPO )
 
             unstable_url = "%s/%s" % (ENTHOUGHT_REPO.strip( "/" ), "unstable")
             if( allow_unstable and not( unstable_url in find_links ) ) :
                 find_links.append( unstable_url )
-                
+
         return (values, args)
 
     opt_parser.check_values = check_values
@@ -384,11 +384,11 @@ def get_easy_install_options( options_obj ) :
 
             if( argval == "" ) :
                 argval = '""'
-                
+
             args[arg] = argval
 
     return args
-            
+
 
 def override_opt_parse_output( opt_parser, logging_handle ) :
     """
@@ -487,7 +487,7 @@ def postprocess_args( opt_parser, options, package_specs, logging_handle ) :
     elif( not( HAVE_GUI ) and not( cli_options_given ) ) :
         opt_parser.print_help()
         sys.exit( 0 )
-        
+
     return retcode
 
 
@@ -506,7 +506,7 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
     # Build a command-line processor that uses the logging_handle for output.
     #
     opt_parser = build_option_parser( argv[0] )
-    
+
     #
     # Catch sys.exit to prevent OptionParser from shutting down the app if the
     # args were invalid.
@@ -515,7 +515,7 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
         (options, package_specs) = opt_parser.parse_args( argv[1:] )
         retcode = postprocess_args( opt_parser, options, package_specs,
                                     logging_handle )
-    
+
     except SystemExit, exit_code :
         retcode = exit_code
 
@@ -543,7 +543,7 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
         # Scan sys.path...this is needed for all actions.
         #
         session.initialize()
-        
+
         #
         # Set the install dir here if specified on the command line so its not
         # overridden by any preference file settings.
@@ -555,7 +555,7 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
         # Add all other options specified on the command-line to the session.
         #
         session.extra_easy_install_args = get_easy_install_options( options )
-        
+
         #
         # Launch either the GUI or the CLI with the appropriate action.
         #

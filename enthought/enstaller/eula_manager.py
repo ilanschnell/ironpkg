@@ -15,8 +15,8 @@ from os import path
 
 from enthought.traits.api import \
      HasTraits, Instance, Constant, List, Str, Dict
-## from enthought.app_data_locator.api import \
-##      AppDataLocator
+## from enthought.etsconfig.api import \
+##      ETSConfig
 from enthought.ets.api import \
      ETS
 
@@ -70,14 +70,14 @@ class EULAManager( HasTraits, TextIO ) :
     # Instance of a URLUtil used for accessing URLs with error handling.
     #
     _urlutil = Instance( URLUtil )
-    
+
 
     def __init__( self, **kwargs ) :
         """
         Required to be called with non-Traits TextIO args and have them set
         properly.  Also sets TextIO attrs with defaults.
         """
-        
+
         self.verbose = kwargs.pop( "verbose", False )
         self.prompting = kwargs.pop( "prompting", True )
         self.logging_handle = kwargs.pop( "logging_handle", sys.stdout )
@@ -134,7 +134,7 @@ class EULAManager( HasTraits, TextIO ) :
         #
         self._write_state_file()
 
-        
+
     def get_new_eulas( self ) :
         """
         Returns a dictionary of URL to EULA text for each EULA that has not been
@@ -148,7 +148,7 @@ class EULAManager( HasTraits, TextIO ) :
         # method was last called.
         #
         self._read_all_url_eulas()
-        
+
         new_eulas = {}
         accepted_urls = self.accepted_eulas.keys()
 
@@ -181,7 +181,7 @@ class EULAManager( HasTraits, TextIO ) :
         """
 
         self.downloaded_eulas = {}
-        
+
         for url in self.urls :
             self._read_url_eula( url )
 
@@ -202,7 +202,7 @@ class EULAManager( HasTraits, TextIO ) :
         self._urlutil.reraise_on_bad_urls = True
 
         #
-        # Try to open the EULA...if an exception was raised then the site 
+        # Try to open the EULA...if an exception was raised then the site
         # probably does not have one.
         #
         try :
@@ -242,7 +242,7 @@ class EULAManager( HasTraits, TextIO ) :
             if( (url in self.accepted_eulas.keys()) and
                 (self.accepted_eulas[url] != eula_text) ) :
                 self.accepted_eulas.pop( url )
-                
+
             self.downloaded_eulas[url] = eula_text
         else :
             self.debug( "No %s file found for %s.\n" % (self.eula_file_name,
@@ -253,7 +253,7 @@ class EULAManager( HasTraits, TextIO ) :
         """
         Write all accepted EULAs to the state file.
         """
-        
+
         state_file = open( self.eula_state_file, "w" )
         state_file.write( "accepted_eulas = %s" % self.accepted_eulas )
         state_file.close()
@@ -262,7 +262,7 @@ class EULAManager( HasTraits, TextIO ) :
     #############################################################################
     # Traits handlers, defaults, etc.
     #############################################################################
-    
+
     def _accepted_eulas_default( self ) :
         """
         Returns the default value of the accepted_eulas dict, which is the dict
@@ -286,9 +286,9 @@ class EULAManager( HasTraits, TextIO ) :
         # method for this does not fire the post_setattr method for the trait,
         # which is required for properly creating the dir if it does not exist.
         #
-        #self._eula_state_dir = AppDataLocator.application_home
+        #self._eula_state_dir = ETSConfig.application_home
         self._eula_state_dir = ETS.application_home
-        
+
         eula_state_file = path.join( self._eula_state_dir,
                                      self._eula_state_filename )
 
@@ -300,14 +300,14 @@ class EULAManager( HasTraits, TextIO ) :
 
         return eula_state_file
 
-        
+
     def _urls_changed( self, old, new ) :
         """
         (Re)creates the downloaded_eulas dict when the url list is changed.
         """
 
         self._read_all_url_eulas()
-        
+
 
     def _urls_items_changed( self, event ) :
         """
@@ -328,7 +328,7 @@ class EULAManager( HasTraits, TextIO ) :
             for url in event.removed :
                 self.downloaded_eulas.pop( url, None )
 
-        
+
     def __urlutil_default( self ) :
         """
         Return a default instance of a URLUtil to use.
