@@ -223,6 +223,16 @@ class EasyInstaller( TextIO ) :
             ei_args += ["--install-dir=%s" % self._install_dir]
 
         #
+        # If script_dir is specified in the preferences, use it
+        # If script_dir is not specified, but install_dir is, then
+        # setuptools will install scripts to install_dir, which is not
+        # what we want.
+        #
+        if( not( "script_dir" in extra_args.keys() ) and \
+            (sys.platform == "win32") ) :
+            ei_args += ["--script-dir=%s" % path.join( sys.prefix, "Scripts" )]
+
+        #
         # Fixup find_links...easy_install does not like file://c:\... or spaces
         #
         if( len( self.find_links ) > 0 ) :
