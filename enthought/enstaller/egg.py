@@ -96,14 +96,22 @@ class Egg(object):
         else:
             self.native_libs = []
 
-        f = open( os.path.join(self._path, egg_info_dir, 'SOURCES.txt'), 'r' )
-        self.sources = f.readlines()
-        f.close()
-
-        f = open( os.path.join(self._path, egg_info_dir, 'top_level.txt'), 'r' )
-        self.top_level = f.read().strip()
-        f.close()
-        
+        sources_file = os.path.join(self._path, egg_info_dir, 'SOURCES.txt')
+        if os.path.exists(sources_file):
+            f = open( sources_file, 'r' )
+            self.sources = f.readlines()
+            f.close()
+        else:
+            self.sources = []
+            
+        top_level_file = os.path.join(self._path, egg_info_dir, 'top_level.txt')
+        if os.path.exists(top_level_file):
+            f = open( top_level_file, 'r' )
+            self.top_level = f.read().strip()
+            f.close()
+        else:
+            self.top_level = ''
+            
         if os.path.exists(os.path.join(self._path, egg_info_dir, 'zip_safe')):
             self.zip_safe = True
         else:
