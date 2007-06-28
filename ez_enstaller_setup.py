@@ -28,6 +28,12 @@ from urlparse import urljoin
 import platform
 
 #
+# Commonly used variables...
+#
+IS_WINDOWS = sys.platform.lower().startswith( "win" )
+PYVER = "%s.%s" % (sys.version_info[0], sys.version_info[1])
+
+#
 # some Python distros (on Suse, others?) do not have the distutils std library
 # module and instead package it in a separate python-devel package which is not
 # installed by default.  Since distutils is required by setuptools and
@@ -54,12 +60,6 @@ except ImportError :
 
     sys.stderr.write( err_msg )
     sys.exit( 1 )
-
-#
-# Commonly used variables...
-#
-IS_WINDOWS = sys.platform.lower().startswith( "win" )
-PYVER = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 
 
 ################################################################################
@@ -147,7 +147,7 @@ elif( IS_WINDOWS ) :
 #
 # setuptools get_platform() finds the right info for OSX
 #
-elif( os.platform.lower().startswith( "darwin" ) ) :
+elif( sys.platform.lower().startswith( "darwin" ) ) :
     (PLAT, PLAT_VER) = get_build_platform().split( "-" )[0:2]
 
 #
