@@ -107,7 +107,7 @@ elif( IS_WINDOWS ) :
 #
 # setuptools get_platform() finds the right info for OSX
 #
-elif( os.platform.lower().startswith( "darwin" ) ) :
+elif( sys.platform.lower().startswith( "darwin" ) ) :
     (PLAT, PLAT_VER) = get_platform().split( "-" )[0:2]
 
 
