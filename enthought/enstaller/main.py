@@ -24,13 +24,7 @@ from enthought.enstaller.api import \
 #
 # If True, GUI features will be available.
 #
-try :
-    import wx
-    import numpy
-    HAVE_GUI = True
-
-except ImportError :
-    HAVE_GUI = False
+HAVE_GUI = True
 
 #
 # Handle the special case of running as part of a "standalone" bundled app egg,
@@ -44,11 +38,13 @@ if( is_standalone_app ) :
     dists = require( "enstaller" )
 
     #
-    # Get the dist object for the GUI...if found, this will also enable GUI
-    # features.
+    # Get the dist object for the GUI...this will also disable GUI features if
+    # any of the GUI packages are not found.
     #
     try :
         dists += require( "enstaller.gui" )
+        import wx
+        import numpy
 
     except :
         HAVE_GUI = False
@@ -103,6 +99,8 @@ if( is_standalone_app ) :
 #
 elif( HAVE_GUI ) :
     try :
+        import wx
+        import numpy
         import enthought.enstaller.gui
 
     except ImportError :
