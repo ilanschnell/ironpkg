@@ -37,25 +37,52 @@ except ImportError :
 # or as a "traditional" egg requiring additional egg dependencies.
 #
 if( is_standalone_app ) :
+
     #
-    # Set the path to enthought to be this standalone enstaller egg.  This
+    # Get a distribution object for this egg to get the egg location.
+    #
+    dists = require( "enstaller" )
+
+    #
+    # Get the dist object for the GUI...if found, this will also enable GUI
+    # features.
+    #
+    try :
+        dists += require( "enstaller.gui" )
+
+    except :
+        HAVE_GUI = False
+
+    #
+    # Build a list of locations for the enstaller eggs.
+    #
+    enthought_paths = []    
+    for dist in dists :
+        e_path = path.join( dist.location, "enthought" )
+        if( not( e_path in enthought_paths ) ) :
+            enthought_paths.append( e_path )
+
+    #
+    # Set the path to enthought to be the standalone enstaller egg(s).  This
     # prevents any other eggs which contribute to the enthought namespace from
     # being found instead of the enthought packages bundled in this egg, which
     # are known to be compatible.
     #
-    enthought_path = path.dirname( path.dirname( __file__ ) )
     import enthought
-    enthought.__path__ = [enthought_path]
+    enthought.__path__ = enthought_paths
 
-    enthought_traits_path = path.join( enthought_path, "traits" )
+    enthought_traits_paths = \
+        [path.join( d, "traits" ) for d in enthought_paths]
     import enthought.traits
-    enthought.traits.__path__ = [enthought_traits_path]
+    enthought.traits.__path__ = enthought_traits_paths
 
+    enthought_traits_ui_paths = \
+        [path.join( d, "ui" ) for d in enthought_traits_paths]
     import enthought.traits.ui
-    enthought.traits.ui.__path__ = [path.join( enthought_traits_path, "ui" )]
-
+    enthought.traits.ui.__path__ = enthought_traits_ui_paths
+        
     #
-    # Also, remove any other bundled installs from the path...this only works
+    # Finally, remove any other bundled installs from the path...this only works
     # because these packages are not namespace packages.
     #
     # UPDATE: do not remove these other bundled pacakges for now, since not all
@@ -69,15 +96,6 @@ if( is_standalone_app ) :
     #    matches = [path.basename( d ).lower().startswith( r ) for r in removes]
     #    if( True in matches ) :
     #        sys.path.remove( d )
-
-    #
-    # Try to activate the GUI...if found, this will enable GUI features.
-    #
-    try :
-        require( "enstaller.gui" )
-
-    except :
-        HAVE_GUI = False
 
 #
 # If not running as a standalone app egg, determine if GUI features should be
@@ -601,3 +619,4 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
 
 if( __name__ == "__main__" ) :
     sys.exit( main( sys.argv ) )
+
