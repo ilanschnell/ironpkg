@@ -4,7 +4,7 @@ from setuptools \
 
 setup(
     name         = "enthought.enstaller",
-    version      = "2.2.0b3",
+    version      = "2.2.0b4",
     description  = "The Enthought installer.  Enhances setuptools by adding " \
                    "query options, support for post-install scripts, and much " \
                    "more.",
