@@ -23,14 +23,14 @@ setup(
 
     install_requires = [
        "enthought.traits>=3.0.0b1",
-#       "enthought.app_data_locator>=2.0b1",
+#       "enthought.etsconfig>=2.0b1",
        "enthought.ets>=2.0b1",
        ],
-    
+
     extras_require = {
         "gui": ["enthought.enstaller.gui>=2.2.0b3, <2.3.0"],
         },
-    
+
     namespace_packages = [
         "enthought",
         "enthought.enstaller",
