@@ -234,11 +234,17 @@ class Package( HasTraits ) :
         """
         parses the info string and sets the attributes based on it
         """
-        egg_specs = get_egg_specs_from_info( pkg_info_string )
-        self.set( **egg_specs )
-        return
         try :
             egg_specs = get_egg_specs_from_info( pkg_info_string )
+            #
+            # special case: if name is set, do not set it again
+            # special case: if version is set, do not set it again
+            #
+            if( (self.name != "") and egg_specs.has_key( "name" ) ) :
+                egg_specs.pop( "name" )
+            if( (self.version != "") and egg_specs.has_key( "version" ) ) :
+                egg_specs.pop( "version" )
+                
             self.set( **egg_specs )
 
         except :
@@ -262,7 +268,14 @@ class Package( HasTraits ) :
         else :
             for (attr, val) in pkg_info.items() :
                 if( not( val is None ) and hasattr( self, attr ) ) :
-                    setattr( self, attr, val )
+                    #
+                    # special case: if name is set, do not set it again
+                    # special case: if version is set, do not set it again
+                    #
+                    if( not( attr in ["name", "version"] ) or
+                        ((attr == "name") and (self.name == "")) or
+                        ((attr == "version") and (self.version == "")) ) :
+                        setattr( self, attr, val )
 
         self.meta_data_set = True
 
