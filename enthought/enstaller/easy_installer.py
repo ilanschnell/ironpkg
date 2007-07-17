@@ -65,6 +65,7 @@ class EasyInstaller( TextIO ) :
         self.always_copy = False
         self.always_unzip = False
         self.no_deps = False
+        self.allow_hosts = []
         
         #
         # A list for easy_install to populate with Distribution objects
@@ -240,6 +241,12 @@ class EasyInstaller( TextIO ) :
             fl = [l.replace( " ", "\ " ) for l in fl]
             ei_args += ["--find-links=%s" % " ".join( fl )]
 
+        #
+        # Build the list of allow_hosts
+        #
+        if( len( self.allow_hosts ) > 0 ) :
+            ei_args += ["--allow-hosts=%s" % ", ".join( self.allow_hosts )]
+                                
         #
         # Add any extra args, then add the package spec last.
         #

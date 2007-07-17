@@ -13,7 +13,9 @@
 import sys
 import types
 import re
+import urlparse
 from os import path
+from fnmatch import translate
 
 #
 # import this here, before any traits imports...
@@ -61,6 +63,11 @@ class Session( HasTraits, TextIO ) :
     other scripts/apps that need Enstaller functionality.
     """
 
+    #
+    #
+    #
+    allow_hosts = List( Str )
+    
     #
     # The directory where new packages will be installed.
     # This directory may or may not be in sys.path but will be created if it
@@ -141,6 +148,8 @@ class Session( HasTraits, TextIO ) :
         self.prompting = kwargs.pop( "prompting", True )
         self.logging_handle = kwargs.pop( "logging_handle", sys.stdout )
 
+        self._read_preferences()
+
         super( Session, self ).__init__( **kwargs )
 
     
@@ -149,7 +158,6 @@ class Session( HasTraits, TextIO ) :
         Perform various initialization operations.
         """
 
-        self._read_preferences()
         self.read_pythonpath()
         #
         # After reading the prefs, set the install dir.
@@ -599,15 +607,49 @@ class Session( HasTraits, TextIO ) :
         exist.  The list is built form the urls passed in.
         """
         
+        filtered_urls = []
+        not_allowed_urls = []
         valids = []
         invalids = []
         
         if( isinstance( urls, basestring ) ) :
             urls = [urls]
+
         #
-        # Include all URLs from the preferences.
+        # Filter the urls that do not match the patterns in allow_hosts
         #
+        allow_hosts = self._make_unique_list( \
+            self.allow_hosts, self.preferences.allow_hosts.value )
+
+        if( len( allow_hosts ) > 0 ) :
+            hosts = []
+            for host in allow_hosts :
+                hosts += [s.strip() for s in host.split( "," )]
+        else:
+            hosts = ["*"]
+
+        allows = re.compile( "|".join( map( translate, hosts ) ) ).match
+
         for url in urls :
+            #
+            # setuptools does not filter urls which dont have hostnames, so
+            # enstaller should not either.
+            #
+            host = urlparse.urlparse( url )[1]
+            if( (host == "") or allows( host ) ) :
+                filtered_urls.append( url )
+            else :
+                not_allowed_urls.append( url )
+
+        for url in not_allowed_urls :
+            if( not( url in self._rejected_urls ) ) :
+                self.log( "Link to %s ***BLOCKED*** by --allow-hosts\n" % url )
+                self._rejected_urls.append( url )
+            
+        #
+        # Check that each url that was not filtered is actually valid.
+        #
+        for url in filtered_urls :
             check = url.lower()
             #
             # If the dir starts with a remote protocol, add to list.
@@ -627,6 +669,7 @@ class Session( HasTraits, TextIO ) :
 
                 else :
                     invalids.append( url )
+
         #
         # Warn about any links specified that were invalid (locals that DNE).
         #
@@ -668,6 +711,21 @@ class Session( HasTraits, TextIO ) :
                 self.log( msg )
 
 
+    def _make_unique_list( self, *lists ) :
+        """
+        Returns a list of items with no repeats, built from the lists passed in.
+        """
+
+        retlist = []
+
+        for lst in lists :
+            for item in lst :
+                if( not( item in retlist ) ) :
+                    retlist.append( item )
+
+        return retlist
+    
+
     def _read_preferences( self ) :
         """
         Reads the various config files (many shared by setuptools and distutils)
@@ -703,6 +761,9 @@ class Session( HasTraits, TextIO ) :
         self.engine.find_links = self.find_links
         self.engine.always_unzip = self.preferences.always_unzip.value
         self.engine.no_deps = self.preferences.no_deps.value
+        self.engine.allow_hosts = self._make_unique_list( \
+            self.allow_hosts, self.preferences.allow_hosts.value )
+        
 ##         self.engine.script_dir = (self.preferences.script_dir.value or None)
 ##         self.engine.exclude_scripts = self.preferences.exclude_scripts.value
 ##         self.engine.record = self.preferences.record.value

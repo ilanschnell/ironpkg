@@ -173,13 +173,18 @@ class Engine( EasyInstaller, HasTraits ) :
         easy_install from a package object, or just the name if package_obj
         is only a string
         """
-        #
-        # A package object will have a name and version or raw_version attr.
-        # If a raw_version (the unmodified version string read in from package
-        # meta-data...these may have build numbers included which are important
-        # for a query) is present use it, otherwise, give a regular version str.
-        #
-        if( hasattr( package_obj, "name" ) and
+
+        if( hasattr( package_obj, "egg_url" ) and
+            path.exists( package_obj.egg_url ) ) :
+            return package_obj.egg_url
+
+        elif( hasattr( package_obj, "fullname" ) and
+              hasattr( package_obj, "location" ) and
+              path.exists( path.join( package_obj.location,
+                                      package_obj.fullname ) ) ) :
+            return path.join( package_obj.location, package_obj.fullname )
+
+        elif( hasattr( package_obj, "name" ) and
             (hasattr( package_obj, "version" ) or
              hasattr( package_obj, "raw_version" )) ) :
 

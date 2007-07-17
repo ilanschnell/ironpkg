@@ -147,6 +147,7 @@ enstaller_options = [
     "activate",
     "deactivate",
     "allow_unstable",
+    "allow_hosts",
 ]
 
 
@@ -155,6 +156,17 @@ def build_option_parser( program_name=sys.argv[0] ) :
     Returns an OptionParser instance for use with the Enstaller standalone app.
     """
     usage = "USAGE: %prog [options]"
+
+    #
+    # Add a new host pattern only if it has not been added before.
+    #
+    def add_host_patt( option, opt_str, value, parser ) :
+        if( len( parser.rargs ) > 0 ) :
+            arg = parser.rargs[0]
+            if( not( arg.startswith( "-" ) ) ) :
+                if( not( arg in parser.values.allow_hosts ) ) :
+                    parser.values.allow_hosts.append( arg )
+                del parser.rargs[0]
 
     #
     # Add a new link only if it has not been added before.
@@ -355,7 +367,7 @@ def build_option_parser( program_name=sys.argv[0] ) :
     opt_parser.add_option( "-H", "--allow-hosts",
                            dest="allow_hosts", metavar="<patterns>",
                            default=[],
-                           action="callback", callback=add_link,
+                           action="callback", callback=add_host_patt,
                            help="pattern(s) that hostnames must match." )
 
     #
@@ -553,7 +565,8 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
         session = Session( logging_handle = logger,
                            verbose        = options.verbose,
                            prompting      = options.prompting,
-                           find_links     = options.find_links )
+                           find_links     = options.find_links,
+                           allow_hosts    = options.allow_hosts )
 
         #
         # Scan sys.path...this is needed for all actions.

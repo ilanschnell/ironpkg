@@ -28,6 +28,28 @@ from enthought.enstaller.url_util import \
 
 IS_WINDOWS = sys.platform.lower().startswith( "win" )
 
+#
+# If setuptools is installed, use it for version comparisons.  Otherwise, use
+# the code in this module for comparing versions.
+#
+try :
+    from pkg_resources import \
+         parse_version
+
+    def _version_cmp( a, b ) :
+        vera = parse_version( a )
+        verb = parse_version( b )
+
+        if( vera == verb ) :
+            return 0
+        if( vera > verb ) :
+            return 1
+        return -1
+
+except ImportError :
+    _version_cmp = None
+
+
 
 class Downloader( TextIO ) :
     """
@@ -210,6 +232,14 @@ class Downloader( TextIO ) :
         """
         Function used in comparisons on strings which represent version numbers.
         """
+
+        #
+        # If the version comparison from setuptools is available, use it.
+        #
+        if( not( _version_cmp is None ) ) :
+            return _version_cmp( a, b )
+
+        
         a_greater = 1
         b_greater = -1
         number_letter_patt = re.compile( "([0-9]+)([a-zA-Z]?)" )

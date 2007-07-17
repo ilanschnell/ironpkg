@@ -79,7 +79,10 @@ class Repository( HasTraits, TextIO ) :
         tmp = self.packages
         self.packages = []
         for p in tmp :
-
+            #
+            # FIXME: This does not need to be called if the repository represents
+            # a directory on PYTHONPATH (already installed eggs)
+            #
             if( is_egg_installable( p.fullname ) ) :
                 self.packages.append( p )
 

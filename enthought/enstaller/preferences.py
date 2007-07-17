@@ -186,9 +186,24 @@ is '*', which matches anything.
 
     def _same_as_find_links_changed( self, old, new ) :
         if( new == True ) :
+            #
+            # Save the original list
+            #
             if( len( self.allow_hosts_value ) == 0 ) :
                 self.allow_hosts_value = self.value
-            self.value = self.find_links.value
+            #
+            # Only update the list if there are find_links listed.
+            #
+            if( len( self.find_links.value ) > 0 ) :
+                self.value = self.find_links.value
+            #
+            # Otherwise, set it back to False
+            #
+            else :
+                self.same_as_find_links = False
+        #
+        # If unchecked, return to previous value
+        #
         else :
             self.value = self.allow_hosts_value
 

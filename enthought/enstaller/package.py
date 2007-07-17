@@ -392,17 +392,6 @@ def get_egg_specs_from_info( pkg_info ) :
         elif( last_key ) :
             specs[last_key] += "\n%s" % line
 
-        #
-        # Special case...if a build was not retrieved, check the version string
-        # to see if one is in there.
-        #
-        if( specs.has_key( "version" ) and not( specs.has_key( "build" ) ) ) :
-            (raw_ver, ver, build) = get_version_build_tuple( specs["version"] )
-            if( not( build is None ) ) :
-                specs["raw_version"] = raw_ver
-                specs["version"] = ver
-                specs["build"] = build
-                
     return specs
 
 
@@ -430,16 +419,11 @@ def get_egg_specs_from_name( egg_name ) :
     specs["name"] = allfields.pop()
 
     #
-    # second is version...check if build num is in there too
+    # second is version...set raw_version too since some code still uses it.
     #
     if( len( allfields ) ) :
-        (raw_ver, ver, build) = get_version_build_tuple( allfields.pop() )
-
-        specs["raw_version"] = raw_ver
-        specs["version"] = ver
-
-        if( not( build is None ) ) :
-            specs["build"] = build
+        specs["version"] = allfields.pop()
+        specs["raw_version"] = specs["version"]
 
     #
     # third is either py version (must start with py), or platform
@@ -458,7 +442,6 @@ def get_egg_specs_from_name( egg_name ) :
     if( len( allfields ) ) :
         allfields.reverse()
         specs["platform"] = "-".join( allfields )
-
 
     return specs
 
@@ -491,31 +474,6 @@ def get_name_from_egg_specs( egg_specs ) :
 
     return egg_name
 
-
-def get_version_build_tuple( ver_string ) :
-    """
-    Return a tuple of (raw_version, version, build_num) based on the ver_string
-    passed in.  raw_version is the unmodified version string passed in.  If
-    there is no build number, build_num will be None.
-    """
-    raw_ver = ver_string
-    ver = ver_string
-    build = None
-
-    #
-    # Split on either - or _...build number is last field if an int, otherwise
-    # there is no build number.  Version is the rest of the string (or all if
-    # no build number).
-    #
-    vernums = re.split( "([\-\_])", ver_string )
-
-    if( len( vernums ) > 1 ) :
-        if( vernums[-1].isdigit() ) :
-            ver = "".join( vernums[0:-2] )
-            build = int( vernums[-1] )
-
-    return (raw_ver, ver, build)
-    
 
 #
 # globals used for checking for an installable package
