@@ -26,6 +26,8 @@ TRAITS = etsdep('enthought.traits', '3.0.0b1')
 setup(
     author = "Richard L. Ratzel",
     author_email = "rlratzel@enthought.com",
+    maintainer = "Chris Galvan",
+    maintainer_email = "cgalvan@enthought.com",
     dependency_links = [
         'http://code.enthought.com/enstaller/eggs/source',
         'http://code.enthought.com/enstaller/eggs/source/unstable',
