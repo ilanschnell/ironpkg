@@ -21,7 +21,7 @@ from pkg_resources import \
 ################################################################################
 # IMPORTANT!
 # This module cannot import anything but standard library modules (and
-# setuptools).  If this is violted, bootstrapping as well as "standalone" app
+# setuptools).  If this is violated, bootstrapping as well as "standalone" app
 # Enstaller sessions could break.
 ################################################################################
 

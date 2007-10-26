@@ -44,7 +44,6 @@ if( is_standalone_app ) :
     try :
         dists += require( "enstaller.gui" )
         import wx
-        import numpy
 
     except :
         HAVE_GUI = False
@@ -100,7 +99,6 @@ if( is_standalone_app ) :
 elif( HAVE_GUI ) :
     try :
         import wx
-        import numpy
         import enthought.enstaller.gui
 
     except ImportError :
@@ -116,16 +114,14 @@ from enthought.enstaller.logger import \
 #
 # Normally, ETSConfig.application_home is set properly, but since Enstaller
 # may be started by a script that is not in the application dir
-# (application_home is based on the dirname of the dir containing the startup
+# (application_home is based on the dirname of the dir containing the startup  
 # script), manually set the application_home here for other modules to use.
 #
-## from enthought.etsconfig.api import \
-##      ETSConfig
-from enthought.ets.api import \
-     ETS
-## ETSConfig.application_home = path.join( ETSConfig.application_data,
-##                                              "enstaller" )
-ETS.application_home = path.join( ETS.application_data, "enstaller" )
+from enthought.etsconfig.api import ETSConfig
+ETSConfig.application_home = path.join(ETSConfig.application_data,
+                                       "enstaller")
+## from enthought.ets.api import ETS                                        
+## ETS.application_home = path.join( ETS.application_data, "enstaller" )
 
 
 #

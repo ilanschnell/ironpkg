@@ -18,16 +18,16 @@ def etsdep(p, min, max=None, literal=False):
 
 # Declare our ETS project dependencies.
 ENSTALLERGUI = etsdep('enthought.enstaller.gui', '2.2.0b4', '2.3.0')
-ETS = etsdep('enthought.ets', '2.0.0b1')
-ETSCONIFG = etsdep('enthought.etsconfig', '2.0.0b1')
+#ETS = etsdep('enthought.ets', '2.0.0b1')
+ETSCONFIG = etsdep('enthought.etsconfig', '2.0.0b1')
 TRAITS = etsdep('enthought.traits', '3.0.0b1')
 
 
 setup(
     author = "Richard L. Ratzel",
-    author_email = "rlratzel@enthought.com",
-    maintainer = "Chris Galvan",
-    maintainer_email = "cgalvan@enthought.com",
+    author_email = "info@enthought.com",
+    maintainer = "Travis Oliphant",
+    maintainer_email = "oliphant@enthought.com",
     dependency_links = [
         'http://code.enthought.com/enstaller/eggs/source',
         'http://code.enthought.com/enstaller/eggs/source/unstable',
@@ -51,8 +51,8 @@ setup(
     ext_modules = [],
     include_package_data = True,
     install_requires = [
-        ETS,
-        #ETSCONFIG,
+        #ETS,
+        ETSCONFIG,
         TRAITS,
        ],
     license = "BSD",
