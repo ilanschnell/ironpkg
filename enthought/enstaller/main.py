@@ -19,7 +19,8 @@ from pkg_resources import \
      require, DistributionNotFound
 
 from enthought.enstaller.api import \
-     ENTHOUGHT_REPO, get_app_version_string, is_standalone_app, \
+     ENTHOUGHT_REPO, get_app_version_string, is_standalone_app
+from enthought.enstaller.proxy_support import \
      check_and_install_proxy
 
 #
