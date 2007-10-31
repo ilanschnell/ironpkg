@@ -19,7 +19,8 @@ from pkg_resources import \
      require, DistributionNotFound
 
 from enthought.enstaller.api import \
-     ENTHOUGHT_REPO, get_app_version_string, is_standalone_app
+     ENTHOUGHT_REPO, get_app_version_string, is_standalone_app, \
+     check_and_install_proxy
 
 #
 # If True, GUI features will be available.
@@ -144,6 +145,7 @@ enstaller_options = [
     "deactivate",
     "allow_unstable",
     "allow_hosts",
+    "proxy"
 ]
 
 
@@ -295,6 +297,15 @@ def build_option_parser( program_name=sys.argv[0] ) :
                            help="search the enthought \"unstable\" " + \
                            "repository if a package is not found in the " + \
                            "stable one (and all others specified with -f)" )
+
+    opt_parser.add_option("-p", "--proxy",
+                          dest="proxy", default='',
+                          action="store", type="string",
+                          help="use user:password@proxy.location:portnum" \
+                              " to use a proxy for accessing the repository" \
+                              " where user, password, and portnum are" \
+                              " optional")
+                          
     #
     # Add other options which are basically passed-through to easy_install
     #
@@ -456,9 +467,22 @@ def postprocess_args( opt_parser, options, package_specs, logging_handle ) :
     particular application.  Also removes the program name from the list of
     package_specs
     """
+    from enthought.enstaller.proxy_support import 
 
     retcode = 0
 
+    # install a proxy handler if either PROXY_<HOST, PORT, USER, PASS> 
+    # environment variables are set or the proxy option is set  
+    proxystr = getattr(opt_parser, 'proxy', '')
+    try:
+        proxy_info = check_and_install_proxy(proxystr)
+        if proxy_info['host'] is not None:
+            logging_handle.write('Using proxy %s' % proxy_info)
+    except:
+        logging_handle.write('Error: Bad proxy information: %s' \
+                                 % proxystr)
+        return 2
+    
     #
     # Sometimes, missing args to -d will cause it to treat the next option
     # as the install directory...bug in optparse?
@@ -554,6 +578,7 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
         #
         if( options.gui ) :
             from enthought.enstaller.gui.gui import GUI
+        
         #
         # Instantiate a session and a logger, used for both GUI and CLI
         #
