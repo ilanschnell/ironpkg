@@ -20,6 +20,7 @@ from pkg_resources import \
 
 from enthought.enstaller.api import \
      ENTHOUGHT_REPO, get_app_version_string, is_standalone_app
+
 from enthought.enstaller.proxy_support import \
      check_and_install_proxy
 
@@ -468,7 +469,6 @@ def postprocess_args( opt_parser, options, package_specs, logging_handle ) :
     particular application.  Also removes the program name from the list of
     package_specs
     """
-    from enthought.enstaller.proxy_support import 
 
     retcode = 0
 

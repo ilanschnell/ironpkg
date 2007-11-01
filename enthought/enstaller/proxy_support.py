@@ -37,9 +37,9 @@ def install_proxy_handler(proxy_dict):
 def check_and_install_proxy(proxystr):
     if proxystr == '':
         proxy_info = {
-            'host' : os.environ.get('PROXY_HOST', None)
-            'port' : os.environ.get('PROXY_PORT', 80)
-            'user' : os.environ.get('PROXY_USER', None)
+            'host' : os.environ.get('PROXY_HOST', None),
+            'port' : os.environ.get('PROXY_PORT', 80),
+            'user' : os.environ.get('PROXY_USER', None),
             'pass' : os.environ.get('PROXY_PASS', None)
             }
     else: # get it from the string
