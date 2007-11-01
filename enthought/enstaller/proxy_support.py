@@ -35,7 +35,7 @@ def install_proxy_handler(proxy_dict):
 # command-line string is in proxystr
 #  it over-rides whatever is in environment variables.    
 def check_and_install_proxy(proxystr):
-    if proxystr = '':
+    if proxystr == '':
         proxy_info = {
             'host' : os.environ.get('PROXY_HOST', None)
             'port' : os.environ.get('PROXY_PORT', 80)
