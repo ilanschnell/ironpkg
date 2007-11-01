@@ -69,7 +69,7 @@ def check_and_install_proxy(proxystr):
             proxy_info['port'] = 80
         elif len(host_port) == 2:
             proxy_info['host'] = host_port[0]
-            proxy_info['port'] = host_port[1]
+            proxy_info['port'] = int(host_port[1])
         else:
             raise ValueError, errmsg
         

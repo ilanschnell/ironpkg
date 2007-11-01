@@ -474,7 +474,7 @@ def postprocess_args( opt_parser, options, package_specs, logging_handle ) :
 
     # install a proxy handler if either PROXY_<HOST, PORT, USER, PASS> 
     # environment variables are set or the proxy option is set  
-    proxystr = getattr(opt_parser, 'proxy', '')
+    proxystr = getattr(options, 'proxy', '')
     try:
         proxy_info = check_and_install_proxy(proxystr)
         if proxy_info['host'] is not None:

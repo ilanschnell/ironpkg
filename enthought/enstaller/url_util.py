@@ -138,7 +138,7 @@ class URLUtil( TextIO ) :
                 # Check for timeout, all other socket errs are bad URLs
                 #
                 socket_err = ""
-                if (err.args[0] == "socket error"):
+                if len(err.args) > 1 and err.args[0] == "socket error":
                     socket_err = err.args[1].args[1]
 
                 if (socket_err == "Operation timed out"):
