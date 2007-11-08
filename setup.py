@@ -35,9 +35,12 @@ setup(
     description = "The Enthought installer.  Enhances setuptools by adding " \
         "query options, support for post-install scripts, and much more.",
     entry_points = {
-        "console_scripts" : [
-            "enstaller = enthought.enstaller.launcher:launch",
-            ],
+        # FIXME: The below should really only be inserted by the Enstaller
+        # application building recipe.  Otherwise, builds of the ETS library
+        # create a *broken* enstaller script!
+        #"console_scripts" : [
+        #    "enstaller = enthought.enstaller.launcher:launch",
+        #    ],
         },
     extras_require = {
         "gui" : [
