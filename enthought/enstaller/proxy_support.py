@@ -32,9 +32,14 @@ def install_proxy_handler(proxy_dict):
     
     urllib2.install_opener(opener)
 
-# command-line string is in proxystr
-#  it over-rides whatever is in environment variables.    
+# command-line string is passed in as proxystr
+#    and it over-rides whatever might be in environment variables.
 def check_and_install_proxy(proxystr):
+    """Get proxy from string or environment variables and install opener
+
+    Returns dictionary of installed proxy information and
+    raises ValueError on error. 
+    """
     if proxystr == '':
         proxy_info = {
             'host' : os.environ.get('PROXY_HOST', None),

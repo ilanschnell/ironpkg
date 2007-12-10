@@ -25,6 +25,19 @@ from pkg_resources import \
 # Enstaller sessions could break.
 ################################################################################
 
+
+########################
+# VARIABLES needed for post-install scripts and pre-uninstall scripts
+########################
+
+menu_group_name = 'Enthought'
+
+
+###
+# END of VARIABLES
+####
+
+
 PYVER = "%s.%s" % (sys.version_info[0], sys.version_info[1])
 IS_WINDOWS = sys.platform.lower().startswith( "win" )
 
