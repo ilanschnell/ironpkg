@@ -26,12 +26,6 @@ from pkg_resources import \
 ################################################################################
 
 
-########################
-# VARIABLES needed for post-install scripts and pre-uninstall scripts
-########################
-
-menu_group_name = 'Enthought'
-
 
 ###
 # END of VARIABLES
