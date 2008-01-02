@@ -44,7 +44,8 @@ class Egg(object):
             
         #non standard
         self.post_install_scripts = []
-                        
+        self.uninstall_scripts = []
+
     def parse_zip(self):
         z = zipfile.ZipFile(self._path, 'r')
         self.parse_pkg_info(z.read('EGG-INFO/PKG-INFO'))
@@ -234,6 +235,13 @@ class Egg(object):
                 filenames.remove(filename)
         
         #
+        # remove the uninstalls, these will be added back later
+        #
+        for filename in filenames:
+            if filename.startswith("EGG-INFO/uninstall"):
+                filenames.remove(filename)
+
+        #
         # add the correct file for zip-safeness
         #
         if self.zip_safe:
@@ -267,6 +275,19 @@ class Egg(object):
             
             os.unlink(temp_script)
         
+    def _insert_uninstalls(self, zip):
+        #
+        # insert uninstall scripts
+        #
+        
+        if len(self.uninstall_scripts) > 0:
+            temp_script = self.generate_uninstall_script()
+            
+            zip.write(temp_script, os.path.join("EGG-INFO", "uninstall.py"))
+            for script in self.uninstall_scripts:
+                zip.write(script, os.path.join("EGG-INFO", "uninstall", os.path.basename(script)))
+            
+            os.unlink(temp_script)
             
     def _update_dir(self, files_from_filesystem):
         import shutil
@@ -337,6 +358,7 @@ class Egg(object):
         os.chdir(cwd)
 
         self._insert_post_installs(new)
+        self._insert_uninstalls(new)
         
         new.close()        
         
@@ -421,6 +443,7 @@ class Egg(object):
             original.close()
 
         self._insert_post_installs(new)
+        self._insert_uninstalls(new)
         
         new.close()
         
@@ -458,6 +481,46 @@ os.chdir( path.join( path.dirname( path.abspath( __file__ ) ),
         
         import tempfile
         filename = os.path.join( tempfile.gettempdir(), "post_install.py")
+        f = open(filename, "w")
+        f.write(script_code)
+        f.close()
+
+        return filename
+
+    def generate_uninstall_script(self):
+        script_code = """# uninstall script
+import sys
+import os
+from os import path
+cwd = os.getcwd()
+os.chdir( path.join( path.dirname( path.abspath( __file__ ) ),
+                     "uninstall" ) )
+"""
+
+        for script in self.uninstall_scripts :
+            #
+            # build the command string to be executed for each script by making
+            # it relative to the current dir, call python (sys.executable) if
+            # its a python script, and make sure the script args are in place
+            #
+            rel_path_script = os.path.basename( script.split()[0] )
+            script_args = script.split()[1:]
+
+            if( os.path.splitext( rel_path_script )[1] in [".py", ".pyc"] ) :
+                cmd = "%s" % rel_path_script
+            else :
+                cmd = rel_path_script
+                
+            if( script_args ) :
+                cmd += " " + " ".join( script_args )
+
+            script_code += "execfile( \"%s\" )\n" % (cmd)
+
+        script_code += "os.chdir(cwd)\n"
+        script_code += "# end of uninstall script\n"
+        
+        import tempfile
+        filename = os.path.join( tempfile.gettempdir(), "uninstall.py")
         f = open(filename, "w")
         f.write(script_code)
         f.close()

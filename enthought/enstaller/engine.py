@@ -105,6 +105,10 @@ class Engine( EasyInstaller, HasTraits ) :
 
         for package_obj in package_objs :
             package_path = path.join( package_obj.location, package_obj.fullname)
+
+            # run any uninstall operations in the egg before removing
+            self._run_uninstall(package_path)
+
             self.log( "Removing: %s..." % package_path )
 
             rc = self._remove_package_file( package_path )
@@ -472,6 +476,46 @@ class Engine( EasyInstaller, HasTraits ) :
         #
         if( tmp_unpack_dir != "" ) :
             self._rm_rf( tmp_unpack_dir )
+
+    def _run_uninstall(self, installed_egg_path):
+        """
+        run any uninstall scripts in the installed egg defined by the
+        package passed in (the package is either a string defining a package
+        name or package requirement spec, or a package object containing info
+        about the package.
+        """
+        tmp_unpack_dir = ""
+
+        #
+        # if the egg installed is a dir, simply check the EGG-INFO subdir
+        # for a post_install.py script and run it, otherwise, unzip it to
+        # a temp location and do the same thing
+        #
+        if(path.isdir(installed_egg_path)):
+            egg_dir = installed_egg_path
+
+        else :
+            tmp_unpack_dir = tempfile.mkdtemp(prefix="enstaller-")
+            egg_dir = path.join(tmp_unpack_dir,
+                                 path.basename(installed_egg_path))
+            unpack_archive(installed_egg_path, egg_dir)
+        #
+        # check for uninstall.py and run if present
+        #
+        uninstall_script = path.join(egg_dir, "EGG-INFO", "uninstall.py")
+        if(path.exists(uninstall_script)):
+
+            try :
+                execfile(uninstall_script, {"__file__" : uninstall_script})
+            except Exception, err :
+                self.log("Error: problem running uninstall script %s: %s\n" \
+                          % (uninstall_script, err))
+
+        #
+        # cleanup if a temp extraction was done
+        #
+        if(tmp_unpack_dir != ""):
+            self._rm_rf(tmp_unpack_dir)
 
 
     def _write_installed_files_file( self, egg_path ) :
