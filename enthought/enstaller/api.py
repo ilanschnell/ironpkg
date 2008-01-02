@@ -38,8 +38,8 @@ IS_WINDOWS = sys.platform.lower().startswith( "win" )
 #
 # Version number is from the egg/setuptools
 #
-# ...this is a hack...since the package is named differently depending on if
-# its the bundled standalone app egg or the library module, the require()
+# ...this is a hack...since the project is named differently depending on if
+# its the bundled standalone app egg or the library packages, the require()
 # call must be different...use the path to this file to try and determine which
 # egg must be required.
 #
@@ -52,6 +52,7 @@ else :
     package_name = "enthought.enstaller"
 
 __version__ = require( package_name )[0].version
+version = __version__
 
 
 def get_version_string() :

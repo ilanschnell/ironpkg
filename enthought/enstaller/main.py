@@ -21,8 +21,8 @@ from pkg_resources import \
 from enthought.enstaller.api import \
      ENTHOUGHT_REPO, get_app_version_string, is_standalone_app
 
-from enthought.enstaller.proxy_support import \
-     check_and_install_proxy
+from enthought.proxy.api import setup_proxy
+
 
 #
 # If True, GUI features will be available.
@@ -54,7 +54,7 @@ if( is_standalone_app ) :
     #
     # Build a list of locations for the enstaller eggs.
     #
-    enthought_paths = []    
+    enthought_paths = []
     for dist in dists :
         e_path = path.join( dist.location, "enthought" )
         if( not( e_path in enthought_paths ) ) :
@@ -78,7 +78,7 @@ if( is_standalone_app ) :
         [path.join( d, "ui" ) for d in enthought_traits_paths]
     import enthought.traits.ui
     enthought.traits.ui.__path__ = enthought_traits_ui_paths
-        
+
     #
     # Finally, remove any other bundled installs from the path...this only works
     # because these packages are not namespace packages.
@@ -117,13 +117,13 @@ from enthought.enstaller.logger import \
 #
 # Normally, ETSConfig.application_home is set properly, but since Enstaller
 # may be started by a script that is not in the application dir
-# (application_home is based on the dirname of the dir containing the startup  
+# (application_home is based on the dirname of the dir containing the startup
 # script), manually set the application_home here for other modules to use.
 #
 from enthought.etsconfig.api import ETSConfig
 ETSConfig.application_home = path.join(ETSConfig.application_data,
                                        "enstaller")
-## from enthought.ets.api import ETS                                        
+## from enthought.ets.api import ETS
 ## ETS.application_home = path.join( ETS.application_data, "enstaller" )
 
 
@@ -300,14 +300,15 @@ def build_option_parser( program_name=sys.argv[0] ) :
                            "repository if a package is not found in the " + \
                            "stable one (and all others specified with -f)" )
 
-    opt_parser.add_option("-p", "--proxy",
+    opt_parser.add_option("--proxy",
                           dest="proxy", default='',
                           action="store", type="string",
-                          help="use user:password@proxy.location:portnum" \
-                              " to use a proxy for accessing the repository" \
-                              " where user, password, and portnum are" \
-                              " optional")
-                          
+                          help="use user:password@proxy:port to " \
+                          "speicfy a proxy for accessing repositories. " \
+                          "(user, password, and port are optional.)  You " \
+                          "will be presented with a password prompt if you " \
+                          "provide a user but not a password value.")
+
     #
     # Add other options which are basically passed-through to easy_install
     #
@@ -472,18 +473,17 @@ def postprocess_args( opt_parser, options, package_specs, logging_handle ) :
 
     retcode = 0
 
-    # install a proxy handler if either PROXY_<HOST, PORT, USER, PASS> 
-    # environment variables are set or the proxy option is set  
-    proxystr = getattr(options, 'proxy', '')
+
+    # Install a proxy handler if either PROXY_<HOST, PORT, USER, PASS>
+    # environment variables are set or the proxy option is set.
     try:
-        proxy_info = check_and_install_proxy(proxystr)
-        if proxy_info['host'] is not None:
-            logging_handle.write('Using proxy %s' % proxy_info)
-    except:
-        logging_handle.write('Error: Bad proxy information: %s' \
-                                 % proxystr)
+        info = setup_proxy(getattr(options, 'proxy', ''))
+        if info is not None and len(info.get('host', '')) > 0:
+            logging_handle.write('Using proxy %s' % info)
+    except ValueError, e:
+        logging_handle.write('Error: Proxy configuration error: %s' % e)
         return 2
-    
+
     #
     # Sometimes, missing args to -d will cause it to treat the next option
     # as the install directory...bug in optparse?
@@ -579,7 +579,7 @@ def main( argv=sys.argv, logging_handle=sys.stdout ) :
         #
         if( options.gui ) :
             from enthought.enstaller.gui.gui import GUI
-        
+
         #
         # Instantiate a session and a logger, used for both GUI and CLI
         #

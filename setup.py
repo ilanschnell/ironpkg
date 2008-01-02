@@ -1,3 +1,4 @@
+import os
 from setuptools import setup, find_packages
 
 
@@ -18,9 +19,18 @@ def etsdep(p, min, max=None, literal=False):
 
 # Declare our ETS project dependencies.
 ENSTALLERGUI = etsdep('enthought.enstaller.gui', '2.2.0b4', '2.3.0')
-#ETS = etsdep('enthought.ets', '2.0.0b1')
-ETSCONFIG = etsdep('enthought.etsconfig', '2.0.0b1')
-TRAITS = etsdep('enthought.traits', '3.0.0b1')
+ETSCONFIG = etsdep('enthought.etsconfig', '2.0.1b1')
+TRAITS = etsdep('enthought.traits', '2.0.1b1' ) #'3.0.0b1')
+
+
+# Only setup a console script if the user is explicitly building the application
+# instead of the library.
+if len(os.environ.get('ENSTALLER_APP', '')) > 0:
+    entry_points = {
+        "console_scripts" : ["enstaller = enthought.enstaller.launcher:launch"],
+        }
+else:
+    entry_points = {}
 
 
 setup(
@@ -30,18 +40,11 @@ setup(
     maintainer_email = "oliphant@enthought.com",
     dependency_links = [
         'http://code.enthought.com/enstaller/eggs/source',
-        'http://code.enthought.com/enstaller/eggs/source/unstable',
         ],
-    description = "The Enthought installer.  Enhances setuptools by adding " \
-        "query options, support for post-install scripts, and much more.",
-    entry_points = {
-        # FIXME: The below should really only be inserted by the Enstaller
-        # application building recipe.  Otherwise, builds of the ETS library
-        # create a *broken* enstaller script!
-        #"console_scripts" : [
-        #    "enstaller = enthought.enstaller.launcher:launch",
-        #    ],
-        },
+    description = "A library of functionality used by Enthought installers.  " \
+        "Enhances setuptools by adding query options, support for " \
+        "post-install and pre-uninstall scripts, and much more.",
+    entry_points = entry_points,
     extras_require = {
         "gui" : [
             ENSTALLERGUI,
@@ -54,7 +57,6 @@ setup(
     ext_modules = [],
     include_package_data = True,
     install_requires = [
-        #ETS,
         ETSCONFIG,
         TRAITS,
        ],
