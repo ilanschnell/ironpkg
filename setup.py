@@ -18,9 +18,9 @@ def etsdep(p, min, max=None, literal=False):
 
 
 # Declare our ETS project dependencies.
-ENSTALLERGUI = etsdep('enthought.enstaller.gui', '2.2.0b4', '2.3.0')
-ETSCONFIG = etsdep('enthought.etsconfig', '2.0.1b1')
-TRAITS = etsdep('enthought.traits', '2.0.1b1' ) #'3.0.0b1')
+ENSTALLERGUI = etsdep('EnstallerGUI', '2.2.0b4', '2.3.0')
+ENTHOUGHTBASE = etsdep('EnthoughtBase', '3.0.0b1')
+TRAITS = etsdep('Traits', '3.0.0b1')
 
 
 # Only setup a console script if the user is explicitly building the application
@@ -34,10 +34,8 @@ else:
 
 
 setup(
-    author = "Richard L. Ratzel",
+    author = "Enthought, Inc.",
     author_email = "info@enthought.com",
-    maintainer = "Travis Oliphant",
-    maintainer_email = "oliphant@enthought.com",
     dependency_links = [
         'http://code.enthought.com/enstaller/eggs/source',
         ],
@@ -57,11 +55,11 @@ setup(
     ext_modules = [],
     include_package_data = True,
     install_requires = [
-        ETSCONFIG,
+        ENTHOUGHTBASE,
         TRAITS,
        ],
     license = "BSD",
-    name = "enthought.enstaller",
+    name = "Enstaller",
     namespace_packages = [
         "enthought",
         "enthought.enstaller",
