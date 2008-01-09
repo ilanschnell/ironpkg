@@ -20,7 +20,7 @@ def etsdep(p, min, max=None, literal=False):
 # Declare our ETS project dependencies.
 ENSTALLERGUI = etsdep('EnstallerGUI', '2.2.0b4', '2.3.0')
 ENTHOUGHTBASE = etsdep('EnthoughtBase', '3.0.0b1')
-TRAITS = etsdep('Traits', '3.0.0b1')
+TRAITS_UI = etsdep('Traits[ui]', '3.0.0b1')
 
 
 # Only setup a console script if the user is explicitly building the application
@@ -56,7 +56,7 @@ setup(
     include_package_data = True,
     install_requires = [
         ENTHOUGHTBASE,
-        TRAITS,
+        TRAITS_UI,
        ],
     license = "BSD",
     name = "Enstaller",
