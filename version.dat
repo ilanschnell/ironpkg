@@ -1,0 +1,12 @@
+[setuptools]
+status = 'release candidate'
+major = 0
+build = 9
+minor = 6
+
+[enstaller]
+status = 'alpha'
+major = 3
+minor = 0
+build = 0
+
