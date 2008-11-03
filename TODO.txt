@@ -1,3 +1,0 @@
-* This model level project should not be dependent on Traits[ui] -- refactor
-    enthought/enstaller/main.py to remove any imports from traits.ui.
-
