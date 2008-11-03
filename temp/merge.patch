@@ -1,0 +1,778 @@
+--- /home/ccasey/Documents/setuptools/setuptools/command/easy_install.py	2008-09-30 17:43:01.000000000 -0500
++++ easy_install.py	2008-09-30 17:30:46.000000000 -0500
+@@ -9,7 +9,8 @@
+ 
+ __ http://peak.telecommunity.com/DevCenter/EasyInstall
+ """
+-import sys, os, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
++import sys, os, os.path, zipimport, shutil, tempfile, re, stat, random
++import zipfile, tarfile
+ from glob import glob
+ from os import path
+ from setuptools import Command
+@@ -222,8 +223,9 @@
+             if self.remove:
+                 self.uninstall(self.args)
+             else:
+-                for spec in self.args:
+-                    self.easy_install(spec, not self.no_deps)
++                # The new install algorithm installs breadth first, so all
++                # arguements are needed at once.
++                self.easy_install(self.args, not self.no_deps)
+                 
+                 if self.record is not None:
+                     # Get the list of files installed
+@@ -431,49 +433,45 @@
+     def get_deps(self):
+         """Check for back dependencies. The idea is that if a package is being
+         uninstalled and a dependency is also being uninstalled, this will help
+-        check to see if any other packages will be broken by the dependency. It
+-        returns a dictionary in the format
+-        {dependency: {project1: dependency_version}, {project2: dependency_version}}
++        check to see if any other packages will be broken by the dependency.
+         """
+         
+         # Get the set of installed packages
+         projects = WorkingSet()
+-        
+         # Instantiate dictionary of project requirements
+         reqdict = {}
+-        
+         # Instantiate back-dependency dictionary. The ONLY items in this
+         # will be projects that are depended upon by something else.
+         low_dep_dict = {}
+         
+         # Create dictionary of each installed project and related dependencies
+         for project in projects:
+-            
+             # list of requirements for each project
+             try:
+                 reqs = require(project.project_name)
++                reqdict[project] = reqs
+             except DistributionNotFound:
+                 continue
+-            reqdict[project] = reqs
++            except VersionConflict:
++                continue
+         
+         # Create the dictionary of packages being depended on.
++        # keys are projects, values are results of require on the 
++        # project name
+         for key, value in reqdict.iteritems():
+             for item in value:
+-                
+                 # This keeps out entries that have only themselves in the 
+                 # dependency list
+                 if item.project_name == key.project_name:
+                     continue
+-               
+                 # spec becomes a list of tuples of version numbers and 
+                 # operators, eg [(">=", "2.0"), ("<=", 3.0")]
+                 spec = value[0].requires()[0].specs
+-                
+                 # version_list will become a concatenated list of versions, eg
+                 # ['>=2.0', '<=3.0']
+                 version_list = []
+                 if not spec:
+-                    version_list.append('(any version)')
++                    version_list.append('>0')
+                 for version in spec:
+                     version_list.append(''.join(version))
+                 version_string = ','.join(version_list)
+@@ -485,6 +483,7 @@
+         # low_dep_dict is in the form
+         # {dependency: {project1: dependency_version}, {project2: dependency_version}}
+         return low_dep_dict
++    # end get_deps
+ 
+     def check_deps(self, current_dep, user_spec, all):
+         """Takes in the current dependency being checked, the project specified
+@@ -494,22 +493,19 @@
+         
+         if current_dep not in all.keys():
+             print "Nothing else depends on %s." % current_dep
+-        
+         # Check to see if a dependency is is only required by the package
+         # specified for removal.
+         elif len(all[current_dep]) == 1 and user_spec in all[current_dep].keys():
+             print "Only %s seems to require %s." % (user_spec, current_dep)
+         else:
+-            
+             # Fetch dictionary of projects that require current_dep
+             depends_on_dep = all[current_dep]
+-            
+             # Print list of projects that need current_dep
+             for project in depends_on_dep:
+                 print "%s %s is needed by %s." % \
+                 (current_dep, depends_on_dep[project], project)
+-        
+         choice = ''
++        
+         while 1:
+             if choice.lower() == 'n':
+                 return False
+@@ -530,20 +526,21 @@
+         for spec in specs:
+             try:
+                 pkgs = require(spec)
+-                
+                 # If the package found has dependencies, prompt the user if they
+-                # want the dependencies to be uninstalled as well.
++                # want the dependencies to be uninstalled as well.  Otherwise, continue
++                # to remove the package.
++                # TODO: We should probably check if these dependencies are required
++                # by any other currently installed package before asking the user to 
++                # uninstall them. --DONE
+                 if len(pkgs) > 1:
+                     for dep in pkgs[1:]:
++                        #choice = raw_input("Remove unused dependency %s? [Y/N]" % dep.egg_name())
+                         if self.check_deps(dep.project_name, spec, all_deps):
+                             self._remove_dist(dep)
+-                
+-                # Finally, check if user-specified package can be safely
+-                # removed.
+                 if self.check_deps(pkgs[0].project_name, spec, all_deps):
+                     self._remove_dist(pkgs[0])
+-            except DistributionNotFound:
+-                log.info("Could not find suitable package for: %s" % spec)
++            except DistributionNotFound, (bad_egg):
++                log.info("Could not find suitable package for: %s" % bad_egg)
+             
+             
+     def _remove_dist(self, dist):
+@@ -553,13 +550,13 @@
+         log.info("Removing %s..." % pkg_path)
+         self._remove_package_file(pkg_path)
+         
+-    def _remove_package_file(self, package_filepath):
++    def _remove_package_file(self, package_filename):
+         """
+         Finds the easy_install.pth file and removes the line containing the
+-        package_filepath, if present, then removes the egg file or dir.
++        package_filename, if present, then removes the egg file or dir.
+         """
+         retcode = 0
+-        package_path = path.abspath(package_filepath)
++        package_path = path.abspath(package_filename)
+         (package_dir, package_fullname) = path.split(package_path)
+ 
+         # Read the file (if it exists), find the matching line and write the
+@@ -633,11 +630,102 @@
+         return retcode
+ 
+ 
+-    def easy_install(self, spec, deps=False):
++    def easy_install(self, package_specs, deps=False):
++        """ For each package specified in 'package_specs', easy_install will
++        find and install a distribution of that package that meets the user
++        given specs (if any), and download/install any dependencies that package
++        may have is deps is set to True. Multiple version requirements on the
++        same package from different distributions will be resolved if possible.
++        """
++        # Create a temporary directory to download eggs/source archives into
+         tmpdir = tempfile.mkdtemp(prefix="easy_install-")
+-        download = None
++        
++        # Create the site.py file in the install-dir if it doesn't exist
+         if not self.editable: self.install_site_py()
+-
++            
++        # Get the dictionary containing all of the current package requirements
++        # the user has installed. This is a dictionary of dictionaries, keyed
++        # first by the package being depended on, and keyed second by the
++        # package that requires it, finally giving you the specs ('<1','>=2.0')
++        # for that package
++        dependency_dict = self.get_deps()
++
++        # Create the lists that will allow us to analyze the packages in a
++        # breadth first manner
++        download_queue = []
++        install_stack = []
++        
++        # Check to see if a single object (string, Requirement) was passed in
++        # instead of a list
++        if not isinstance(package_specs, list):
++            download_queue.append(package_specs)
++            
++        # Else, this is a list of packages to install, add them all to the queue
++        else:
++            for spec in package_specs:
++                download_queue.append(spec)
++                
++        # Download each package in the queue and resolve any dependencies if
++        # deps is True.
++        for current_package in download_queue:
++            
++            # Check to see if this is a string containing a version spec for
++            # the current package. If so, add it to the requirements dictionary
++            if isinstance(current_package, str):
++                try:
++                    self.add_specs(current_package, 'user', dependency_dict)
++                        
++                # Catch the exception if this is not a string containing spec
++                # information from the user
++                except:
++                    pass
++            
++            # Return the path of the latest egg that matches all the
++            # requirements in the dependency dictionary, possibly after
++            # downloading it
++            print '\nPACKAGE: ', current_package
++            distribution = self.find_distribution(current_package, tmpdir,
++                dependency_dict)
++            print 'PACKAGE PATH: "' + distribution.location + '"'
++            
++            # Get a list of the packages dependencies as Requirements objects
++            deps_as_requirements = self.get_dependencies(distribution.location,
++                tmpdir)
++            
++            if deps:
++                # Add all Requirement objects in 'deps_as_requirements' to the
++                # download queue
++                for requirement in deps_as_requirements:
++                    download_queue.append(requirement)
++            
++            # Add version specs for all dependencies in 'deps_as_requirements'
++            # to the dependency dictionary
++            for requirement in deps_as_requirements:
++                self.add_specs(requirement, distribution.project_name,
++                    dependency_dict)
++            
++            # Add the distribution to the list of packages to be installed. If
++            # it already exists and is the same version, nothing is added. If it
++            # already exists but is a different version, the old distribution in
++            # the list is replaced with this new one.
++            for dist in install_stack:
++                if dist.project_name == distribution.project_name:
++                    if dist.version <> distribution.version:
++                        print dist.project_name + ' already existed in the ' \
++                            'install stack, but had a version of ' + \
++                            dist.version + ', which is different than the new' \
++                            ' version added: ' + distribution.version
++                        del install_stack[ install_stack.index(dist) ]
++                        install_stack.append(distribution)
++                    break
++            else:
++                install_stack.append(distribution)
++                
++        while len(install_stack) > 0:
++            distribution = install_stack.pop()
++            self.install_item(None, distribution.location, tmpdir, False)
++        
++        """ This will install the packages at the end
+         try:
+             if not isinstance(spec,Requirement):
+                 if URL_SCHEME(spec):
+@@ -667,6 +755,7 @@
+             elif dist.precedence==DEVELOP_DIST:
+                 # .egg-info dists don't need installing, just process deps
+                 self.process_distribution(spec, dist, deps, "Using")
++
+                 return dist
+             else:
+                 return self.install_item(spec, dist.location, tmpdir, deps)
+@@ -674,7 +763,439 @@
+         finally:
+             if os.path.exists(tmpdir):
+                 rmtree(tmpdir)
++        """
++        
++    def add_specs(self, requirement, required_by, dependency_dict):
++        """ If 'package' is a string containing a version spec ("package==1.0"),
++        that spec is added to the dependency dictionary to be taken into
++        account when resolving the specs for that package. 'required_by' is the
++        name of the package with have 'package' as a dependency. 'required_by'
++        is 'user' if package is a string that was given as a command line
++        arguement 'package==1.0 package2>3.1.3 ...' etc.
++        """
++        # If 'package' is a string, convert it to a Requirement object
++        if isinstance(requirement, str):
++            # Get the requirements from the string given by the user, if any
++            requirement = parse_requirement_arg(requirement)
++        
++        # Convert the requirements to a single string (to comply with
++        # the format in get_deps)
++        spec = ''
++        for require_spec in requirement.specs:
++            spec += require_spec[0] + require_spec[1] + ','
++        spec = spec[:-1]
++        
++        # If there is no specification, any version is ok.
++        if len(spec) == 0:
++            spec = '>0'
++        
++        # If the package already exists in the dictionary, add the new
++        # requirement to it's existing requirement dictionary
++        if requirement.project_name in dependency_dict.keys():
++            dependency_dict[requirement.project_name][required_by] = spec
++            
++        # Else, the requirement dictionary for the package doesn't
++        # exist, so create it and add it to the overall dictionary
++        else:
++            new_dict = {required_by:spec}
++            dependency_dict[requirement.project_name] = new_dict
++            
++        print 'ADDED ' + requirement.project_name + spec + \
++              ' to the dependency dictionary.'
++    
++    def get_dependencies(self, package_path, tmpdir):
++        """ Figures out where the path is for the requirement text files. If the
++        package path points to an archive, it will extract all the files
++        specified in 'requirement_files' before reading their requirements.
++        Returns a list of requirements as Requirement objects.
++        """
++        # Declare the files to check for dependencies in
++        requirement_files = ['requires.txt', 'depends.txt']
++        tar_extensions = ['tar', 'tgz', 'tbz', 'tb2', 'taz']
++        
++        # If the path is a directory, check to see if it is built or not
++        if os.path.isdir(package_path):
++            
++            # If the directory is a built package, open the files in EGG-INFO
++            if os.path.exists(os.path.join(package_path, 'EGG-INFO')):
++                path = os.path.join(package_path, 'EGG-INFO')
++            
++            # Else, check to see if the folder contains a .egg-info subfolder
++            else:
++                path = self.find_egg_info_folder(package_path)
++                
++                # If no .egg-info path was found, 
++                if path is None:
++                    raise DistutilsError('egg-info directory was not found.')
++        
++        # If the path points to a file
++        elif os.path.isfile(package_path):
++            
++            # If the path points to a .egg
++            if package_path.lower().endswith('.egg'):
++                
++                # Create a distribution object for the egg file and get its
++                # requirements
++                import zipimport
++                dist = Distribution.from_location(package_path,
++                    os.path.split(package_path)[1],
++                    metadata=EggMetadata(zipimport.zipimporter(package_path)))
++                    
++                # Return the list of Requirement objects
++                return dist.requires()
++            
++            # If the path points to a .zip
++            elif package_path.lower().endswith('.zip'):
++                
++                # Extract the requirement files if they exist
++                path = self.find_requirement_files_zip(package_path,
++                    requirement_files, tmpdir)
++                
++                if path is None:
++                    return []
++            
++            # Always branch in here
++            else:
++                
++                # For each different tar extension format
++                for ext in tar_extensions:
++                    
++                    # If the filename contains a tar extension of some sort
++                    if ext in os.path.basename(package_path).lower():
++                        
++                        # Extract the requirement files if they exist
++                        path = self.find_requirement_files_tar(package_path,
++                            requirement_files, tmpdir)
++                        
++                        if path is None:
++                            return []
++                
++                # Else
++                else:
++                    raise DistutilsError('Non-supported file type: %s' % 
++                        os.path.splitext(package_path)[1])
++            
++        # Else, raise error
++        else:
++            raise DistutilsError(
++                'Path to fetched distribution is unrecognized.')
++            
++        # Return a list of Requirement objects
++        return self.get_requirements_list(requirement_files, path)
++        
++    def get_requirements_list(self, requirement_files, path):
++        """ Opens each of the files declared in the 'requirement_files' list and
++        appends all the requirements they contain to the requirements list as
++        Requirements objects. If the file does not exist, it is skipped.
++        """
++        # Create the list of requirements
++        requirements = []
++        
++        # For each file declared in the list
++        for file_name in requirement_files:
++            
++            # If the file exists in the given directory
++            if os.path.exists(os.path.join(path, file_name)):
++                
++                # Open the file and read the first line
++                file = open(os.path.join(path, file_name))
++                line = file.readline()
++                
++                # While the line read from the file is not empty
++                while len(line) > 0:
++                    
++                    # If the line is not just a CRLF and isn't a header of some
++                    # sort, add the requirement to the download queue
++                    if len(line) > 1 and not line.startswith('['):
++                        requirements.append(Requirement.parse(line))
++                        
++                    # Get the next line in the file
++                    line = file.readline()
++        
++        # Return the list of requirement objects. The list is empty if none of
++        # the files in 'requirement_files' existed in 'path'
++        return requirements
++    
++    def find_egg_info_folder(self, package_path):
++        """ Crawls through the path given and returns the path to the .egg-info
++        folder if it is found. Returns None if the .egg-info folder doesn't
++        exist.
++        """
++        # For each folder in the package_path
++        for root, dirs, files in os.walk(package_path):
++            
++            # If the .egg-info folder is found, return the path to the folder
++            if root.lower().endswith('.egg-info'):
++                return root
++                
++    def find_requirement_files_zip(self, package_path, require_files, tmpdir):
++        """ Searches the namelist of the given zip file for the requirement
++        files defined in 'require_files'. If found, it extracts them to
++        tmpdir and returns the tmpdir path. If not found, returns None.
++        """
++        # Open the zip file
++        zip_file = zipfile.ZipFile(package_path)
++        extract_path = None
++        
++        # For each file in the zip
++        for name in zip_file.namelist():
++            
++            # For each requirement file
++            for file in require_files:
++                
++                # If the requirement file is found in the .egg-info folder
++                if '.egg-info' in name.lower() and file in name.lower():
++                    
++                    # Extract the file to tmpdir
++                    write_file = open(os.path.join(tmpdir, file), 'wb')
++                    write_file.write(zip_file.read(name))
++                    write_file.close()
++                    extract_path = tmpdir
++        
++        # Return the extraction path, which is None if none of the requirement
++        # files where found in the archive.
++        return extract_path
++        
++    def find_requirement_files_tar(self, package_path, require_files, tmpdir):
++        """ Searches the namelist of the given tar file for the requirement
++        files defined in 'require_files'. If found, it extracts them to
++        tmpdir and returns the tmpdir path. If not found, returns None.
++        """
++        # Open the tar file
++        tar_file = tarfile.open(package_path)
++        extract_path = None
++        
++        # For each file in the tar
++        for name in tar_file.getnames():
++            
++            # For each requirement file
++            for file in require_files:
++                
++                # If the requirement file is found in the .egg-info folder
++                if '.egg-info' in name.lower() and file in name.lower():
++                    
++                    # Extract the file to tmpdir
++                    tar_file.extract(name, tmpdir)
++                    extract_path = tmpdir
++        
++        # Return the extraction path, which is None if none of the requirement
++        # files where found in the archive.
++        return extract_path
++    
++    def find_distribution(self, current_package, tmpdir, dependency_dict):
++        """ Finds a distribution of the requested package. 'current_package' can
++        be a url to an egg/zip/tar, a string containing a package name and
++        optionally a version spec, a directory of a built or unbuilt package, or
++        a Requirement object. The function will return a path to the package
++        after locating it on the system or downloading it from the internet.
++        """
++        # If current_package is not a Requirement object
++        if not isinstance(current_package, Requirement):
++            
++            # If current_package is a url, download it and return its full path
++            if URL_SCHEME(current_package):
++                self.not_editable(current_package)
++                package_file = self.package_index.download(current_package, 
++                    tmpdir)
++                return Distribution.create_dist(package_file, tmpdir)
++            
++            # If current_package is a directory or file, just return it
++            elif os.path.exists(current_package):
++                self.not_editable(current_package)
++                return Distribution.create_dist(current_package, tmpdir)
++
++        # Attempt to merge the given specifications for the current package
++        current_package = self.merge_specs(current_package, dependency_dict)
++        
++        # If current_package is a string, convert it to a Requirement object
++        if isinstance(current_package, str):
++            current_package = parse_requirement_arg(current_package)
++            
++        # Find a distribution that matches the Requirement object either on the
++        # system or on the internet, and get a Distribution object representing
++        # that package
++        self.check_editable(current_package)
++        dist = self.package_index.fetch_distribution(
++            current_package, tmpdir, self.upgrade, self.editable,
++            not self.always_copy, not self.allow_dev
++            )
++        
++        # If a distribution wasn't found, raise error
++        if dist is None:
++            msg = "Could not find suitable distribution for %r" % current_package
++            if self.always_copy:
++                msg+=" (--always-copy skips system and development eggs)"
++            raise DistutilsError(msg)
++            
++        # Else, return the location of the 'fetched' distribution
++        else:
++            return dist
+ 
++    def merge_specs(self, package, dependency_dict):
++        # If package is a Requirement object, get the package title
++        if isinstance(package, Requirement):
++            package_name = package.project_name
++        
++        # Else this is a string, so split the user defined spec from the title
++        # if it exists
++        else:
++            package_name = package.split('>')[0].split('<')[0].split('=')[0]
++        
++        # If it exists, get the requirement dictionary for the package
++        if package_name in dependency_dict.keys():
++            req_dict = dependency_dict[package_name]
++
++            print "Processing dependencies."
++            # Pass in a set so there are no duplicates
++            if len(req_dict.values()) > 1:
++                spec = self._process_spec(req_dict.values())
++            else:
++                spec = req_dict.values()[0]
++            #spec = req_dict.values()[0]
++            
++        else:
++            spec = '>0'
++        
++        # Apply to new spec to the string or Requirement object and return
++        return package_name + spec
++    
++    def _process_spec(self, spec_list):
++        """ Takes in a list of version specifications and returns the best 
++        possible match. If no match is found, raise a VersionConflict error.
++        If a match is found, return a string.
++        """
++        # Regular expression to check for one of the operators
++        op_check = re.compile(">|<|=")
++        
++        # Initialize limits with initial values and create a list to hold 
++        # requirements that have only one possible version (i.e. =1.0)
++        top = ['9999999']
++        bottom = ['0'] 
++        must_list = []
++        
++        top_op = ''
++        bottom_op = ''
++        
++        # Check to see if there are any specs with commas in them
++        for spec in spec_list:
++            if ',' in spec:
++                    spec_list.extend(spec.split(','))
++                    del spec_list[spec_list.index(spec)]
++        
++        # Eliminate duplicates from the spec_list by making it a set
++        spec_set = set(spec_list)
++        
++        for spec in spec_set:
++            version_number = ''
++            
++            # Extract the version numbers from the specs
++            for char in spec:
++                if not op_check.match(char):
++                    version_number = version_number + char
++
++            if version_number.startswith('.'):
++                version_list = version_number.split('.')
++                version_list.insert(0, '0')
++            else:
++                version_list = version_number.split('.')
++
++            # Check for single requirements and add them to the list
++            if "=" in spec and '>' not in spec and '<' not in spec:
++                must_list.append(version_list)
++            
++            # Find the limiting range of the versions
++            elif '<' in spec and self._version_cmp(top, version_list):
++                top = version_list
++                if '=' in spec:
++                    top_op = '<='
++                else:
++                    top_op = '<'
++            elif '>' in spec and self._version_cmp(version_list, bottom):
++                bottom = version_list
++                if '=' in spec:
++                    bottom_op = '>='
++                else:
++                    bottom_op = '>'
++
++        # This part almost seems too simple.
++        # If the bottom limit ended up greater than the top limit, the
++        # dependencies cannot be resolved.
++        if self._version_cmp(bottom, top):
++            raise VersionConflict("Unable to resolve dependency.")
++        # If the top hasn't changed, then anything above the bottom limit will
++        # work.
++        if int(top[0]) == 9999999:
++            spec_string = bottom_op + '.'.join(bottom)
++        # If the bottom hasn't changed, anything below the top limit will work
++        elif int(bottom[0]) == 0:
++            spec_string = top_op + '.'.join(top)
++        # Otherwise, give the range of version that will work
++        else:
++            spec_string = top_op + '.'.join(top) + ',' + bottom_op  + \
++            '.'.join(bottom)
++        
++        # Check if there was a single-version requirement
++
++        if must_list:
++            if len(must_list) > 1 or self._version_cmp(must_list[0], top) \
++                                  or self._version_cmp(bottom, must_list[0]):
++                raise VersionConflict("Unable to resolve dependency.")
++            else:
++                spec_string = '==' + '.'.join(must_list[0])
++        
++        return spec_string
++
++    def _version_cmp(self, version1, version2):
++        """Take two lists of numbers that are in string format, e.g. 
++        ['3','2','2000a']. Compare the lists, figuring out which one is "bigger".
++        Return True if the first one is bigger, False otherwise. Letters
++        indicate lower versions: 3a < 3, but 4a > 3. 
++        """
++        num_check = re.compile("\d+")
++        length_diff = len(version1) - len(version2)
++        
++        # Pad the shorter list with 0s
++        if length_diff > 0:
++            version2.extend(['0']*abs(length_diff))
++        elif length_diff < 0:
++            version1.extend(['0']*abs(length_diff))
++        
++        #Traverse each list, looking for which list is "greater"
++        for i in range(len(version1)):
++            # Compare things that are just digits
++            if version1[i].isdigit() and version2[i].isdigit():
++                if int(version1[i]) > int(version2[i]): 
++                    return True
++                elif int(version1[i]) < int(version2[i]):
++                    return False
++                # If the numbers are equal, continue on to the next digit
++                else:
++                    continue
++            
++            # Compare things that have letters. If two things are equal except
++            # for the letters, the version with the letter is lower. i.e.,
++            # 3 > 3a, but 4a > 3.
++            else:
++                v1_num = num_check.match(version1[i])
++                v2_num = num_check.match(version2[i])
++                # Same as for digits, but with letters. Check for when the 
++                # numbers are equal, but letters are not
++                if int(v1_num.group()) == int(v2_num.group()):
++                    if version1[i].isdigit():
++                        return True
++                    elif version2[i].isdigit():
++                        return False
++                    elif version1[i] > version2[i]:
++                        return True
++                    elif version1[i] < version2[i]:
++                        return False
++                    else:
++                        continue
++                elif int(v1_num.group()) > int(v2_num.group()):
++                    return True
++                else:
++                    return False
++    
+     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
+ 
+         # Installation is also needed if file in tmpdir or is not an egg
+@@ -705,7 +1226,7 @@
+         else:
+             dists = [self.check_conflicts(self.egg_distribution(download))]
+             self.process_distribution(spec, dists[0], deps, "Using")
+-
++        
+         if spec is not None:
+             for dist in dists:
+                 if dist in spec:
+@@ -718,7 +1239,7 @@
+         # Get the list of files installed, give error if none are passed
+         outputs = self.outputs_this_package
+         if len(outputs) == 0:
+-            log.warn('No files installed.')
++            log.warn('No files installed!')
+             return
+         
+         # Check for either a zipped egg or an egg directory
+@@ -736,7 +1257,7 @@
+                 egg_zip = zipfile.ZipFile(file, 'a')
+                 egg_path = os.path.split(file)[0]
+                 break
+-
++                
+         # If nothing was found, return
+         if egg_path == '':
+             return
+@@ -909,7 +1430,8 @@
+         # Anything else, try to extract and build
+         setup_base = tmpdir
+         if os.path.isfile(dist_filename) and not dist_filename.endswith('.py'):
+-            unpack_archive(dist_filename, tmpdir, self.unpack_progress)
++            setup_base = unpack_archive(dist_filename, tmpdir,
++                self.unpack_progress)
+         elif os.path.isdir(dist_filename):
+             setup_base = os.path.abspath(dist_filename)
+ 
+@@ -919,17 +1441,18 @@
+             setup_base = self.maybe_move(spec, dist_filename, setup_base)
+ 
+         # Find the setup.py file
++        print 'setup_base: ' + setup_base
+         setup_script = os.path.join(setup_base, 'setup.py')
+ 
+         if not os.path.exists(setup_script):
+             setups = glob(os.path.join(setup_base, '*', 'setup.py'))
+             if not setups:
+                 raise DistutilsError(
+-                    "Couldn't find a setup script in %s" % os.path.abspath(dist_filename)
++                    "Couldn't find a setup script in %s" % dist_filename
+                 )
+             if len(setups)>1:
+                 raise DistutilsError(
+-                    "Multiple setup scripts in %s" % os.path.abspath(dist_filename)
++                    "Multiple setup scripts in %s" % dist_filename
+                 )
+             setup_script = setups[0]
+ 
+@@ -1960,4 +2483,4 @@
+             script_name = sys.argv[0] or 'easy_install',
+             distclass=DistributionWithoutHelpCommands, **kw
+         )
+-    )
++    )
+\ No newline at end of file
