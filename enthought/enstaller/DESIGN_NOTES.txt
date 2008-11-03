@@ -1,0 +1,98 @@
+======================
+Enstaller Redux Design
+======================
+
+This set of packages is a ground-up re-write of Enstaller which removes the
+dependency of Enstaller on Traits.  The only dependency that Enstaller has
+at present is on SetupTools.
+
+In addition to removing the traits-dependence, Enstaller has been re-worked
+to let setuptools do the heavy lifting where-ever possible.  In particular,
+we use the various objects from the pkg_resources extensively.  Anyone who is
+planning to work on this code should spend some time grokking the
+pkg_resources module, at least as it relates to Distributions, Requirements,
+and Metadata.  See http://peak.telecommunity.com/DevCenter/PkgResources for
+more information.
+
+The moving parts of the re-design are:
+
+  * Repository objects which hold a collection of Projects.
+  * Project objects which hold a collection of Packages.
+  * Package objects which are typically wrappers around a
+    pkg_resource.Distribution object.
+
+Each type of object type has the following subclasses:
+  * a local EasyInstallXxx subclass which represents a variant of the object
+    on the local system which is managed by an easy-install.pth file.
+  * a remote HTMLXxx subclass which represents a variant of the object in a
+    remote HTML-based repository
+  * a remote XMLRPCXxx subclass which represents a variant of the object in a
+    remote XMLRPC-based repository (a la PyPI).
+  * a Union object which represents a collection of these objects.
+
+Local packages can be activated, deactivated or removed.  Remote packages can
+be installed.
+
+When we install, we try to track all the files that are installed by the
+installer, to make uninstalling easier.  We use the same approach that
+pyinstall does, storing the list in a text file of the form
+<distribution>/.file.
+
+In addition, there is a utilities module which stores useful routines (in
+particular this is where you need to look if you don't like the way I've done
+post-install scripts, etc.); and an upgrade module which holds the algorithm
+for producing a proposal for a change in the system state while remaining
+consistent.
+
+To-Do List
+==========
+
+The code needs some amount of clean-up: it was written under some amount of
+time-pressure and it shows.
+
+Once setuptools is revamped, some operations will need to be pushed to
+setuptools.
+
+Certain features need to be properly implemented in all cases (eg. dry_runs).
+
+We need more logging throughout.
+
+In addition, downloads currently go into a temporary directory, and so are not
+available over multiple runs of the code, which means lots of extra downloads.
+
+Similarly, we may be able to win by switching to using XMLRPC for remote repos
+together with a local store of the repo state, since we can ask an XMLRPC
+repo for all the changes to it since some point in time.
+
+We need more testing, particularly in complex package situations.  I don't
+want to hose my system, so I've only done basic testing.
+
+The command line could have more options.
+
+We need to package it up so that we have an executable script that can be
+placed on $PATH.
+
+It would be nice to have the ability to back out of an install if things go
+badly.
+
+The code is not designed for long-term execution - it does not track changes
+to the system state particularly well (it caches certain critical things for
+speed, and I haven't tried to add code to invalidate the caches when things
+change).
+
+A better approach to the upgrade algorithm would be to return just the most
+preferred install option, and if it is not acceptable to the user, allow them
+to add additional requirements, repeating until the user is satisfied or the
+requirements become contradictory.  The ability to backtrack if a set is sub-
+optimal would be useful.
+
+Wrapping this all up into an interactive curses application would be
+potentially of interest, but may not be worth the effort.
+
+At (separate) Traits GUI which sits on top of this would also be useful.  The
+trick to make it work would be that it has to quit and invoke the command-line
+version to actually make changes.
+
+Should extend to make a proposal when removing/deactivating.
+
+When no proposal is possible, should give reasoning.
