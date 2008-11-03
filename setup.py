@@ -7,23 +7,23 @@ d = {}
 execfile(convert_path('setuptools/command/__init__.py'), d)
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.6c9"
+VERSION = "3.0.0"
 
 from setuptools import setup, find_packages
 import sys
 scripts = []
 
 setup(
-    name="setuptools",
+    name="enstaller",
     version=VERSION,
     description="Download, build, install, upgrade, and uninstall Python "
         "packages -- easily!",
-    author="Phillip J. Eby",
-    author_email="distutils-sig@python.org",
-    license="PSF or ZPL",
+    author="Enthought, Inc.",
+    author_email="info@enthought.com",
+    license="BSD",
     long_description = open('README.txt').read(),
     keywords = "CPAN PyPI distutils eggs package management",
-    url = "http://pypi.python.org/pypi/setuptools",
+    url = "http://code.enthought.com/enstaller"
     test_suite = 'setuptools.tests',
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
@@ -83,8 +83,7 @@ setup(
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
     Intended Audience :: Developers
-    License :: OSI Approved :: Python Software Foundation License
-    License :: OSI Approved :: Zope Public License
+    License :: OSI Approved :: BSD
     Operating System :: OS Independent
     Programming Language :: Python
     Topic :: Software Development :: Libraries :: Python Modules
