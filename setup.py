@@ -69,7 +69,8 @@ setup(
         "console_scripts": [
              "easy_install = setuptools.command.easy_install:main",
              "easy_install-%s = setuptools.command.easy_install:main"
-                % sys.version[:3]
+                % sys.version[:3],
+             "enstaller = setuptools.command.easy_install:main"
         ],
 
         "setuptools.file_finders":

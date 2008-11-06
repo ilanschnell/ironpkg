@@ -9,7 +9,13 @@ file, or visit the `EasyInstall home page`__.
 
 __ http://peak.telecommunity.com/DevCenter/EasyInstall
 """
-import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
+
+# Patched with easy_install.patch and prefer_released.patch from Enthought
+#  starting with setuptools 0.6c9
+
+import sys, os, os.path, shutil, zipimport, tempfile, re, stat, random
+import zipfile
+from os import path
 from glob import glob
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -49,6 +55,7 @@ class easy_install(Command):
         ("zip-ok", "z", "install package as a zipfile"),
         ("multi-version", "m", "make apps have to require() a version"),
         ("upgrade", "U", "force upgrade (searches PyPI for latest versions)"),
+        ("remove", "r", "remove (uninstall) package"),
         ("install-dir=", "d", "install package to DIR"),
         ("script-dir=", "s", "install scripts to DIR"),
         ("exclude-scripts", "x", "Don't install scripts"),
@@ -69,13 +76,14 @@ class easy_install(Command):
         ('site-dirs=','S',"list of directories where .pth files work"),
         ('editable', 'e', "Install specified packages in editable form"),
         ('no-deps', 'N', "don't install dependencies"),
+        ('allow-dev', 'D', "allow non-release packages to be installed"),
         ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
         ('local-snapshots-ok', 'l', "allow building eggs from local checkouts"),
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
         'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
-        'no-deps', 'local-snapshots-ok',
+        'no-deps', 'local-snapshots-ok', 'allow-dev'
     ]
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
@@ -88,8 +96,10 @@ class easy_install(Command):
         self.build_directory = None
         self.args = None
         self.optimize = self.record = None
+        self.remove = None
         self.upgrade = self.always_copy = self.multi_version = None
         self.editable = self.no_deps = self.allow_hosts = None
+        self.allow_dev = None
         self.root = self.prefix = self.no_report = None
 
         # Options not specifiable via command line
@@ -203,25 +213,35 @@ class easy_install(Command):
 
         self.outputs = []
 
+        # Add a list for files installed by the current package only.
+        self.outputs_this_package = []
+
     def run(self):
         if self.verbose<>self.distribution.verbose:
             log.set_verbosity(self.verbose)
         try:
-            for spec in self.args:
-                self.easy_install(spec, not self.no_deps)
-            if self.record:
-                outputs = self.outputs
-                if self.root:               # strip any package prefix
-                    root_len = len(self.root)
-                    for counter in xrange(len(outputs)):
-                        outputs[counter] = outputs[counter][root_len:]
-                from distutils import file_util
-                self.execute(
-                    file_util.write_file, (self.record, outputs),
-                    "writing list of installed files to '%s'" %
-                    self.record
-                )
-            self.warn_deprecated_options()
+            if self.remove:
+                self.uninstall(self.args)
+            else:
+                for spec in self.args:
+                    self.easy_install(spec, not self.no_deps)
+
+                if self.record:
+                    # Get the list of files installed
+                    outputs = self.outputs
+
+                    # Strip any package prefix
+                    if self.root:
+                        root_len = len(self.root)
+                        for counter in xrange(len(outputs)):
+                            outputs[counter] = outputs[counter][root_len:]
+                    from distutils import file_util
+                    self.execute(
+                        file_util.write_file, (self.record, outputs),
+                        "writing list of installed files to '%s'" %
+                        self.record
+                    )
+                self.warn_deprecated_options()
         finally:
             log.set_verbosity(self.distribution.verbose)
 
@@ -382,8 +402,10 @@ Please make the appropriate changes for your system and try again.
             for base, dirs, files in os.walk(path):
                 for filename in files:
                     self.outputs.append(os.path.join(base,filename))
+                    self.outputs_this_package.append(os.path.join(base,filename))
         else:
             self.outputs.append(path)
+            self.outputs_this_package.append(path)
 
     def not_editable(self, spec):
         if self.editable:
@@ -402,10 +424,212 @@ Please make the appropriate changes for your system and try again.
                 "%r already exists in %s; can't do a checkout there" %
                 (spec.key, self.build_directory)
             )
+    
+    def get_deps(self):
+        """Check for back dependencies. The idea is that if a package is being
+        uninstalled and a dependency is also being uninstalled, this will help
+        check to see if any other packages will be broken by the dependency. It
+        returns a dictionary in the format
+        {dependency: {project1: dependency_version}, {project2: dependency_version}}
+        
+        """
+        
+        # Get the set of installed packages
+        projects = WorkingSet()
+        
+        # Instantiate dictionary of project requirements
+        reqdict = {}
+        
+        # Instantiate back-dependency dictionary. The ONLY items in this
+        # will be projects that are depended upon by something else.
+        low_dep_dict = {}
+        
+        # Create dictionary of each installed project and related dependencies
+        for project in projects:
+            
+            # list of requirements for each project
+            try:
+                reqs = require(project.project_name)
+            except DistributionNotFound:
+                continue
+            reqdict[project] = reqs
+        
+        # Create the dictionary of packages being depended on.
+        for key, value in reqdict.iteritems():
+            for item in value:
+                
+                # This keeps out entries that have only themselves in the 
+                # dependency list
+                if item.project_name == key.project_name:
+                    continue
+               
+                # spec becomes a list of tuples of version numbers and 
+                # operators, eg [(">=", "2.0"), ("<=", 3.0")]
+                spec = value[0].requires()[0].specs
+                
+                # version_list will become a concatenated list of versions, eg
+                # ['>=2.0', '<=3.0']
+                version_list = []
+                if not spec:
+                    version_list.append('(any version)')
+                for version in spec:
+                    version_list.append(''.join(version))
+                version_string = ','.join(version_list)
+                if low_dep_dict.has_key(item.project_name):
+                    low_dep_dict[item.project_name][key.project_name] = version_string
+                else:
+                    low_dep_dict[item.project_name] = {key.project_name: version_string}
+        
+        # low_dep_dict is in the form
+        # {dependency: {project1: dependency_version}, {project2: dependency_version}}
+        return low_dep_dict
 
+    def check_deps(self, current_dep, user_spec, all):
+        """Takes in the current dependency being checked, the project specified
+        for removal, and the set of all packages that something depends upon.
+        Returns True or False based on user confirmation
+        """
+        
+        if current_dep not in all.keys():
+            print "Nothing else depends on %s." % current_dep
+        
+        # Check to see if a dependency is is only required by the package
+        # specified for removal.
+        elif len(all[current_dep]) == 1 and user_spec in all[current_dep].keys():
+            print "Only %s seems to require %s." % (user_spec, current_dep)
+        else:
+            
+            # Fetch dictionary of projects that require current_dep
+            depends_on_dep = all[current_dep]
+            
+            # Print list of projects that need current_dep
+            for project in depends_on_dep:
+                print "%s %s is needed by %s." % \
+                (current_dep, depends_on_dep[project], project)
+        
+        choice = ''
+        while 1:
+            if choice.lower() == 'n':
+                return False
+            elif choice.lower() == 'y':
+                return True
+            else:
+                choice = raw_input("Remove %s? [Y/N] " % current_dep)
+    
+    def uninstall(self, specs):
+        """ Uninstall function to remove all files associated with an egg,
+        including scripts generated.  Also does a back-check of dependencies
+        on the package(s) being uninstalled and prompts the user for
+        uninstalling unnecessary dependencies that can be removed
+        and warns if uninstalling a package could break another installed package.
+        """
+        all_deps = self.get_deps()
+        
+        for spec in specs:
+            try:
+                pkgs = require(spec)
+                
+                # If the package found has dependencies, prompt the user if they
+                # want the dependencies to be uninstalled as well.
+                if len(pkgs) > 1:
+                    for dep in pkgs[1:]:
+                        if self.check_deps(dep.project_name, spec, all_deps):
+                            self._remove_dist(dep)
+                
+                # Finally, check if user-specified package can be safely
+                # removed.
+                if self.check_deps(pkgs[0].project_name, spec, all_deps):
+                    self._remove_dist(pkgs[0])
+            except DistributionNotFound:
+                log.info("Could not find suitable package for: %s" % spec)
+            
+            
+    def _remove_dist(self, dist):
+        """ Module to remove Distribution objects.
+        """
+        pkg_path = dist.location
+        log.info("Removing %s..." % pkg_path)
+        self._remove_package_file(pkg_path)
+        
+    def _remove_package_file(self, package_filepath):
+        """
+        Finds the easy_install.pth file and removes the line containing the
+        package_filepath, if present, then removes the egg file or dir.
+        """
+        retcode = 0
+        package_path = path.abspath(package_filepath)
+        (package_dir, package_fullname) = path.split(package_path)
 
+        # Read the file (if it exists), find the matching line and write the
+        # file again without the matching line.
+        pth_file = path.join(package_dir, "easy-install.pth")
+        if path.exists(pth_file):
+            fh = open(pth_file, "r")
+            lines = fh.readlines()
+            fh.close()
 
+            newlines = []
+            for line in lines:
+                # On Windows, a leading ./ is often found and is safe to remove
+                # for comparisons...also, strip off the newline.
+                chkline = line.strip()
+                if chkline.startswith("./") :
+                    chkline = chkline[2:]
+                if chkline != package_fullname:
+                    newlines.append(line)
+                    
+            else:
+                fh = open(pth_file, "wu")
+                for line in newlines:
+                    fh.write(line)
+                fh.close()
+                
+        # Check for the installed_files.log file in the EGG-INFO of the
+        #   egg and remove all files listed in it.
+        #   This check will look inside zip-safe and non-zip-safe eggs.
+        files_file_path = path.join(package_path, 'EGG-INFO', 'installed_files.log')
+        if path.isdir(package_path):
+            if path.exists(files_file_path):
+                fh = open(files_file_path, "r")
+                for filename in fh.readlines():
+                    retcode = self._rm_rf(filename.strip()) or retcode
+                fh.close()
+                retcode = self._rm_rf(files_file_path) or retcode
+        else:
+            egg_file = zipfile.ZipFile(package_path, "r")
+            installed_files = []
+            for filename in egg_file.namelist():
+                if filename.endswith('installed_files.log'):
+                    log = egg_file.read(filename)
+                    installed_files = log.splitlines()
+                    break;
+            egg_file.close()
+            for file in installed_files:
+                retcode = self._rm_rf(file) or retcode
+            
+        # If it can't find the .files file, just try to remove the 
+        # directory or egg file.
+        retcode = self._rm_rf(package_path) or retcode
+        
+        return retcode
 
+    def _rm_rf(self, file_or_dir):
+        """
+        Removes the file or directory, returns 0 on success, 1 on failure.
+        """
+        retcode = 0
+        try :
+            if path.exists(file_or_dir):
+                if path.isdir(file_or_dir):
+                    shutil.rmtree(file_or_dir)
+                else:
+                    os.remove(file_or_dir)
+
+        except (IOError, OSError), err :
+            self.log("Error: could not remove %s: %s\n" % (file_or_dir, err))
+            retcode = 1
+
+        return retcode
 
 
     def easy_install(self, spec, deps=False):
@@ -430,7 +654,8 @@ Please make the appropriate changes for your system and try again.
 
             self.check_editable(spec)
             dist = self.package_index.fetch_distribution(
-                spec, tmpdir, self.upgrade, self.editable, not self.always_copy
+                spec, tmpdir, self.upgrade, self.editable,
+                not self.always_copy, not self.allow_dev
             )
 
             if dist is None:
@@ -486,8 +711,64 @@ Please make the appropriate changes for your system and try again.
                     return dist
 
 
+    def add_installed_files_list(self):
+        """ Adds all of the installed files to the EGG-INFO folder of the
+        installed package, in the file 'installed_files.log'.
+        """
+        # Get the list of files installed, give error if none are passed
+        outputs = self.outputs_this_package
+        if len(outputs) == 0:
+            log.warn('No files installed.')
+            return
+        
+        # Check for either a zipped egg or an egg directory
+        egg_zip = None
+        egg_path = ''
+        for file in outputs:
+            
+            # If an EGG-INFO path is found, save the .egg path
+            if len(file.split('EGG-INFO')) > 1:
+                egg_path = file.split('EGG-INFO')[0]
+                break
+                
+            # If a .egg is found, open the egg and save its path
+            if file.endswith('.egg'):
+                egg_zip = zipfile.ZipFile(file, 'a')
+                egg_path = os.path.split(file)[0]
+                break
 
+        # If nothing was found, return
+        if egg_path == '':
+            return
+        
+        # Strip any package prefixes
+        if self.root:
+            root_len = len(self.root)
+            for counter in xrange(len(outputs)):
+                outputs[counter] = outputs[counter][root_len:]
+        
+        # If egg was not zip-safe, set path to 'EGG-INFO' dir
+        if egg_zip is None:
+            log_path = os.path.join(egg_path, 'EGG-INFO',
+                                    'installed_files.log')
+        # Else, set path to the dir that the .egg file is in
+        else:
+            log_path = os.path.join(egg_path, 'installed_files.log')
+        
+        # Create the file in the path set above
+        file = open(log_path, 'w')
 
+        # For each installed file, write then on a new line in the log
+        for installed_file in outputs:
+            file.write(installed_file + '\n')
+        file.close()
+        
+        # If .egg file was found, put the log file in the egg, then
+        # remove the file from the directory the egg is in
+        if egg_zip is not None:
+            egg_zip.write(log_path, 'EGG-INFO/installed_files.log')
+            egg_zip.close()
+            os.remove(log_path)
 
 
     def process_distribution(self, requirement, dist, deps=True, *info):
@@ -496,6 +777,11 @@ Please make the appropriate changes for your system and try again.
         self.local_index.add(dist)
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
+
+        # Add the log of all the installed files to EGG-INFO
+        self.add_installed_files_list()
+        self.outputs_this_package = []
+        
         log.info(self.installation_report(requirement, dist, *info))
         if dist.has_metadata('dependency_links.txt'):
             self.package_index.add_find_links(
@@ -1508,13 +1794,6 @@ def nt_quote_arg(arg):
     return ''.join(result)
 
 
-
-
-
-
-
-
-
 def is_python_script(script_text, filename):
     """Is this text, as a whole, a Python script? (as opposed to shell/bat/etc.
     """
@@ -1675,7 +1954,3 @@ usage: %(script)s [options] requirement_or_url ...
             distclass=DistributionWithoutHelpCommands, **kw
         )
     )
-
-
-
-

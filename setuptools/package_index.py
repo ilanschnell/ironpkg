@@ -160,8 +160,6 @@ class PackageIndex(Environment):
         self.allows = re.compile('|'.join(map(translate,hosts))).match
         self.to_scan = []
 
-
-
     def process_url(self, url, retrieve=False):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
         if url in self.scanned_urls and not retrieve:
@@ -283,8 +281,6 @@ class PackageIndex(Environment):
         else:
             return ""   # no sense double-scanning non-package pages
 
-
-
     def need_version_info(self, url):
         self.scan_all(
             "Page at %s links to .py file(s) without version info; an index "
@@ -321,9 +317,6 @@ class PackageIndex(Environment):
                 return dist
             self.debug("%s does not match %s", requirement, dist)
         return super(PackageIndex, self).obtain(requirement,installer)
-
-
-
 
 
     def check_md5(self, cs, info, filename, tfp):
@@ -408,9 +401,9 @@ class PackageIndex(Environment):
         return getattr(self.fetch_distribution(spec, tmpdir),'location',None)
 
 
-    def fetch_distribution(self,
-        requirement, tmpdir, force_scan=False, source=False, develop_ok=False
-    ):
+    def fetch_distribution(self, requirement, tmpdir, force_scan=False,
+                           source=False, develop_ok=False, prefer_release=True
+                           ):
         """Obtain a distribution suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
@@ -426,17 +419,27 @@ class PackageIndex(Environment):
         checkout links will be considered.  Unless the `develop_ok` flag is
         set, development and system eggs (i.e., those using the ``.egg-info``
         format) will be ignored.
+
+        By default, release versions are preferred over development versions
+        (including alpha, beta, rc, etc...).  If prefer_release is set to False,
+        development versions will be accepted as well.
         """
 
         # process a Requirement
         self.info("Searching for %s", requirement)
         skipped = {}
 
-        def find(req):
+        def find(req, get_release=prefer_release):
             # Find a matching distribution; may be called more than once
-
+            # get release is initially set to True.  If no release version is
+            # found, find is called again with get_release set to false. Then
+            # development versions are searched for.
             for dist in self[req.key]:
 
+                # get release versions by default
+                if dist.is_non_release() and get_release:
+                    continue
+                
                 if dist.precedence==DEVELOP_DIST and not develop_ok:
                     if dist not in skipped:
                         self.warn("Skipping development or system egg: %s",dist)
@@ -448,6 +451,13 @@ class PackageIndex(Environment):
                     return dist.clone(
                         location=self.download(dist.location, tmpdir)
                     )
+
+                # If no release versions were found, search for latest
+                #  development version.
+                if get_release:
+                    self.info("No matching release version found. Searching for "\
+                              "latest development version.")
+                    return find(req, get_release=False)
 
         if force_scan:
             self.prescan()
@@ -470,6 +480,30 @@ class PackageIndex(Environment):
             )
         return dist
 
+    def is_non_release(self):
+        """ Checks the parsed version spec of the current package and returns
+        true if it is not a release build. Non-release builds contain any
+        qualifier that is alphabetically before 'final' or contains an 'r' for
+        a specific revision number.
+        """
+        # For each part of the version, check for any development qualifier
+        for version_part in self.parsed_version:
+            
+            # If this part is an integer or the special final qualifier, skip it
+            if version_part.isdigit() or version_part == '*final-':
+                continue
+            
+            # If the part sorts alphabetically before 'final' or specifies that
+            # this build was made from a specific revision number, this is a
+            # non-release build. Otherwise, this is a release build
+            if version_part < '*final' or version_part == '*r':
+                return True
+            else:
+                return False
+            
+        #Fall-back return incase the loop exits
+        return False
+        
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
         """Obtain a file suitable for fulfilling `requirement`
 
@@ -482,12 +516,6 @@ class PackageIndex(Environment):
         if dist is not None:
             return dist.location
         return None
-
-
-
-
-
-
 
 
     def gen_setup(self, filename, fragment, tmpdir):
@@ -612,7 +640,6 @@ class PackageIndex(Environment):
             return self._attempt_download(url, filename)
 
 
-
     def scan_url(self, url):
         self.process_url(url, True)
 
@@ -680,21 +707,6 @@ def htmldecode(text):
     return entity_sub(decode_entity, text)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def open_with_auth(url):
     """Open a urllib2 request, handling HTTP authentication"""
 
@@ -726,16 +738,6 @@ def open_with_auth(url):
     return fp
 
 
-
-
-
-
-
-
-
-
-
-
 def fix_sf_url(url):
     return url      # backward compatibility
 
@@ -765,15 +767,3 @@ def local_open(url):
             {'content-type':'text/html'}, cStringIO.StringIO(body))
 
 
-
-
-
-
-
-
-
-
-
-
-
-# this line is a kludge to keep the trailing blank lines for pje's editor

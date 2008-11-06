@@ -1,0 +1,125 @@
+--- setuptools_old/setuptools/command/easy_install.py	2008-06-13 18:43:57.000000000 -0500
++++ setuptools_new/setuptools/command/easy_install.py	2008-06-13 18:30:58.000000000 -0500
+@@ -72,13 +72,14 @@
+         ('site-dirs=','S',"list of directories where .pth files work"),
+         ('editable', 'e', "Install specified packages in editable form"),
+         ('no-deps', 'N', "don't install dependencies"),
++        ('allow-dev', 'D', "allow non-release packages to be installed"),
+         ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
+         ('local-snapshots-ok', 'l', "allow building eggs from local checkouts"),
+     ]
+     boolean_options = [
+         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
+         'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
+-        'no-deps', 'local-snapshots-ok',
++        'no-deps', 'local-snapshots-ok', 'allow-dev'
+     ]
+     negative_opt = {'always-unzip': 'zip-ok'}
+     create_index = PackageIndex
+@@ -94,6 +95,7 @@
+         self.remove = None
+         self.upgrade = self.always_copy = self.multi_version = None
+         self.editable = self.no_deps = self.allow_hosts = None
++        self.allow_dev = None
+         self.root = self.prefix = self.no_report = None
+ 
+         # Options not specifiable via command line
+@@ -641,7 +643,8 @@
+ 
+             self.check_editable(spec)
+             dist = self.package_index.fetch_distribution(
+-                spec, tmpdir, self.upgrade, self.editable, not self.always_copy
++                spec, tmpdir, self.upgrade, self.editable,
++                not self.always_copy, not self.allow_dev
+             )
+ 
+             if dist is None:
+--- setuptools_old/setuptools/package_index.py	2008-06-13 18:45:31.000000000 -0500
++++ setuptools_new/setuptools/package_index.py	2008-06-13 18:30:58.000000000 -0500
+@@ -409,7 +409,8 @@
+ 
+ 
+     def fetch_distribution(self,
+-        requirement, tmpdir, force_scan=False, source=False, develop_ok=False
++        requirement, tmpdir, force_scan=False, source=False, develop_ok=False, 
++        prefer_release=True
+     ):
+         """Obtain a distribution suitable for fulfilling `requirement`
+ 
+@@ -426,16 +427,27 @@
+         checkout links will be considered.  Unless the `develop_ok` flag is
+         set, development and system eggs (i.e., those using the ``.egg-info``
+         format) will be ignored.
++        
++        By default, release versions are preferred over development versions
++        (including alpha, beta, rc, etc...). If prefer_release is set to False,
++        development versions will be accepted as well.  
+         """
+ 
+         # process a Requirement
+         self.info("Searching for %s", requirement)
+         skipped = {}
+ 
+-        def find(req):
++        def find(req, get_release=prefer_release):
+             # Find a matching distribution; may be called more than once
+-
++            # get_release is initially set to True. If no release version is 
++            # found, find is called again with get_release set to false. Then
++            # development versions are searched for.
++            
+             for dist in self[req.key]:
++                
++                # get release versions by default
++                if dist.is_non_release() and get_release:
++                    continue
+ 
+                 if dist.precedence==DEVELOP_DIST and not develop_ok:
+                     if dist not in skipped:
+@@ -449,6 +461,13 @@
+                         location=self.download(dist.location, tmpdir)
+                     )
+ 
++            # If no release versions were found, search for latest development
++            # version.
++            if get_release:
++                self.info("No matching release version found. Searching for " \
++                    "latest development version.")
++                return find(req, get_release=False)
++
+         if force_scan:
+             self.prescan()
+             self.find_packages(requirement)
+--- setuptools_old/pkg_resources.py	2008-06-13 18:44:49.000000000 -0500
++++ setuptools_new/pkg_resources.py	2008-06-13 18:30:58.000000000 -0500
+@@ -2171,7 +2171,29 @@
+ 
+         return
+ 
+-
++    def is_non_release(self):
++        """ Checks the parsed version spec of the current package and returns
++        true if it is not a release build. Non-release builds contain any
++        qualifier that is alphabetically before 'final' or contains an 'r' for
++        a specific revision number.
++        """
++        # For each part of the version, check for any development qualifier
++        for version_part in self.parsed_version:
++            
++            # If this part is an integer or the special final qualifier, skip it
++            if version_part.isdigit() or version_part == '*final-':
++                continue
++            
++            # If the part sorts alphabetically before 'final' or specifies that
++            # this build was made from a specific revision number, this is a
++            # non-release build. Otherwise, this is a release build
++            if version_part < '*final' or version_part == '*r':
++                return True
++            else:
++                return False
++            
++        #Fall-back return incase the loop exits
++        return False
+ 
+     def check_version_conflict(self):
+         if self.key=='setuptools':
