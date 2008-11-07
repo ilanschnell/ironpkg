@@ -24,21 +24,6 @@ from os import utime, rename, unlink    # capture these to bypass sandboxing
 from os import open as os_open
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def get_supported_platform():
     """Return this platform's maximum compatible version.
 
@@ -59,25 +44,6 @@ def get_supported_platform():
         except ValueError:
             pass    # not Mac OS X
     return plat
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 __all__ = [
@@ -311,21 +277,6 @@ class IMetadataProvider:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class IResourceProvider(IMetadataProvider):
     """An object that provides access to package resources"""
 
@@ -352,17 +303,6 @@ class IResourceProvider(IMetadataProvider):
 
     def resource_listdir(resource_name):
         """List of resource names in the directory (like ``os.listdir()``)"""
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -610,9 +550,6 @@ class WorkingSet(object):
         return distributions, error_info
 
 
-
-
-
     def require(self, *requirements):
         """Ensure that distributions matching `requirements` are activated
 
@@ -643,14 +580,6 @@ class WorkingSet(object):
     def _added_new(self, dist):
         for callback in self.callbacks:
             callback(dist)
-
-
-
-
-
-
-
-
 
 
 
@@ -817,7 +746,6 @@ class ExtractionError(RuntimeError):
 
 
 
-
 class ResourceManager:
     """Manage resource extraction and packages"""
     extraction_path = None
@@ -889,17 +817,6 @@ variable to point to an accessible directory.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
     def get_cache_path(self, archive_name, names=()):
         """Return absolute location in cache for `archive_name` and `names`
 
@@ -925,22 +842,6 @@ variable to point to an accessible directory.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def postprocess(self, tempname, filename):
         """Perform any platform-specific postprocessing of `tempname`
 
@@ -960,25 +861,6 @@ variable to point to an accessible directory.
             # Make the resource executable
             mode = ((os.stat(tempname).st_mode) | 0555) & 07777
             os.chmod(tempname, mode)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1097,12 +979,6 @@ def to_filename(name):
     Any '-' characters are currently replaced with '_'.
     """
     return name.replace('-','_')
-
-
-
-
-
-
 
 
 class NullProvider:
@@ -1224,10 +1100,6 @@ class EggProvider(NullProvider):
             path, base = os.path.split(path)
 
 
-
-
-
-
 class DefaultProvider(EggProvider):
     """Provides access to package resources in the filesystem"""
 
@@ -1265,8 +1137,6 @@ class EmptyProvider(NullProvider):
         pass
 
 empty_provider = EmptyProvider()
-
-
 
 
 class ZipProvider(EggProvider):
@@ -1412,27 +1282,6 @@ register_loader_type(zipimport.zipimporter, ZipProvider)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class FileMetadata(EmptyProvider):
     """Metadata handler for standalone PKG-INFO files
 
@@ -1458,19 +1307,6 @@ class FileMetadata(EmptyProvider):
 
     def get_metadata_lines(self,name):
         return yield_lines(self.get_metadata(name))
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2198,21 +2034,6 @@ class Distribution(object):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def insert_on(self, path, loc = None):
         """Insert self.location in path before its nearest parent directory"""
 
@@ -2401,20 +2222,6 @@ def _sort_dists(dists):
     tmp = [(dist.hashcmp,dist) for dist in dists]
     tmp.sort()
     dists[::-1] = [d for hc,d in tmp]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

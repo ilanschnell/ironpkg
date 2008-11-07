@@ -71,6 +71,7 @@ setup(
              "easy_install-%s = setuptools.command.easy_install:main"
                 % sys.version[:3],
              "enstaller = setuptools.command.easy_install:main"
+             "pyapp = enstaller.cmdline:main"
         ],
 
         "setuptools.file_finders":

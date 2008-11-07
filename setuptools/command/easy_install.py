@@ -17,6 +17,8 @@ import sys, os, os.path, shutil, zipimport, tempfile, re, stat, random
 import zipfile
 from os import path
 from glob import glob
+from subprocess import call
+
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
@@ -44,6 +46,11 @@ def samefile(p1,p2):
         os.path.normpath(os.path.normcase(p1)) ==
         os.path.normpath(os.path.normcase(p2))
     )
+
+def execute_script(script):
+    retcode = call(["python", script])
+    if retcode != 0:
+        raise RuntimeError, "Return code of %d" % retcode
 
 class easy_install(Command):
     """Manage a download/build/install process"""
@@ -515,6 +522,85 @@ Please make the appropriate changes for your system and try again.
                 return True
             else:
                 choice = raw_input("Remove %s? [Y/N] " % current_dep)
+
+
+    def _run_post_install(self, installed_egg_path):
+        """
+        run any post-install scripts in the newly-installed egg defined by the
+        package passed in (the package is either a string defining a package
+        name or package requirement spec, or a package object containing info
+        about the package downloaded (not just installed)).
+        """
+        tmp_unpack_dir = ""
+
+        #
+        # if the egg installed is a dir, simply check the EGG-INFO subdir
+        # for a post_install.py script and run it, otherwise, unzip it to
+        # a temp location and do the same thing
+        #
+        if(path.isdir(installed_egg_path)):
+            egg_dir = installed_egg_path
+        else:
+            tmp_unpack_dir = tempfile.mkdtemp(prefix="easy_install-")
+            egg_dir = path.join(tmp_unpack_dir,
+                                path.basename(installed_egg_path))
+            unpack_archive(installed_egg_path, egg_dir)
+        #
+        # check for post_install.py and run if present
+        #
+        pi_script = path.join(egg_dir, "EGG-INFO", "post_install.py")
+        if path.exists(pi_script):
+            try:
+                execute_script(pi_script)
+            except Exception, err :
+                self.log("Error: problem running post-install script %s: %s\n" \
+                          % (pi_script, err) )
+
+        #
+        # cleanup if a temp extraction was done
+        #
+        if(tmp_unpack_dir != ""):
+            self._rm_rf(tmp_unpack_dir)
+
+    def _run_pre_uninstall(self, installed_egg_path):
+        """
+        run any pre-uninstall scripts in the installed egg defined by the
+        package passed in (the package is either a string defining a package
+        name or package requirement spec, or a package object containing info
+        about the package.
+        """
+        tmp_unpack_dir = ""
+
+        #
+        # if the egg installed is a dir, simply check the EGG-INFO subdir
+        # for a post_install.py script and run it, otherwise, unzip it to
+        # a temp location and do the same thing
+        #
+        if path.isdir(installed_egg_path):
+            egg_dir = installed_egg_path
+            
+        else:
+            tmp_unpack_dir = tempfile.mkdtemp(prefix="easy_install-")
+            egg_dir = path.join(tmp_unpack_dir,
+                                path.basename(installed_egg_path))
+            unpack_archive(installed_egg_path, egg_dir)
+        #
+        # check for uninstall.py and run if present
+        #
+        uninstall_script = path.join(egg_dir, "EGG-INFO", "uninstall.py")
+        if path.exists(uninstall_script):
+            try:
+                execute_script(uinstall_script)
+            except Exception, err :
+                self.log("Error: problem running uninstall script %s: %s\n" \
+                         % (uninstall_script, err))
+
+        #
+        # cleanup if a temp extraction was done
+        #
+        if tmp_unpack_dir != "":
+            self._rm_rf(tmp_unpack_dir)
+
     
     def uninstall(self, specs):
         """ Uninstall function to remove all files associated with an egg,
@@ -523,6 +609,8 @@ Please make the appropriate changes for your system and try again.
         uninstalling unnecessary dependencies that can be removed
         and warns if uninstalling a package could break another installed package.
         """
+        self._run_pre_uninstall(self.path_location):
+
         all_deps = self.get_deps()
         
         for spec in specs:
@@ -618,7 +706,7 @@ Please make the appropriate changes for your system and try again.
         Removes the file or directory, returns 0 on success, 1 on failure.
         """
         retcode = 0
-        try :
+        try:
             if path.exists(file_or_dir):
                 if path.isdir(file_or_dir):
                     shutil.rmtree(file_or_dir)
@@ -1304,11 +1392,6 @@ See the setuptools documentation for the "develop" command for more info.
 
 
 
-
-
-
-
-
     def no_default_version_msg(self):
         return """bad install directory or PYTHONPATH
 
@@ -1340,14 +1423,6 @@ Here are some of your options for correcting the problem:
 Please make the appropriate changes for your system and try again.""" % (
         self.install_dir, os.environ.get('PYTHONPATH','')
     )
-
-
-
-
-
-
-
-
 
 
     def install_site_py(self):

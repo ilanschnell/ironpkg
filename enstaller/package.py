@@ -172,8 +172,7 @@ class EasyInstallPackage(PkgResourcesPackage):
             return packages
         else:
             return set()
-        
-    
+            
     #@property
     #def reversed_reqs(self):
     #    """ Find all local packages which depend on this package
