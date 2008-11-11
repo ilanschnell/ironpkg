@@ -1345,10 +1345,10 @@ See the setuptools documentation for the "develop" command for more info.
 
             self.pth_file.save()
 
-            if dist.key=='setuptools':
-                # Ensure that setuptools itself never becomes unavailable!
+            if dist.key=='enstaller':
+                # Ensure that enstaller itself never becomes unavailable!
                 # XXX should this check for latest version?
-                filename = os.path.join(self.install_dir,'setuptools.pth')
+                filename = os.path.join(self.install_dir,'enstaller.pth')
                 if os.path.islink(filename): os.unlink(filename)
                 f = open(filename, 'wt')
                 f.write(self.pth_file.make_relative(dist.location)+'\n')
@@ -1435,7 +1435,7 @@ Please make the appropriate changes for your system and try again.""" % (
             return  # already did it, or don't need to
 
         sitepy = os.path.join(self.install_dir, "site.py")
-        source = resource_string(Requirement.parse("setuptools"), "site.py")
+        source = resource_string(Requirement.parse("enstaller"), "site.py")
         current = ""
 
         if os.path.exists(sitepy):
@@ -1443,7 +1443,7 @@ Please make the appropriate changes for your system and try again.""" % (
             current = open(sitepy,'rb').read()
             if not current.startswith('def __boot():'):
                 raise DistutilsError(
-                    "%s is not a setuptools-generated site.py; please"
+                    "%s is not an enstaller-generated site.py; please"
                     " remove it." % sitepy
                 )
 
@@ -1572,7 +1572,7 @@ def expand_paths(inputs):
             if not name.endswith('.pth'):
                 # We only care about the .pth files
                 continue
-            if name in ('easy-install.pth','setuptools.pth'):
+            if name in ('easy-install.pth','enstaller.pth'):
                 # Ignore .pth files that we control
                 continue
 
@@ -1946,7 +1946,7 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     hdr = header
                 yield (name+ext, hdr+script_text, 't', [name+x for x in old])
                 yield (
-                    name+'.exe', resource_string('setuptools', launcher),
+                    name+'.exe', resource_string('enstaller', launcher),
                     'b' # write in binary mode
                 )
             else:
@@ -1990,7 +1990,7 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
         onerror(os.rmdir, path, sys.exc_info())
 
 def bootstrap():
-    # This function is called when setuptools*.egg is run using /bin/sh
+    # This function is called when enstaller*.egg is run using /bin/sh
     import setuptools; argv0 = os.path.dirname(setuptools.__path__[0])
     sys.argv[0] = argv0; sys.argv.append(argv0); main()
 

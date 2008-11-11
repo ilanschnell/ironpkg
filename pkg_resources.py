@@ -1923,9 +1923,6 @@ class Distribution(object):
                 )
     version = property(version)
 
-
-
-
     #@property
     def _dep_map(self):
         try:
@@ -2076,8 +2073,8 @@ class Distribution(object):
 
 
     def check_version_conflict(self):
-        if self.key=='setuptools':
-            return      # ignore the inevitable setuptools self-conflicts  :(
+        if self.key=='enstaller':
+            return      # ignore the inevitable enstaller self-conflicts  :(
 
         nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
         loc = normalize_path(self.location)
