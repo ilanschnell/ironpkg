@@ -23,7 +23,7 @@ setup(
     license="BSD",
     long_description = open('README.txt').read(),
     keywords = "CPAN PyPI distutils eggs package management",
-    url = "http://code.enthought.com/enstaller"
+    url = "http://code.enthought.com/enstaller",
     test_suite = 'setuptools.tests',
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
@@ -71,7 +71,7 @@ setup(
              "easy_install-%s = setuptools.command.easy_install:main"
                 % sys.version[:3],
              "enstaller = setuptools.command.easy_install:main"
-             "pyapp = enstaller.cmdline:main"
+             "enpkg = enstaller.cmdline:main"
         ],
 
         "setuptools.file_finders":

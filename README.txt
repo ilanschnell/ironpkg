@@ -10,7 +10,7 @@ Improvements added:
 
  * added post-install and pre-uninstall scripts
  * easy_install can now work through a proxy.
- * improved dependency resolution with enpack.
+ * improved dependency resolution with enpkg.
  * ability to use .egg_info files located alongside the .egg file for
  getting dependency information
  * easy_install can work through a proxy

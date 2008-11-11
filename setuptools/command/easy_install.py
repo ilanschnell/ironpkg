@@ -523,7 +523,6 @@ Please make the appropriate changes for your system and try again.
             else:
                 choice = raw_input("Remove %s? [Y/N] " % current_dep)
 
-
     def _run_post_install(self, installed_egg_path):
         """
         run any post-install scripts in the newly-installed egg defined by the
@@ -609,8 +608,6 @@ Please make the appropriate changes for your system and try again.
         uninstalling unnecessary dependencies that can be removed
         and warns if uninstalling a package could break another installed package.
         """
-        self._run_pre_uninstall(self.path_location):
-
         all_deps = self.get_deps()
         
         for spec in specs:
@@ -637,7 +634,9 @@ Please make the appropriate changes for your system and try again.
         """
         pkg_path = dist.location
         log.info("Removing %s..." % pkg_path)
+        self._run_pre_uninstall(pkg_path)
         self._remove_package_file(pkg_path)
+        
         
     def _remove_package_file(self, package_filepath):
         """
@@ -887,6 +886,10 @@ Please make the appropriate changes for your system and try again.
             requirement = Requirement(
                 distreq.project_name, distreq.specs, requirement.extras
             )
+
+        # Run post-install scripts
+        self._run_post_install(dist.location)
+            
         log.info("Processing dependencies for %s", requirement)
         try:
             distros = WorkingSet([]).resolve(

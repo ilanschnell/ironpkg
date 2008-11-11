@@ -22,6 +22,7 @@ class develop(easy_install):
     def run(self):
         if self.uninstall:
             self.multi_version = True
+            self._run_pre_uninstall(self.distribution.location)
             self.uninstall_link()
         else:
             self.install_for_development()
@@ -33,10 +34,6 @@ class develop(easy_install):
         easy_install.initialize_options(self)
         self.setup_path = None
         self.always_copy_from = '.'   # always copy eggs installed in curdir
-
-
-
-
 
 
     def finalize_options(self):
