@@ -85,7 +85,7 @@ setup(
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
     Intended Audience :: Developers
-    License :: OSI Approved :: BSD
+    License :: OSI Approved :: BSD License
     Operating System :: OS Independent
     Programming Language :: Python
     Topic :: Software Development :: Libraries :: Python Modules
