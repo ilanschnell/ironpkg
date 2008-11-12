@@ -12,6 +12,7 @@
 
 # imports from standard library
 import os, sys, glob, re, platform
+from os import path
 from urlparse import urlsplit, urljoin
 from urllib2 import urlopen
 from logging import error, warning, info, debug

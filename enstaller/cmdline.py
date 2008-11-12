@@ -341,6 +341,9 @@ def main():
     # get our options
     parser = setup_parser()
     options, args = parser.parse_args()
+
+    if len(args) < 1:
+        raise ValueError, "Must call enpkg with one of 'install', 'upgrade', 'remove', or 'list'"
     
     # set up logging
     basicConfig(level=options.logging, format="%(message)s")
@@ -382,15 +385,15 @@ def main():
             remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width)
-    elif command == "remove":
-        remove_requirement([Requirement.parse(arg) for arg in args],
-            interactive=options.interactive, dry_run=options.dry_run)
     elif sys.argv[1] == "activate":
         install_requirement([Requirement.parse(arg) for arg in args],
             remote_repos=[], interactive=options.interactive,
-            dry_run=options.dry_run, term_width=options.term_width)
+            dry_run=options.dry_run, term_width=options.term_width)        
     elif sys.argv[1] == "deactivate":
         deactivate_requirement([Requirement.parse(arg) for arg in args],
+            interactive=options.interactive, dry_run=options.dry_run)        
+    elif command == "remove":
+        remove_requirement([Requirement.parse(arg) for arg in args],
             interactive=options.interactive, dry_run=options.dry_run)
     elif command == "list":
         list_installed(interactive=options.interactive,
