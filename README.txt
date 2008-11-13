@@ -8,17 +8,13 @@ point as well as specific improvements.
 
 Improvements added:
 
- * added post-install and pre-uninstall scripts
- * easy_install can now work through a proxy.
+ * added support for removing a package
+ * added support for post-install and pre-uninstall scripts
  * improved dependency resolution with enpkg.
  * ability to use .egg_info files located alongside the .egg file for
  getting dependency information
  * easy_install can work through a proxy
- * setup.py develop runs post-install scripts and --uninstall runs
+ * setup.py develop also runs post-install scripts and --uninstall runs
  pre-uninstall scripts
- * easy_install prefers released versions of files.
-
-
-
-
+ * easy_install and enpkg now prefers released versions of files.
 

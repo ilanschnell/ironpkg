@@ -16,8 +16,7 @@ scripts = []
 setup(
     name="enstaller",
     version=VERSION,
-    description="Download, build, install, upgrade, and uninstall Python "
-        "packages -- easily!",
+    descriptions = "A replacement for setuptools that builds on top of it and adds additional features.",
     author="Enthought, Inc.",
     author_email="info@enthought.com",
     license="BSD",
@@ -93,9 +92,6 @@ setup(
     Topic :: System :: Systems Administration
     Topic :: Utilities""".splitlines() if f.strip()],
     scripts = scripts,
-
-    # uncomment for testing
-    # setup_requires = ['setuptools>=0.6a0'],
 )
 
 
