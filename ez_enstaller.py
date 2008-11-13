@@ -15,11 +15,11 @@ This file can also be run as a script to install or upgrade enstaller.
 """
 import sys
 DEFAULT_VERSION = "3.0.0"
-DEFAULT_URL     = "http://pypi.python.org/packages/%s/s/enstaller/" % sys.version[:3]
+DEFAULT_URL     = "http://pypi.python.org/packages/%s/e/enstaller/" % sys.version[:3]
 
 md5_data = {
-    'setuptools-0.6c8-py2.4.egg': 'cba38d74f7d483c06e9daa6070cce6de',
-    'setuptools-0.6c8-py2.5.egg': '1721747ee329dc150590a58b3e1ac95b',
+    'enstaller-3.0.0-py2.4.egg': '4029cf489302a8431e7ae12a33de8cc5',
+    'enstaller-3.0.0-py2.5.egg': 'cba38d74f7d483c06e9daa6070cce6de',
 }
 
 import sys, os

@@ -86,6 +86,7 @@ class easy_install(Command):
         ('allow-dev', 'D', "allow non-release packages to be installed"),
         ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
         ('local-snapshots-ok', 'l', "allow building eggs from local checkouts"),
+        ('proxy=', 'p', "Add proxy for downloads")
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
@@ -104,6 +105,7 @@ class easy_install(Command):
         self.args = None
         self.optimize = self.record = None
         self.remove = None
+        self.proxy = None
         self.upgrade = self.always_copy = self.multi_version = None
         self.editable = self.no_deps = self.allow_hosts = None
         self.allow_dev = None
@@ -222,6 +224,12 @@ class easy_install(Command):
 
         # Add a list for files installed by the current package only.
         self.outputs_this_package = []
+
+        if self.proxy is not None:
+            from enstaller.proxy.api import setup_proxy
+            installed = setup_proxy(self.proxy)
+            print "Yes...", installed
+            print self.proxy
 
     def run(self):
         if self.verbose<>self.distribution.verbose:

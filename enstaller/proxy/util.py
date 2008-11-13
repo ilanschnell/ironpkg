@@ -7,8 +7,6 @@
 # redistributed only under the conditions described in the aforementioned
 # license.
 #
-# Modeled after code written by Travis Oliphant for the enthought.enstaller
-# project.
 #------------------------------------------------------------------------------
 
 

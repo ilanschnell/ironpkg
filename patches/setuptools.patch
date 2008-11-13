@@ -1,0 +1,292 @@
+Only in Enstaller/setuptools: archive_util.pyc
+Common subdirectories: setuptools-0.6c9/setuptools/command and Enstaller/setuptools/command
+Only in Enstaller/setuptools: depends.pyc
+Only in Enstaller/setuptools: dist.pyc
+Only in Enstaller/setuptools: extension.pyc
+diff -c setuptools-0.6c9/setuptools/__init__.py Enstaller/setuptools/__init__.py
+*** setuptools-0.6c9/setuptools/__init__.py	2008-09-24 12:10:35.000000000 -0500
+--- Enstaller/setuptools/__init__.py	2008-11-10 14:41:27.000000000 -0600
+***************
+*** 7,13 ****
+  from distutils.util import convert_path
+  import os.path
+  
+! __version__ = '0.6c9'
+  __all__ = [
+      'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
+      'find_packages'
+--- 7,14 ----
+  from distutils.util import convert_path
+  import os.path
+  
+! # hacked from 0.6c9 so we know it is enstallers and comes *after* 0.6c9 in revision.
+! __version__ = '0.6c9-s1'
+  __all__ = [
+      'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
+      'find_packages'
+Only in Enstaller/setuptools: __init__.py~
+Only in Enstaller/setuptools: __init__.pyc
+diff -c setuptools-0.6c9/setuptools/package_index.py Enstaller/setuptools/package_index.py
+*** setuptools-0.6c9/setuptools/package_index.py	2008-09-24 12:10:36.000000000 -0500
+--- Enstaller/setuptools/package_index.py	2008-11-11 16:19:13.000000000 -0600
+***************
+*** 141,148 ****
+              if match:
+                  yield urlparse.urljoin(url, htmldecode(match.group(1)))
+  
+! user_agent = "Python-urllib/%s setuptools/%s" % (
+!     urllib2.__version__, require('setuptools')[0].version
+  )
+  
+  
+--- 141,148 ----
+              if match:
+                  yield urlparse.urljoin(url, htmldecode(match.group(1)))
+  
+! user_agent = "Python-urllib/%s enstaller/%s" % (
+!     urllib2.__version__, require('enstaller')[0].version
+  )
+  
+  
+***************
+*** 160,167 ****
+          self.allows = re.compile('|'.join(map(translate,hosts))).match
+          self.to_scan = []
+  
+- 
+- 
+      def process_url(self, url, retrieve=False):
+          """Evaluate a URL as a possible download, and maybe retrieve it"""
+          if url in self.scanned_urls and not retrieve:
+--- 160,165 ----
+***************
+*** 283,290 ****
+          else:
+              return ""   # no sense double-scanning non-package pages
+  
+- 
+- 
+      def need_version_info(self, url):
+          self.scan_all(
+              "Page at %s links to .py file(s) without version info; an index "
+--- 281,286 ----
+***************
+*** 323,331 ****
+          return super(PackageIndex, self).obtain(requirement,installer)
+  
+  
+- 
+- 
+- 
+      def check_md5(self, cs, info, filename, tfp):
+          if re.match('md5=[0-9a-f]{32}$', info):
+              self.debug("Validating md5 checksum for %s", filename)
+--- 319,324 ----
+***************
+*** 408,416 ****
+          return getattr(self.fetch_distribution(spec, tmpdir),'location',None)
+  
+  
+!     def fetch_distribution(self,
+!         requirement, tmpdir, force_scan=False, source=False, develop_ok=False
+!     ):
+          """Obtain a distribution suitable for fulfilling `requirement`
+  
+          `requirement` must be a ``pkg_resources.Requirement`` instance.
+--- 401,409 ----
+          return getattr(self.fetch_distribution(spec, tmpdir),'location',None)
+  
+  
+!     def fetch_distribution(self, requirement, tmpdir, force_scan=False,
+!                            source=False, develop_ok=False, prefer_release=True
+!                            ):
+          """Obtain a distribution suitable for fulfilling `requirement`
+  
+          `requirement` must be a ``pkg_resources.Requirement`` instance.
+***************
+*** 426,442 ****
+          checkout links will be considered.  Unless the `develop_ok` flag is
+          set, development and system eggs (i.e., those using the ``.egg-info``
+          format) will be ignored.
+          """
+  
+          # process a Requirement
+          self.info("Searching for %s", requirement)
+          skipped = {}
+  
+!         def find(req):
+              # Find a matching distribution; may be called more than once
+! 
+              for dist in self[req.key]:
+  
+                  if dist.precedence==DEVELOP_DIST and not develop_ok:
+                      if dist not in skipped:
+                          self.warn("Skipping development or system egg: %s",dist)
+--- 419,445 ----
+          checkout links will be considered.  Unless the `develop_ok` flag is
+          set, development and system eggs (i.e., those using the ``.egg-info``
+          format) will be ignored.
++ 
++         By default, release versions are preferred over development versions
++         (including alpha, beta, rc, etc...).  If prefer_release is set to False,
++         development versions will be accepted as well.
+          """
+  
+          # process a Requirement
+          self.info("Searching for %s", requirement)
+          skipped = {}
+  
+!         def find(req, get_release=prefer_release):
+              # Find a matching distribution; may be called more than once
+!             # get release is initially set to True.  If no release version is
+!             # found, find is called again with get_release set to false. Then
+!             # development versions are searched for.
+              for dist in self[req.key]:
+  
++                 # get release versions by default
++                 if dist.is_non_release() and get_release:
++                     continue
++                 
+                  if dist.precedence==DEVELOP_DIST and not develop_ok:
+                      if dist not in skipped:
+                          self.warn("Skipping development or system egg: %s",dist)
+***************
+*** 449,454 ****
+--- 452,464 ----
+                          location=self.download(dist.location, tmpdir)
+                      )
+  
++                 # If no release versions were found, search for latest
++                 #  development version.
++                 if get_release:
++                     self.info("No matching release version found. Searching for "\
++                               "latest development version.")
++                     return find(req, get_release=False)
++ 
+          if force_scan:
+              self.prescan()
+              self.find_packages(requirement)
+***************
+*** 470,475 ****
+--- 480,509 ----
+              )
+          return dist
+  
++     def is_non_release(self):
++         """ Checks the parsed version spec of the current package and returns
++         true if it is not a release build. Non-release builds contain any
++         qualifier that is alphabetically before 'final' or contains an 'r' for
++         a specific revision number.
++         """
++         # For each part of the version, check for any development qualifier
++         for version_part in self.parsed_version:
++             
++             # If this part is an integer or the special final qualifier, skip it
++             if version_part.isdigit() or version_part == '*final-':
++                 continue
++             
++             # If the part sorts alphabetically before 'final' or specifies that
++             # this build was made from a specific revision number, this is a
++             # non-release build. Otherwise, this is a release build
++             if version_part < '*final' or version_part == '*r':
++                 return True
++             else:
++                 return False
++             
++         #Fall-back return incase the loop exits
++         return False
++         
+      def fetch(self, requirement, tmpdir, force_scan=False, source=False):
+          """Obtain a file suitable for fulfilling `requirement`
+  
+***************
+*** 484,495 ****
+          return None
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+      def gen_setup(self, filename, fragment, tmpdir):
+          match = EGG_FRAGMENT.match(fragment)
+          dists = match and [d for d in
+--- 518,523 ----
+***************
+*** 612,618 ****
+              return self._attempt_download(url, filename)
+  
+  
+- 
+      def scan_url(self, url):
+          self.process_url(url, True)
+  
+--- 640,645 ----
+***************
+*** 680,700 ****
+      return entity_sub(decode_entity, text)
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def open_with_auth(url):
+      """Open a urllib2 request, handling HTTP authentication"""
+  
+--- 707,712 ----
+***************
+*** 726,741 ****
+      return fp
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def fix_sf_url(url):
+      return url      # backward compatibility
+  
+--- 738,743 ----
+***************
+*** 765,779 ****
+              {'content-type':'text/html'}, cStringIO.StringIO(body))
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- # this line is a kludge to keep the trailing blank lines for pje's editor
+--- 767,769 ----
+Only in Enstaller/setuptools: package_index.py~
+Only in Enstaller/setuptools: package_index.pyc
+Only in Enstaller/setuptools: sandbox.pyc
+Only in Enstaller/setuptools: .svn
+Common subdirectories: setuptools-0.6c9/setuptools/tests and Enstaller/setuptools/tests

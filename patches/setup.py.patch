@@ -1,0 +1,88 @@
+*** setuptools-0.6c9/setup.py	2008-09-24 12:10:45.000000000 -0500
+--- Enstaller/setup.py	2008-11-12 11:07:00.000000000 -0600
+***************
+*** 7,29 ****
+  execfile(convert_path('setuptools/command/__init__.py'), d)
+  
+  SETUP_COMMANDS = d['__all__']
+! VERSION = "0.6c9"
+  
+  from setuptools import setup, find_packages
+  import sys
+  scripts = []
+  
+  setup(
+!     name="setuptools",
+      version=VERSION,
+      description="Download, build, install, upgrade, and uninstall Python "
+          "packages -- easily!",
+!     author="Phillip J. Eby",
+!     author_email="distutils-sig@python.org",
+!     license="PSF or ZPL",
+      long_description = open('README.txt').read(),
+      keywords = "CPAN PyPI distutils eggs package management",
+!     url = "http://pypi.python.org/pypi/setuptools",
+      test_suite = 'setuptools.tests',
+      packages = find_packages(),
+      package_data = {'setuptools':['*.exe']},
+--- 7,29 ----
+  execfile(convert_path('setuptools/command/__init__.py'), d)
+  
+  SETUP_COMMANDS = d['__all__']
+! VERSION = "3.0.1"
+  
+  from setuptools import setup, find_packages
+  import sys
+  scripts = []
+  
+  setup(
+!     name="enstaller",
+      version=VERSION,
+      description="Download, build, install, upgrade, and uninstall Python "
+          "packages -- easily!",
+!     author="Enthought, Inc.",
+!     author_email="info@enthought.com",
+!     license="BSD",
+      long_description = open('README.txt').read(),
+      keywords = "CPAN PyPI distutils eggs package management",
+!     url = "http://code.enthought.com/projects/enstaller",
+      test_suite = 'setuptools.tests',
+      packages = find_packages(),
+      package_data = {'setuptools':['*.exe']},
+***************
+*** 69,75 ****
+          "console_scripts": [
+               "easy_install = setuptools.command.easy_install:main",
+               "easy_install-%s = setuptools.command.easy_install:main"
+!                 % sys.version[:3]
+          ],
+  
+          "setuptools.file_finders":
+--- 69,77 ----
+          "console_scripts": [
+               "easy_install = setuptools.command.easy_install:main",
+               "easy_install-%s = setuptools.command.easy_install:main"
+!                 % sys.version[:3],
+!              "enstaller = setuptools.command.easy_install:main",
+!              "enpkg = enstaller.cmdline:main"
+          ],
+  
+          "setuptools.file_finders":
+***************
+*** 83,90 ****
+      classifiers = [f.strip() for f in """
+      Development Status :: 3 - Alpha
+      Intended Audience :: Developers
+!     License :: OSI Approved :: Python Software Foundation License
+!     License :: OSI Approved :: Zope Public License
+      Operating System :: OS Independent
+      Programming Language :: Python
+      Topic :: Software Development :: Libraries :: Python Modules
+--- 85,91 ----
+      classifiers = [f.strip() for f in """
+      Development Status :: 3 - Alpha
+      Intended Audience :: Developers
+!     License :: OSI Approved :: BSD License
+      Operating System :: OS Independent
+      Programming Language :: Python
+      Topic :: Software Development :: Libraries :: Python Modules
