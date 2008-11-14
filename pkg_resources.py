@@ -449,8 +449,9 @@ class WorkingSet(object):
 
         while requirements:
             req = requirements.pop(0)   # process dependencies breadth-first
-            if req in processed:
-                # Ignore cyclic or redundant dependencies
+            if req in processed or req.key == 'setuptools':
+                # Ignore cyclic or redundant dependencies or dependencies
+                #  on setuptools which enstaller replaces.
                 continue
             dist = best.get(req.key)
             if dist is None:
@@ -1841,9 +1842,6 @@ class EntryPoint(object):
 
 
 
-
-
-
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
     def __init__(self,
@@ -2028,8 +2026,29 @@ class Distribution(object):
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
 
-
-
+    def is_non_release(self):
+        """ Checks the parsed version spec of the current package and returns
+        true if it is not a release build. Non-release builds contain any
+        qualifier that is alphabetically before 'final' or contains an 'r' for
+        a specific revision number.
+        """
+        # For each part of the version, check for any development qualifier
+        for version_part in self.parsed_version:
+            
+            # If this part is an integer or the special final qualifier, skip it
+            if version_part.isdigit() or version_part == '*final-':
+                continue
+            
+            # If the part sorts alphabetically before 'final' or specifies that
+            # this build was made from a specific revision number, this is a
+            # non-release build. Otherwise, this is a release build
+            if version_part < '*final' or version_part == '*r':
+                return True
+            else:
+                return False
+            
+        #Fall-back return incase the loop exits
+        return False
 
     def insert_on(self, path, loc = None):
         """Insert self.location in path before its nearest parent directory"""
@@ -2131,27 +2150,6 @@ def issue_warning(*args,**kw):
         pass
     from warnings import warn
     warn(stacklevel = level+1, *args, **kw)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def parse_requirements(strs):

@@ -1,225 +1,5 @@
-27,41d26
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-64,82d48
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-314,328d279
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-359,369d309
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-613,615d552
-< 
-< 
-< 
-649,656d585
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-820d748
-< 
-892,902d819
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-928,943d844
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-966,984d866
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-1102,1107d983
-< 
-< 
-< 
-< 
-< 
-< 
-1227,1230d1102
-< 
-< 
-< 
-< 
-1270,1271d1141
-< 
-< 
-1415,1435d1284
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-1464,1476d1312
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-2090,2092d1925
-< 
-< 
-< 
-2201,2215d2033
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-2258,2259c2076,2077
-<         if self.key=='setuptools':
-<             return      # ignore the inevitable setuptools self-conflicts  :(
----
->         if self.key=='enstaller':
->             return      # ignore the inevitable enstaller self-conflicts  :(
-2407,2420d2224
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-< 
-*** setuptools-0.6c9/pkg_resources.py	2008-09-24 12:10:45.000000000 -0500
---- Enstaller/pkg_resources.py	2008-11-11 11:50:51.000000000 -0600
+*** ../../setuptools-0.6c9/pkg_resources.py	2008-09-24 12:10:45.000000000 -0500
+--- ../../Enstaller/pkg_resources.py	2008-11-14 11:18:34.000000000 -0600
 ***************
 *** 24,44 ****
   from os import open as os_open
@@ -317,6 +97,26 @@
   
 --- 307,312 ----
 ***************
+*** 509,516 ****
+  
+          while requirements:
+              req = requirements.pop(0)   # process dependencies breadth-first
+!             if req in processed:
+!                 # Ignore cyclic or redundant dependencies
+                  continue
+              dist = best.get(req.key)
+              if dist is None:
+--- 449,457 ----
+  
+          while requirements:
+              req = requirements.pop(0)   # process dependencies breadth-first
+!             if req in processed or req.key == 'setuptools':
+!                 # Ignore cyclic or redundant dependencies or dependencies
+!                 #  on setuptools which enstaller replaces.
+                  continue
+              dist = best.get(req.key)
+              if dist is None:
+***************
 *** 610,618 ****
           return distributions, error_info
   
@@ -327,7 +127,7 @@
       def require(self, *requirements):
           """Ensure that distributions matching `requirements` are activated
   
---- 550,555 ----
+--- 551,556 ----
 ***************
 *** 646,659 ****
   
@@ -344,7 +144,7 @@
   class Environment(object):
       """Searchable snapshot of distributions on a search path"""
   
---- 583,588 ----
+--- 584,589 ----
 ***************
 *** 817,823 ****
   
@@ -354,7 +154,7 @@
   class ResourceManager:
       """Manage resource extraction and packages"""
       extraction_path = None
---- 746,751 ----
+--- 747,752 ----
 ***************
 *** 889,905 ****
   
@@ -374,7 +174,7 @@
       def get_cache_path(self, archive_name, names=()):
           """Return absolute location in cache for `archive_name` and `names`
   
---- 817,822 ----
+--- 818,823 ----
 ***************
 *** 925,946 ****
   
@@ -399,7 +199,7 @@
       def postprocess(self, tempname, filename):
           """Perform any platform-specific postprocessing of `tempname`
   
---- 842,847 ----
+--- 843,848 ----
 ***************
 *** 963,987 ****
   
@@ -427,7 +227,7 @@
       def set_extraction_path(self, path):
           """Set the base path where resources will be extracted to, if needed.
   
---- 864,869 ----
+--- 865,870 ----
 ***************
 *** 1099,1110 ****
       return name.replace('-','_')
@@ -442,7 +242,7 @@
   class NullProvider:
       """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
   
---- 981,986 ----
+--- 982,987 ----
 ***************
 *** 1224,1233 ****
               path, base = os.path.split(path)
@@ -455,7 +255,7 @@
   class DefaultProvider(EggProvider):
       """Provides access to package resources in the filesystem"""
   
---- 1100,1105 ----
+--- 1101,1106 ----
 ***************
 *** 1267,1274 ****
   empty_provider = EmptyProvider()
@@ -466,7 +266,7 @@
   class ZipProvider(EggProvider):
       """Resource support for zips and eggs"""
   
---- 1139,1144 ----
+--- 1140,1145 ----
 ***************
 *** 1412,1438 ****
   
@@ -496,7 +296,7 @@
   class FileMetadata(EmptyProvider):
       """Metadata handler for standalone PKG-INFO files
   
---- 1282,1287 ----
+--- 1283,1288 ----
 ***************
 *** 1461,1479 ****
   
@@ -518,7 +318,19 @@
   class PathMetadata(DefaultProvider):
       """Metadata provider for egg directories
   
---- 1310,1315 ----
+--- 1311,1316 ----
+***************
+*** 2005,2013 ****
+  
+  
+  
+- 
+- 
+- 
+  class Distribution(object):
+      """Wrap an actual or potential sys.path entry w/metadata"""
+      def __init__(self,
+--- 1842,1847 ----
 ***************
 *** 2087,2095 ****
                   )
@@ -530,31 +342,62 @@
       #@property
       def _dep_map(self):
           try:
---- 1923,1928 ----
+--- 1921,1926 ----
 ***************
-*** 2198,2218 ****
+*** 2195,2217 ****
+          """Return the EntryPoint object for `group`+`name`, or ``None``"""
+          return self.get_entry_map(group).get(name)
   
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
   
-  
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
       def insert_on(self, path, loc = None):
           """Insert self.location in path before its nearest parent directory"""
+--- 2026,2054 ----
+          """Return the EntryPoint object for `group`+`name`, or ``None``"""
+          return self.get_entry_map(group).get(name)
   
---- 2031,2036 ----
+!     def is_non_release(self):
+!         """ Checks the parsed version spec of the current package and returns
+!         true if it is not a release build. Non-release builds contain any
+!         qualifier that is alphabetically before 'final' or contains an 'r' for
+!         a specific revision number.
+!         """
+!         # For each part of the version, check for any development qualifier
+!         for version_part in self.parsed_version:
+!             
+!             # If this part is an integer or the special final qualifier, skip it
+!             if version_part.isdigit() or version_part == '*final-':
+!                 continue
+!             
+!             # If the part sorts alphabetically before 'final' or specifies that
+!             # this build was made from a specific revision number, this is a
+!             # non-release build. Otherwise, this is a release build
+!             if version_part < '*final' or version_part == '*r':
+!                 return True
+!             else:
+!                 return False
+!             
+!         #Fall-back return incase the loop exits
+!         return False
+  
+      def insert_on(self, path, loc = None):
+          """Insert self.location in path before its nearest parent directory"""
 ***************
 *** 2255,2262 ****
   
@@ -565,7 +408,7 @@
   
           nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
           loc = normalize_path(self.location)
---- 2073,2080 ----
+--- 2092,2099 ----
   
   
       def check_version_conflict(self):
@@ -574,6 +417,36 @@
   
           nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
           loc = normalize_path(self.location)
+***************
+*** 2315,2341 ****
+      warn(stacklevel = level+1, *args, **kw)
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def parse_requirements(strs):
+      """Yield ``Requirement`` objects for each specification in `strs`
+  
+--- 2152,2157 ----
 ***************
 *** 2404,2423 ****
   
@@ -596,4 +469,4 @@
   class Requirement:
       def __init__(self, project_name, specs, extras):
           """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
---- 2222,2227 ----
+--- 2220,2225 ----

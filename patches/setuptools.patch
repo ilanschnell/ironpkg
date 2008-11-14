@@ -1,11 +1,11 @@
-Only in Enstaller/setuptools: archive_util.pyc
-Common subdirectories: setuptools-0.6c9/setuptools/command and Enstaller/setuptools/command
-Only in Enstaller/setuptools: depends.pyc
-Only in Enstaller/setuptools: dist.pyc
-Only in Enstaller/setuptools: extension.pyc
-diff -c setuptools-0.6c9/setuptools/__init__.py Enstaller/setuptools/__init__.py
-*** setuptools-0.6c9/setuptools/__init__.py	2008-09-24 12:10:35.000000000 -0500
---- Enstaller/setuptools/__init__.py	2008-11-10 14:41:27.000000000 -0600
+Only in ../../Enstaller/setuptools: archive_util.pyc
+Common subdirectories: ../../setuptools-0.6c9/setuptools/command and ../../Enstaller/setuptools/command
+Only in ../../Enstaller/setuptools: depends.pyc
+Only in ../../Enstaller/setuptools: dist.pyc
+Only in ../../Enstaller/setuptools: extension.pyc
+diff -c ../../setuptools-0.6c9/setuptools/__init__.py ../../Enstaller/setuptools/__init__.py
+*** ../../setuptools-0.6c9/setuptools/__init__.py	2008-09-24 12:10:35.000000000 -0500
+--- ../../Enstaller/setuptools/__init__.py	2008-11-10 14:41:27.000000000 -0600
 ***************
 *** 7,13 ****
   from distutils.util import convert_path
@@ -24,11 +24,11 @@ diff -c setuptools-0.6c9/setuptools/__init__.py Enstaller/setuptools/__init__.py
   __all__ = [
       'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
       'find_packages'
-Only in Enstaller/setuptools: __init__.py~
-Only in Enstaller/setuptools: __init__.pyc
-diff -c setuptools-0.6c9/setuptools/package_index.py Enstaller/setuptools/package_index.py
-*** setuptools-0.6c9/setuptools/package_index.py	2008-09-24 12:10:36.000000000 -0500
---- Enstaller/setuptools/package_index.py	2008-11-11 16:19:13.000000000 -0600
+Only in ../../Enstaller/setuptools: __init__.py~
+Only in ../../Enstaller/setuptools: __init__.pyc
+diff -c ../../setuptools-0.6c9/setuptools/package_index.py ../../Enstaller/setuptools/package_index.py
+*** ../../setuptools-0.6c9/setuptools/package_index.py	2008-09-24 12:10:36.000000000 -0500
+--- ../../Enstaller/setuptools/package_index.py	2008-11-14 10:51:01.000000000 -0600
 ***************
 *** 141,148 ****
               if match:
@@ -168,33 +168,10 @@ diff -c setuptools-0.6c9/setuptools/package_index.py Enstaller/setuptools/packag
               self.find_packages(requirement)
 ***************
 *** 470,475 ****
---- 480,509 ----
+--- 480,486 ----
               )
           return dist
   
-+     def is_non_release(self):
-+         """ Checks the parsed version spec of the current package and returns
-+         true if it is not a release build. Non-release builds contain any
-+         qualifier that is alphabetically before 'final' or contains an 'r' for
-+         a specific revision number.
-+         """
-+         # For each part of the version, check for any development qualifier
-+         for version_part in self.parsed_version:
-+             
-+             # If this part is an integer or the special final qualifier, skip it
-+             if version_part.isdigit() or version_part == '*final-':
-+                 continue
-+             
-+             # If the part sorts alphabetically before 'final' or specifies that
-+             # this build was made from a specific revision number, this is a
-+             # non-release build. Otherwise, this is a release build
-+             if version_part < '*final' or version_part == '*r':
-+                 return True
-+             else:
-+                 return False
-+             
-+         #Fall-back return incase the loop exits
-+         return False
 +         
       def fetch(self, requirement, tmpdir, force_scan=False, source=False):
           """Obtain a file suitable for fulfilling `requirement`
@@ -213,7 +190,7 @@ diff -c setuptools-0.6c9/setuptools/package_index.py Enstaller/setuptools/packag
       def gen_setup(self, filename, fragment, tmpdir):
           match = EGG_FRAGMENT.match(fragment)
           dists = match and [d for d in
---- 518,523 ----
+--- 495,500 ----
 ***************
 *** 612,618 ****
               return self._attempt_download(url, filename)
@@ -223,7 +200,7 @@ diff -c setuptools-0.6c9/setuptools/package_index.py Enstaller/setuptools/packag
       def scan_url(self, url):
           self.process_url(url, True)
   
---- 640,645 ----
+--- 617,622 ----
 ***************
 *** 680,700 ****
       return entity_sub(decode_entity, text)
@@ -247,7 +224,7 @@ diff -c setuptools-0.6c9/setuptools/package_index.py Enstaller/setuptools/packag
   def open_with_auth(url):
       """Open a urllib2 request, handling HTTP authentication"""
   
---- 707,712 ----
+--- 684,689 ----
 ***************
 *** 726,741 ****
       return fp
@@ -266,7 +243,7 @@ diff -c setuptools-0.6c9/setuptools/package_index.py Enstaller/setuptools/packag
   def fix_sf_url(url):
       return url      # backward compatibility
   
---- 738,743 ----
+--- 715,720 ----
 ***************
 *** 765,779 ****
               {'content-type':'text/html'}, cStringIO.StringIO(body))
@@ -284,9 +261,9 @@ diff -c setuptools-0.6c9/setuptools/package_index.py Enstaller/setuptools/packag
 - 
 - 
 - # this line is a kludge to keep the trailing blank lines for pje's editor
---- 767,769 ----
-Only in Enstaller/setuptools: package_index.py~
-Only in Enstaller/setuptools: package_index.pyc
-Only in Enstaller/setuptools: sandbox.pyc
-Only in Enstaller/setuptools: .svn
-Common subdirectories: setuptools-0.6c9/setuptools/tests and Enstaller/setuptools/tests
+--- 744,746 ----
+Only in ../../Enstaller/setuptools: package_index.py~
+Only in ../../Enstaller/setuptools: package_index.pyc
+Only in ../../Enstaller/setuptools: sandbox.pyc
+Only in ../../Enstaller/setuptools: .svn
+Common subdirectories: ../../setuptools-0.6c9/setuptools/tests and ../../Enstaller/setuptools/tests

@@ -480,29 +480,6 @@ class PackageIndex(Environment):
             )
         return dist
 
-    def is_non_release(self):
-        """ Checks the parsed version spec of the current package and returns
-        true if it is not a release build. Non-release builds contain any
-        qualifier that is alphabetically before 'final' or contains an 'r' for
-        a specific revision number.
-        """
-        # For each part of the version, check for any development qualifier
-        for version_part in self.parsed_version:
-            
-            # If this part is an integer or the special final qualifier, skip it
-            if version_part.isdigit() or version_part == '*final-':
-                continue
-            
-            # If the part sorts alphabetically before 'final' or specifies that
-            # this build was made from a specific revision number, this is a
-            # non-release build. Otherwise, this is a release build
-            if version_part < '*final' or version_part == '*r':
-                return True
-            else:
-                return False
-            
-        #Fall-back return incase the loop exits
-        return False
         
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
         """Obtain a file suitable for fulfilling `requirement`

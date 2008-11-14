@@ -19,7 +19,7 @@ DEFAULT_URL     = "http://pypi.python.org/packages/%s/e/enstaller/" % sys.versio
 
 md5_data = {
     'enstaller-3.0.0-py2.4.egg': '4029cf489302a8431e7ae12a33de8cc5',
-    'enstaller-3.0.0-py2.5.egg': 'cba38d74f7d483c06e9daa6070cce6de',
+    'enstaller-3.0.0-py2.5.egg': 'ce9c9e3a84c3d9658745d749fdb87d27',
 }
 
 import sys, os
