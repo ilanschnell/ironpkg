@@ -1954,7 +1954,7 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     hdr = header
                 yield (name+ext, hdr+script_text, 't', [name+x for x in old])
                 yield (
-                    name+'.exe', resource_string('enstaller', launcher),
+                    name+'.exe', resource_string('setuptools', launcher),
                     'b' # write in binary mode
                 )
             else:
