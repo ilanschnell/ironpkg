@@ -117,7 +117,8 @@ def rst_table(fields, data, sorted=True, key=None, indent=0, max_width=0):
         table = "\n".join(line[:max_width] for line in table.split('\n'))
     return table
 
-HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
+HREF = re.compile("""href\\s*=\\s*['"']?([^'"'> ]+)""", re.I)
+
 cache = {}
 
 def find_eggs_in_url(url):

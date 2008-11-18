@@ -1467,16 +1467,6 @@ Please make the appropriate changes for your system and try again.""" % (
         self.sitepy_installed = True
 
 
-
-
-
-
-
-
-
-
-
-
     INSTALL_SCHEMES = dict(
         posix = dict(
             install_dir = '$base/lib/python$py_version_short/site-packages',
@@ -1509,14 +1499,6 @@ Please make the appropriate changes for your system and try again.""" % (
                 if os.name == 'posix':
                     val = os.path.expanduser(val)
                 setattr(self, attr, val)
-
-
-
-
-
-
-
-
 
 def get_site_dirs():
     # return a list of 'site' dirs
@@ -1633,13 +1615,6 @@ def extract_wininst_cfg(dist_filename):
 
     finally:
         f.close()
-
-
-
-
-
-
-
 
 def get_exe_prefixes(exe_filename):
     """Get exe->egg path translations for a given .exe file"""
