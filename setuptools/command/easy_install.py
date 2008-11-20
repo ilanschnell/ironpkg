@@ -284,6 +284,13 @@ class easy_install(Command):
         instdir = normalize_path(self.install_dir)
         pth_file = os.path.join(instdir,'easy-install.pth')
 
+        try:
+            os.makedirs(instdir)
+        except OSError:
+            # Oh well -- hopefully this error simply means that it
+            #  is already there.  If not the subsequent write test
+            #  will identify the problem. 
+
         # Is it a configured, PYTHONPATH, implicit, or explicit site dir?
         is_site_dir = instdir in self.all_site_dirs
 
@@ -303,7 +310,7 @@ class easy_install(Command):
 
         if not is_site_dir and not self.multi_version:
             # Can't install non-multi to non-site dir
-            raise DistutilsError(self.no_default_version_msg())
+            log.warn(self.no_default_version_msg())
 
         if is_site_dir:
             if self.pth_file is None:
@@ -1431,7 +1438,7 @@ Here are some of your options for correcting the problem:
 
   http://peak.telecommunity.com/EasyInstall.html#custom-installation-locations
 
-Please make the appropriate changes for your system and try again.""" % (
+Proceeding to install.  Please remember that unless you make one of these changes you will not be able to run the installed code.""" % (
         self.install_dir, os.environ.get('PYTHONPATH','')
     )
 
@@ -1709,9 +1716,9 @@ class PthDistributions(Environment):
             data = (
                 "import sys; sys.__plen = len(sys.path)\n"
                 "%s\n"
-                "import sys; new=sys.path[sys.__plen:];"
+                "import sys, os; new=sys.path[sys.__plen:];"
                 " del sys.path[sys.__plen:];"
-                " p=getattr(sys,'__egginsert',0); sys.path[p:p]=new;"
+                " p=getattr(sys,'__egginsert',len(os.environ.get('PYTHONPATH','').split(os.pathsep))); sys.path[p:p]=new;"
                 " sys.__egginsert = p+len(new)\n"
             ) % data
 
