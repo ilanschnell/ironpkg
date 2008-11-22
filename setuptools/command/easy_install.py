@@ -289,7 +289,8 @@ class easy_install(Command):
         except OSError:
             # Oh well -- hopefully this error simply means that it
             #  is already there.  If not the subsequent write test
-            #  will identify the problem. 
+            #  will identify the problem.
+            pass
 
         # Is it a configured, PYTHONPATH, implicit, or explicit site dir?
         is_site_dir = instdir in self.all_site_dirs
@@ -623,10 +624,21 @@ Please make the appropriate changes for your system and try again.
         uninstalling unnecessary dependencies that can be removed
         and warns if uninstalling a package could break another installed package.
         """
-        all_deps = self.get_deps()
-        
-        for spec in specs:
-            try:
+        try:
+            # If no dependencies, then just get the distributions from
+            #  the requirement specifications and remove them.
+            if self.no_deps:
+                for spec in specs:
+                    try:
+                        dist = working_set.find(Requirement.parse(spec))
+                    except:
+                        raise DistributionNotFound
+                    self._remove_dist(dist)
+            return
+                
+            all_deps = self.get_deps()
+                    
+            for spec in specs:
                 pkgs = require(spec)
                 
                 # If the package found has dependencies, prompt the user if they
@@ -635,12 +647,13 @@ Please make the appropriate changes for your system and try again.
                     for dep in pkgs[1:]:
                         if self.check_deps(dep.project_name, spec, all_deps):
                             self._remove_dist(dep)
-                
+                            
                 # Finally, check if user-specified package can be safely
                 # removed.
                 if self.check_deps(pkgs[0].project_name, spec, all_deps):
                     self._remove_dist(pkgs[0])
-            except DistributionNotFound:
+                        
+        except DistributionNotFound:
                 log.info("Could not find suitable package for: %s" % spec)
             
             
