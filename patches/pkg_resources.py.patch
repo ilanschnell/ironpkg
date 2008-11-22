@@ -1,5 +1,5 @@
 *** ../../setuptools-0.6c9/pkg_resources.py	2008-09-24 12:10:45.000000000 -0500
---- ../../Enstaller/pkg_resources.py	2008-11-14 11:18:34.000000000 -0600
+--- ../../Enstaller/pkg_resources.py	2008-11-21 18:17:22.000000000 -0600
 ***************
 *** 24,44 ****
   from os import open as os_open
@@ -97,6 +97,18 @@
   
 --- 307,312 ----
 ***************
+*** 405,413 ****
+          return self.by_key.get(dist.key) == dist
+  
+  
+- 
+- 
+- 
+      def find(self, req):
+          """Find a distribution matching requirement `req`
+  
+--- 345,350 ----
+***************
 *** 509,516 ****
   
           while requirements:
@@ -106,7 +118,7 @@
                   continue
               dist = best.get(req.key)
               if dist is None:
---- 449,457 ----
+--- 446,454 ----
   
           while requirements:
               req = requirements.pop(0)   # process dependencies breadth-first
@@ -127,7 +139,7 @@
       def require(self, *requirements):
           """Ensure that distributions matching `requirements` are activated
   
---- 551,556 ----
+--- 548,553 ----
 ***************
 *** 646,659 ****
   
@@ -144,7 +156,7 @@
   class Environment(object):
       """Searchable snapshot of distributions on a search path"""
   
---- 584,589 ----
+--- 581,586 ----
 ***************
 *** 817,823 ****
   
@@ -154,7 +166,7 @@
   class ResourceManager:
       """Manage resource extraction and packages"""
       extraction_path = None
---- 747,752 ----
+--- 744,749 ----
 ***************
 *** 889,905 ****
   
@@ -174,7 +186,7 @@
       def get_cache_path(self, archive_name, names=()):
           """Return absolute location in cache for `archive_name` and `names`
   
---- 818,823 ----
+--- 815,820 ----
 ***************
 *** 925,946 ****
   
@@ -199,7 +211,7 @@
       def postprocess(self, tempname, filename):
           """Perform any platform-specific postprocessing of `tempname`
   
---- 843,848 ----
+--- 840,845 ----
 ***************
 *** 963,987 ****
   
@@ -227,7 +239,7 @@
       def set_extraction_path(self, path):
           """Set the base path where resources will be extracted to, if needed.
   
---- 865,870 ----
+--- 862,867 ----
 ***************
 *** 1099,1110 ****
       return name.replace('-','_')
@@ -242,7 +254,7 @@
   class NullProvider:
       """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
   
---- 982,987 ----
+--- 979,984 ----
 ***************
 *** 1224,1233 ****
               path, base = os.path.split(path)
@@ -255,7 +267,7 @@
   class DefaultProvider(EggProvider):
       """Provides access to package resources in the filesystem"""
   
---- 1101,1106 ----
+--- 1098,1103 ----
 ***************
 *** 1267,1274 ****
   empty_provider = EmptyProvider()
@@ -266,7 +278,7 @@
   class ZipProvider(EggProvider):
       """Resource support for zips and eggs"""
   
---- 1140,1145 ----
+--- 1137,1142 ----
 ***************
 *** 1412,1438 ****
   
@@ -296,7 +308,7 @@
   class FileMetadata(EmptyProvider):
       """Metadata handler for standalone PKG-INFO files
   
---- 1283,1288 ----
+--- 1280,1285 ----
 ***************
 *** 1461,1479 ****
   
@@ -318,7 +330,7 @@
   class PathMetadata(DefaultProvider):
       """Metadata provider for egg directories
   
---- 1311,1316 ----
+--- 1308,1313 ----
 ***************
 *** 2005,2013 ****
   
@@ -330,7 +342,7 @@
   class Distribution(object):
       """Wrap an actual or potential sys.path entry w/metadata"""
       def __init__(self,
---- 1842,1847 ----
+--- 1839,1844 ----
 ***************
 *** 2087,2095 ****
                   )
@@ -342,7 +354,7 @@
       #@property
       def _dep_map(self):
           try:
---- 1921,1926 ----
+--- 1918,1923 ----
 ***************
 *** 2195,2217 ****
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
@@ -368,7 +380,7 @@
   
       def insert_on(self, path, loc = None):
           """Insert self.location in path before its nearest parent directory"""
---- 2026,2054 ----
+--- 2023,2051 ----
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
           return self.get_entry_map(group).get(name)
   
@@ -408,7 +420,7 @@
   
           nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
           loc = normalize_path(self.location)
---- 2092,2099 ----
+--- 2089,2096 ----
   
   
       def check_version_conflict(self):
@@ -446,7 +458,7 @@
   def parse_requirements(strs):
       """Yield ``Requirement`` objects for each specification in `strs`
   
---- 2152,2157 ----
+--- 2149,2154 ----
 ***************
 *** 2404,2423 ****
   
@@ -469,4 +481,4 @@
   class Requirement:
       def __init__(self, project_name, specs, extras):
           """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
---- 2220,2225 ----
+--- 2217,2222 ----

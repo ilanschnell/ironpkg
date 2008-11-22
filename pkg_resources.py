@@ -345,9 +345,6 @@ class WorkingSet(object):
         return self.by_key.get(dist.key) == dist
 
 
-
-
-
     def find(self, req):
         """Find a distribution matching requirement `req`
 
