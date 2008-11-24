@@ -22,7 +22,9 @@ md5_data = {
     'enstaller-3.0.0-py2.4.egg': '4029cf489302a8431e7ae12a33de8cc5',
     'enstaller-3.0.0-py2.5.egg': 'ce9c9e3a84c3d9658745d749fdb87d27',
     'enstaller-3.0.1-py2.4.egg': '9e688ab0a059e90ea2aba5885ded9838',
-    'enstaller-3.0.1-py2.5.egg': '064b48279d7eb8aa337369ae1dddf8bd',  
+    'enstaller-3.0.1-py2.5.egg': '064b48279d7eb8aa337369ae1dddf8bd',
+    'enstaller-3.0.2-py2.4.egg': '84052f10fd36340257c211e01aa6b308',
+    'enstaller-3.0.2-py2.5.egg': '2801a25cb88007d0ea701599303a74e5',
 }
 
 import sys, os
