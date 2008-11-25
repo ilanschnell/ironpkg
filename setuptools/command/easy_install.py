@@ -8,6 +8,8 @@ packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
 __ http://peak.telecommunity.com/DevCenter/EasyInstall
+
+This is a patched version for Enstaller.
 """
 
 # Patched with easy_install.patch and prefer_released.patch from Enthought
@@ -568,7 +570,7 @@ Please make the appropriate changes for your system and try again.
             try:
                 execute_script(pi_script)
             except Exception, err :
-                self.log("Error: problem running post-install script %s: %s\n" \
+                log.error("Error: problem running post-install script %s: %s\n" \
                           % (pi_script, err) )
 
         #
@@ -607,7 +609,7 @@ Please make the appropriate changes for your system and try again.
             try:
                 execute_script(uinstall_script)
             except Exception, err :
-                self.log("Error: problem running uninstall script %s: %s\n" \
+                log.error("Error: problem running uninstall script %s: %s\n" \
                          % (uninstall_script, err))
 
         #
@@ -741,7 +743,7 @@ Please make the appropriate changes for your system and try again.
                     os.remove(file_or_dir)
 
         except (IOError, OSError), err :
-            self.log("Error: could not remove %s: %s\n" % (file_or_dir, err))
+            log.error("Error: could not remove %s: %s\n" % (file_or_dir, err))
             retcode = 1
 
         return retcode
