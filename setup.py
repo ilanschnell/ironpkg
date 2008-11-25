@@ -7,7 +7,7 @@ d = {}
 execfile(convert_path('setuptools/command/__init__.py'), d)
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "3.0.3"
+VERSION = "3.0.4"
 
 from setuptools import setup, find_packages
 import sys
@@ -16,7 +16,7 @@ scripts = []
 setup(
     name="enstaller",
     version=VERSION,
-    descriptions = "A replacement for setuptools that builds on top of it and adds additional features.",
+    description = "A replacement for setuptools that builds on top of it and adds additional features.",
     author="Enthought, Inc.",
     author_email="info@enthought.com",
     license="BSD",

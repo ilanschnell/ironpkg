@@ -14,17 +14,17 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade enstaller.
 """
 import sys
-DEFAULT_VERSION = "3.0.1"
+DEFAULT_VERSION = "3.0.3"
 #DEFAULT_URL     = "http://pypi.python.org/packages/%s/e/enstaller/" % sys.version[:3]
 DEFAULT_URL     = "http://code.enthought.com/enstaller/eggs/"
 
 md5_data = {
-    'enstaller-3.0.0-py2.4.egg': '4029cf489302a8431e7ae12a33de8cc5',
-    'enstaller-3.0.0-py2.5.egg': 'ce9c9e3a84c3d9658745d749fdb87d27',
     'enstaller-3.0.1-py2.4.egg': '9e688ab0a059e90ea2aba5885ded9838',
     'enstaller-3.0.1-py2.5.egg': '064b48279d7eb8aa337369ae1dddf8bd',
     'enstaller-3.0.2-py2.4.egg': '84052f10fd36340257c211e01aa6b308',
     'enstaller-3.0.2-py2.5.egg': '2801a25cb88007d0ea701599303a74e5',
+    'enstaller-3.0.3-py2.4.egg': '2b69205fb2d1b32e4da3f7a6f8e2af07',
+    'enstaller-3.0.3-py2.5.egg': '1c3be6a688f5992cf36a253f7a0732a4',        
 }
 
 import sys, os
