@@ -1,0 +1,19 @@
+
+
+Enhancements:
+
+ * Add --version option to easy_install
+
+ * Add support for writing (or appending) all output to a specified logfile.
+   This is useful when other programs run easy_install during an install
+   or uninstall process.
+
+
+Bugs:
+
+ * When specifying a package with the wrong format, e.g.
+   > easy_install -rN ply==2.5.0001
+   The user is presented with a long traceback, instead of a
+   useful warning or error message.
+
+
