@@ -8,6 +8,9 @@ Enhancements:
    This is useful when other programs run easy_install during an install
    or uninstall process.
 
+ * ability to use .egg_info files located alongside the .egg file for
+   getting dependency information (not complete)
+
 
 Bugs:
 
@@ -15,5 +18,4 @@ Bugs:
    > easy_install -rN ply==2.5.0001
    The user is presented with a long traceback, instead of a
    useful warning or error message.
-
 
