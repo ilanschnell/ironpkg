@@ -29,42 +29,43 @@
 #include <fcntl.h>
 #include "windows.h"
 
-int fail(char *format, char *data) {
+int fail(char *format, char *data)
+{
     /* Print error message to stderr and return 2 */
     fprintf(stderr, format, data);
     return 2;
 }
 
 
-
-
-
-char *quoted(char *data) {
+char *quoted(char *data)
+{
     int i, ln = strlen(data), nb;
 
     /* We allocate twice as much space as needed to deal with worse-case
-       of having to escape everything. */
+       of having to escape everything.
+    */
     char *result = calloc(ln*2+3, sizeof(char));
     char *presult = result;
 
     *presult++ = '"';
-    for (nb=0, i=0; i < ln; i++)
-      {
-        if (data[i] == '\\')
-          nb += 1;
-        else if (data[i] == '"')
-          {
+    for (nb=0, i=0; i < ln; i++) {
+        if (data[i] == '\\') {
+	    nb += 1;
+        }
+	else if (data[i] == '"') {
             for (; nb > 0; nb--)
-              *presult++ = '\\';
+		*presult++ = '\\';
             *presult++ = '\\';
-          }
-        else
-          nb = 0;
+	}
+        else {
+	    nb = 0;
+	}
         *presult++ = data[i];
       }
 
-    for (; nb > 0; nb--)        /* Deal w trailing slashes */
-      *presult++ = '\\';
+    /* Deal w trailing slashes */
+    for (; nb > 0; nb--)
+	*presult++ = '\\';
 
     *presult++ = '"';
     *presult++ = 0;
@@ -72,15 +73,8 @@ char *quoted(char *data) {
 }
 
 
-
-
-
-
-
-
-
-
-char *loadable_exe(char *exename) {
+char *loadable_exe(char *exename)
+{
     HINSTANCE hPython;  /* DLL handle for python executable */
     char *result;
 
@@ -96,26 +90,35 @@ char *loadable_exe(char *exename) {
 }
 
 
-char *find_exe(char *exename, char *script) {
+char *find_exe(char *exename, char *script)
+{
     char drive[_MAX_DRIVE], dir[_MAX_DIR], fname[_MAX_FNAME], ext[_MAX_EXT];
     char path[_MAX_PATH], c, *result;
 
     /* convert slashes to backslashes for uniform search below */
     result = exename;
-    while (c = *result++) if (c=='/') result[-1] = '\\';
+    while (c = *result++) {
+	if (c=='/')
+	    result[-1] = '\\';
+    }
 
     _splitpath(exename, drive, dir, fname, ext);
     if (drive[0] || dir[0]=='\\') {
         return loadable_exe(exename);   /* absolute path, use directly */
     }
+
     /* Use the script's parent directory, which should be the Python home
        (This should only be used for bdist_wininst-installed scripts, because
-        easy_install-ed scripts use the absolute path to python[w].exe
+       easy_install-ed scripts use the absolute path to python[w].exe
     */
     _splitpath(script, drive, dir, fname, ext);
     result = dir + strlen(dir) -1;
-    if (*result == '\\') result--;
-    while (*result != '\\' && result>=dir) *result-- = 0;
+    if (*result == '\\')
+	result--;
+
+    while (*result != '\\' && result>=dir)
+	*result-- = 0;
+
     _makepath(path, drive, dir, exename, NULL);
     return loadable_exe(path);
 }
@@ -133,7 +136,10 @@ char **parse_argv(char *cmdline, int *argc)
     *argc = 0;
 
     result[0] = output;
-    while (isspace(*cmdline)) cmdline++;   /* skip leading spaces */
+
+    /* skip leading spaces */
+    while (isspace(*cmdline))
+	cmdline++;
 
     do {
         c = *cmdline++;
@@ -141,29 +147,45 @@ char **parse_argv(char *cmdline, int *argc)
             while (nb) {*output++ = '\\'; nb--; }
             *output++ = 0;
             result[++*argc] = output;
-            if (!c) return result;
-            while (isspace(*cmdline)) cmdline++;  /* skip leading spaces */
-            if (!*cmdline) return result;  /* avoid empty arg if trailing ws */
+            if (!c)
+		return result;
+
+	    /* skip leading spaces */
+            while (isspace(*cmdline))
+		cmdline++;
+
+	    /* avoid empty arg if trailing ws */
+            if (!*cmdline)
+		return result;
+
             continue;
         }
-        if (c == '\\')
+
+        if (c == '\\') {
             ++nb;   /* count \'s */
+	}
         else {
             if (c == '"') {
-                if (!(nb & 1)) { iq = !iq; c = 0; }  /* skip " unless odd # of \ */
+		/* skip " unless odd # of \ */
+                if (!(nb & 1)) {
+		    iq = !iq;
+		    c = 0;
+		}
                 nb = nb >> 1;   /* cut \'s in half */
             }
-            while (nb) {*output++ = '\\'; nb--; }
-            if (c) *output++ = c;
+            while (nb) {
+		*output++ = '\\';
+		nb--;
+	    }
+            if (c)
+		*output++ = c;
         }
     } while (1);
 }
 
 
-
-
-int run(int argc, char **argv, int is_gui) {
-
+int run(int argc, char **argv, int is_gui)
+{
     char python[256];   /* python executable's filename*/
     char *pyopt;        /* Python option */
     char script[256];   /* the script's filename */
@@ -183,7 +205,6 @@ int run(int argc, char **argv, int is_gui) {
     strcat(script, (GUI ? "-script.pyw" : "-script.py"));
 
     /* figure out the target python executable */
-
     scriptf = open(script, O_RDONLY);
     if (scriptf == -1) {
         return fail("Cannot open %s\n", script);
@@ -192,7 +213,7 @@ int run(int argc, char **argv, int is_gui) {
     close(scriptf);
 
     ptr = python-1;
-    while(++ptr < end && *ptr && *ptr!='\n' && *ptr!='\r') {;}
+    while(++ptr < end && *ptr && *ptr!='\n' && *ptr!='\r') { ; }
 
     *ptr-- = '\0';
 
@@ -240,7 +261,7 @@ int run(int argc, char **argv, int is_gui) {
 }
 
 
-int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpCmd, int nShow) {
+int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpCmd, int nShow)
+{
     return run(__argc, __argv, GUI);
 }
-
