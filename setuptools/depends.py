@@ -113,14 +113,6 @@ def _iter_code(code):
         yield op,arg
 
 
-
-
-
-
-
-
-
-
 def find_module(module, paths=None):
     """Just like 'imp.find_module()', but with package support"""
 
@@ -138,28 +130,6 @@ def find_module(module, paths=None):
             raise ImportError("Can't find %r in %s" % (parts,module))
 
     return info
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def get_module_constant(module, symbol, default=-1, paths=None):
@@ -195,12 +165,6 @@ def get_module_constant(module, symbol, default=-1, paths=None):
             f.close()
 
     return extract_constant(code,symbol,default)
-
-
-
-
-
-
 
 
 def extract_constant(code,symbol,default=-1):
@@ -242,5 +206,3 @@ if sys.platform.startswith('java') or sys.platform == 'cli':
     del extract_constant, get_module_constant
     __all__.remove('extract_constant')
     __all__.remove('get_module_constant')
-
-

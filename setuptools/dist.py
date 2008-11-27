@@ -48,6 +48,7 @@ def assert_string_list(dist, attr, value):
             "%r must be a list of strings (got %r)" % (attr,value)
         )
 
+
 def check_nsp(dist, attr, value):
     """Verify that namespace packages are valid"""
     assert_string_list(dist,attr,value)
@@ -65,6 +66,7 @@ def check_nsp(dist, attr, value):
                     " please correct this in setup.py", nsp, parent
                 )
 
+
 def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
@@ -78,14 +80,14 @@ def check_extras(dist, attr, value):
         )
 
 
-
-
 def assert_bool(dist, attr, value):
     """Verify that value is True, False, 0, or 1"""
     if bool(value) != value:
         raise DistutilsSetupError(
             "%r must be a boolean value (got %r)" % (attr,value)
         )
+
+
 def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
@@ -95,6 +97,8 @@ def check_requirements(dist, attr, value):
             "%r must be a string or list of strings "
             "containing valid project/version requirement specifiers" % (attr,)
         )
+
+
 def check_entry_points(dist, attr, value):
     """Verify that entry_points map is parseable"""
     try:
@@ -102,9 +106,11 @@ def check_entry_points(dist, attr, value):
     except ValueError, e:
         raise DistutilsSetupError(e)
 
+
 def check_test_suite(dist, attr, value):
     if not isinstance(value,basestring):
         raise DistutilsSetupError("test_suite must be a string")
+
 
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
@@ -120,6 +126,7 @@ def check_package_data(dist, attr, value):
         attr+" must be a dictionary mapping package names to lists of "
         "wildcard patterns"
     )
+
 
 class Distribution(_Distribution):
     """Distribution with support for features, tests, and package data
@@ -310,22 +317,6 @@ class Distribution(_Distribution):
         self.negative_opt = self.feature_negopt = no
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def _finalize_features(self):
         """Add/remove features and resolve dependencies between them"""
 
@@ -359,12 +350,10 @@ class Distribution(_Distribution):
     def print_commands(self):
         for ep in pkg_resources.iter_entry_points('distutils.commands'):
             if ep.name not in self.cmdclass:
-                cmdclass = ep.load(False) # don't require extras, we're not running
+                # don't require extras, we're not running
+                cmdclass = ep.load(False)
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.print_commands(self)
-
-
-
 
 
     def _set_feature(self,name,status):
@@ -441,14 +430,6 @@ class Distribution(_Distribution):
                 return True
 
 
-
-
-
-
-
-
-
-
     def _exclude_misc(self,name,value):
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
         if not isinstance(value,sequence):
@@ -521,16 +502,6 @@ class Distribution(_Distribution):
         map(self.exclude_package, packages)
 
 
-
-
-
-
-
-
-
-
-
-
     def _parse_command_opts(self, parser, args):
         # Remove --with-X/--without-X options when processing command args
         self.global_options = self.__class__.global_options
@@ -556,20 +527,6 @@ class Distribution(_Distribution):
                 return []
 
         return nargs
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     def get_cmdline_options(self):
@@ -636,24 +593,6 @@ for module in distutils.dist, distutils.core, distutils.cmd:
     module.Distribution = Distribution
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Feature:
     """A subset of the distribution that can be excluded if unneeded/wanted
 
@@ -705,8 +644,7 @@ class Feature:
     at are 'description' and 'optional'.
     """
     def __init__(self, description, standard=False, available=True,
-        optional=True, require_features=(), remove=(), **extras
-    ):
+                 optional=True, require_features=(), remove=(), **extras):
 
         self.description = description
         self.standard = standard
@@ -758,7 +696,6 @@ class Feature:
             dist.include_feature(f)
 
 
-
     def exclude_from(self,dist):
 
         """Ensure feature is excluded from distribution
@@ -774,7 +711,6 @@ class Feature:
         if self.remove:
             for item in self.remove:
                 dist.exclude_package(item)
-
 
 
     def validate(self,dist):
@@ -796,25 +732,3 @@ class Feature:
                     " doesn't contain any packages or modules under %s"
                     % (self.description, item, item)
                 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,6 +1,5 @@
 """Utilities for extracting common archive formats"""
 
-
 __all__ = [
     "unpack_archive", "unpack_zipfile", "unpack_tarfile", "default_filter",
     "UnrecognizedFormat", "extraction_drivers", "unpack_directory",
@@ -16,27 +15,6 @@ class UnrecognizedFormat(DistutilsError):
 def default_filter(src,dst):
     """The default progress/filter callback; returns True for all files"""   
     return dst
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def unpack_archive(filename, extract_dir, progress_filter=default_filter,
@@ -75,11 +53,6 @@ def unpack_archive(filename, extract_dir, progress_filter=default_filter,
         )
 
 
-
-
-
-
-
 def unpack_directory(filename, extract_dir, progress_filter=default_filter):
     """"Unpack" a directory, using the same interface as for archives
 
@@ -103,22 +76,6 @@ def unpack_directory(filename, extract_dir, progress_filter=default_filter):
             f = os.path.join(base,f)
             shutil.copyfile(f, target)
             shutil.copystat(f, target)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
@@ -184,7 +141,7 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
                 name = member.name
                 # don't extract absolute paths or ones with .. in them
                 if not name.startswith('/') and '..' not in name:
-                    dst = os.path.join(extract_dir, *name.split('/'))                
+                    dst = os.path.join(extract_dir, *name.split('/'))
                     dst = progress_filter(name, dst)
                     if dst:
                         if dst.endswith(os.sep):
@@ -195,11 +152,4 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
         tarobj.close()
 
 
-
-
 extraction_drivers = unpack_directory, unpack_zipfile, unpack_tarfile
-
-
-
-
-
