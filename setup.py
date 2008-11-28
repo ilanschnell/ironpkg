@@ -92,28 +92,3 @@ setup(
     Topic :: Utilities""".splitlines() if f.strip()],
     scripts = scripts,
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

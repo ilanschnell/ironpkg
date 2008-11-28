@@ -1,0 +1,20 @@
+
+The original setuptools was originally written by Phillip J. Eby.
+
+The following people have written patches for setuptools, which
+were rejected by Phil Eby, but are now contained (along with other
+changes) in Enstaller's setuptools replacement:
+  - Chris Galvan
+  - Chris Casey
+  - Dave Martin
+
+Corran Webster is the original author of Enstaller itself (that is
+without setuptools).
+
+Travis Oliphant has merged setuptools into Enstaller, and added
+functionality to setuptools, as well as fixes some bugs.
+
+Enstaller is maintained by Ilan Schnell.
+
+Many people at Enthought have provided feedback, and given suggestions,
+in particular Dave Peterson.
