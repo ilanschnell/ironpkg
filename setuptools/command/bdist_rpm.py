@@ -27,18 +27,6 @@ class bdist_rpm(_bdist_rpm):
         self.run_command('egg_info')    # ensure distro name is up-to-date
         _bdist_rpm.run(self)
 
-
-
-
-
-
-
-
-
-
-
-
-
     def _make_spec_file(self):
         version = self.distribution.get_version()
         rpmversion = version.replace('-','_')
@@ -60,23 +48,3 @@ class bdist_rpm(_bdist_rpm):
         ]
         spec.insert(spec.index(line24)+1, "%define unmangled_version "+version)
         return spec
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

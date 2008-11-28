@@ -27,9 +27,9 @@ class install_lib(_install_lib):
         exclude = {}
         nsp = self.distribution.namespace_packages
 
-        if (nsp and self.get_finalized_command('install')
-               .single_version_externally_managed
-        ):
+        if (nsp and 
+            self.get_finalized_command(
+                'install').single_version_externally_managed):
             for pkg in nsp:
                 parts = pkg.split('.')
                 while parts:
@@ -39,10 +39,9 @@ class install_lib(_install_lib):
                     parts.pop()
         return exclude
 
-    def copy_tree(
-        self, infile, outfile,
-        preserve_mode=1, preserve_times=1, preserve_symlinks=0, level=1
-    ):
+    def copy_tree(self, infile, outfile,
+                  preserve_mode=1, preserve_times=1,
+                  preserve_symlinks=0, level=1):
         assert preserve_mode and preserve_times and not preserve_symlinks
         exclude = self.get_exclusions()
 
@@ -74,9 +73,3 @@ class install_lib(_install_lib):
         if exclude:
             return [f for f in outputs if f not in exclude]
         return outputs
-
-
-
-
-
-

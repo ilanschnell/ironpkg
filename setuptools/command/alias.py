@@ -5,6 +5,7 @@ from distutils import log
 from distutils.errors import *
 from setuptools.command.setopt import edit_config, option_base, config_file
 
+
 def shquote(arg):
     """Quote an argument for later parsing by shlex.split()"""
     for c in '"', "'", "\\", "#":
@@ -77,6 +78,3 @@ def format_alias(name, aliases):
     else:
         source = '--filename=%r' % source
     return source+name+' '+command
-            
-
-

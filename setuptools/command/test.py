@@ -79,7 +79,6 @@ class test(Command):
             self.test_loader = "setuptools.command.test:ScanningLoader"
 
 
-
     def with_project_on_sys_path(self, func):
         # Ensure metadata is up-to-date
         self.run_command('egg_info')
@@ -108,7 +107,8 @@ class test(Command):
 
     def run(self):
         if self.distribution.install_requires:
-            self.distribution.fetch_build_eggs(self.distribution.install_requires)
+            self.distribution.fetch_build_eggs(
+                self.distribution.install_requires)
         if self.distribution.tests_require:
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
@@ -129,36 +129,3 @@ class test(Command):
             None, None, [unittest.__file__]+self.test_args,
             testLoader = loader_class()
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

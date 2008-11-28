@@ -9,9 +9,10 @@ entities = [
 ]
 
 def unescape(data):
-    for old,new in entities:
+    for old, new in entities:
         data = data.replace(old,new)
     return data
+
 
 def re_finder(pattern, postproc=None):
     def find(dirname, filename):
@@ -25,18 +26,11 @@ def re_finder(pattern, postproc=None):
             yield joinpath(dirname,path)
     return find
 
+
 def joinpath(prefix,suffix):
     if not prefix:
         return suffix
     return os.path.join(prefix,suffix)
-
-
-
-
-
-
-
-
 
 
 def walk_revctrl(dirname=''):
@@ -44,6 +38,7 @@ def walk_revctrl(dirname=''):
     for ep in pkg_resources.iter_entry_points('setuptools.file_finders'):
         for item in ep.load()(dirname):
             yield item
+
 
 def _default_revctrl(dirname=''):
     for path, finder in finders:
@@ -55,6 +50,7 @@ def _default_revctrl(dirname=''):
                 elif os.path.isdir(path):
                     for item in _default_revctrl(path):
                         yield item
+
 
 def externals_finder(dirname, filename):
     """Find any 'svn:externals' directories"""
@@ -105,21 +101,6 @@ finders = [
     (convert_path('.svn/dir-props'), externals_finder),
     (convert_path('.svn/dir-prop-base'), externals_finder),  # svn 1.4
 ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class sdist(_sdist):
     """Smart sdist that finds anything supported by revision control"""
@@ -185,21 +166,3 @@ class sdist(_sdist):
             self.copy_file('setup.cfg', dest)
 
         self.get_finalized_command('egg_info').save_version_info(dest)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#

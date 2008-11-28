@@ -36,9 +36,6 @@ class install_scripts(_install_scripts):
             self.write_script(*args)
 
 
-
-
-
     def write_script(self, script_name, contents, mode="t", *ignored):
         """Write an executable file to the scripts directory"""
         log.info("Installing %s script to %s", script_name, self.install_dir)
@@ -51,32 +48,3 @@ class install_scripts(_install_scripts):
             f.write(contents)
             f.close()
             chmod(target,0755)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -33,12 +33,6 @@ class egg_info(Command):
     negative_opt = {'no-svn-revision': 'tag-svn-revision',
                     'no-date': 'tag-date'}
 
-
-
-
-
-
-
     def initialize_options(self):
         self.egg_name = None
         self.egg_version = None
@@ -58,27 +52,6 @@ class egg_info(Command):
                 {'tag_svn_revision':0, 'tag_date': 0, 'tag_build': self.tags()}
             }
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def finalize_options (self):
         self.egg_name = safe_name(self.distribution.get_name())
@@ -188,21 +161,6 @@ class egg_info(Command):
         return version
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def get_svn_revision(self):
         revision = 0
         urlre = re.compile('url="([^"]+)"')
@@ -221,10 +179,12 @@ class egg_info(Command):
                 data = map(str.splitlines,data.split('\n\x0c\n'))
                 del data[0][0]  # get rid of the '8' or '9'
                 dirurl = data[0][3]
-                localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
+                localrev = max([int(d[9]) for d in data 
+                                if len(d)>9 and d[9]]+[0])
             elif data.startswith('<?xml'):
                 dirurl = urlre.search(data).group(1)    # get repository URL
-                localrev = max([int(m.group(1)) for m in revre.finditer(data)]+[0])
+                localrev = max([int(m.group(1))
+                                for m in revre.finditer(data)]+[0])
             else:
                 log.warn("unrecognized .svn/entries format; skipping %s", base)
                 dirs[:] = []
@@ -237,11 +197,6 @@ class egg_info(Command):
             revision = max(revision, localrev)
 
         return str(revision or get_pkg_info_revision())
-
-
-
-
-
 
 
     def find_sources(self):
@@ -267,6 +222,7 @@ class egg_info(Command):
             self.broken_egg_info = self.egg_info
             self.egg_info = bei     # make it work for now
 
+
 class FileList(FileList):
     """File list that accepts only existing, platform-independent paths"""
 
@@ -276,13 +232,6 @@ class FileList(FileList):
         path = convert_path(item)
         if os.path.exists(path):
             self.files.append(path)
-
-
-
-
-
-
-
 
 
 class manifest_maker(sdist):
@@ -356,17 +305,6 @@ def write_file (filename, contents):
     f.close()
 
 
-
-
-
-
-
-
-
-
-
-
-
 def write_pkg_info(cmd, basename, filename):
     log.info("writing %s", filename)
     if not cmd.dry_run:
@@ -407,7 +345,6 @@ def write_toplevel_names(cmd, basename, filename):
     cmd.write_file("top-level names", filename, '\n'.join(pkgs)+'\n')
 
 
-
 def overwrite_arg(cmd, basename, filename):
     write_arg(cmd, basename, filename, True)
 
@@ -445,7 +382,3 @@ def get_pkg_info_revision():
             if match:
                 return int(match.group(1))
     return 0
-
-
-
-#

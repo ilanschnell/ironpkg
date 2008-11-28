@@ -55,28 +55,3 @@ class rotate(Command):
                 log.info("Deleting %s", f)
                 if not self.dry_run:
                     os.unlink(f)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

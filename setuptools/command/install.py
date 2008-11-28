@@ -76,10 +76,6 @@ class install(_install):
             self.do_egg_install()
 
 
-
-
-
-
     def do_egg_install(self):
 
         easy_install = self.distribution.get_command_class('easy_install')
@@ -103,21 +99,3 @@ class install(_install):
         cmd.args = args
         cmd.run()
         setuptools.bootstrap_install_from = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#

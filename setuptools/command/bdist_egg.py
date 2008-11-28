@@ -14,12 +14,14 @@ from pkg_resources import EntryPoint
 from types import CodeType
 from setuptools.extension import Library
 
+
 def strip_module(filename):
     if '.' in filename:
         filename = os.path.splitext(filename)[0]
     if filename.endswith('module'):
         filename = filename[:-6]
     return filename
+
 
 def write_stub(resource, pyfile):
     f = open(pyfile,'w')
@@ -35,6 +37,7 @@ def write_stub(resource, pyfile):
         "" # terminal \n
     ]))
     f.close()
+
 
 # stub __init__.py for packages distributed without one
 NS_PKG_STUB = '__import__("pkg_resources").declare_namespace(__name__)'
@@ -63,21 +66,6 @@ class bdist_egg(Command):
     boolean_options = [
         'keep-temp', 'skip-build', 'exclude-source-files'
     ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     def initialize_options (self):
@@ -113,12 +101,6 @@ class bdist_egg(Command):
             ).egg_name()
 
             self.egg_output = os.path.join(self.dist_dir, basename+'.egg')
-
-
-
-
-
-
 
 
     def do_install_data(self):
@@ -242,8 +224,6 @@ class bdist_egg(Command):
             ('bdist_egg',get_python_version(),self.egg_output))
 
 
-
-
     def zap_pyfiles(self):
         log.info("Removing .py files from temporary directory")
         for base,dirs,files in walk_egg(self.bdist_dir):
@@ -253,12 +233,14 @@ class bdist_egg(Command):
                     log.debug("Deleting %s", path)
                     os.unlink(path)
 
+
     def zip_safe(self):
         safe = getattr(self.distribution,'zip_safe',None)
         if safe is not None:
             return safe
         log.warn("zip_safe flag not set; analyzing archive contents...")
         return analyze_egg(self.bdist_dir, self.stubs)
+
 
     def make_init_files(self):
         """Create missing package __init__ files"""
@@ -284,6 +266,7 @@ class bdist_egg(Command):
                 dirs[:] = []
 
         return init_files
+
 
     def gen_header(self):
         epm = EntryPoint.parse_map(self.distribution.entry_points or '')
@@ -314,9 +297,7 @@ class bdist_egg(Command):
             '  echo $0 is not the correct name for this egg file.\n'
             '  echo Please rename it back to %(basename)s and try again.\n'
             '  exec false\n'
-            'fi\n'
-
-        ) % locals()
+            'fi\n') % locals()
 
         if not self.dry_run:
             mkpath(os.path.dirname(self.egg_output), dry_run=self.dry_run)
@@ -333,6 +314,7 @@ class bdist_egg(Command):
                 target = os.path.join(target_dir, path[len(prefix):])
                 ensure_directory(target)
                 self.copy_file(path, target)
+
 
     def get_ext_outputs(self):
         """Get a list of relative paths to C extensions in the output distro"""
@@ -364,18 +346,16 @@ class bdist_egg(Command):
 
 NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
 
-
-
-
 def walk_egg(egg_dir):
     """Walk an unpacked egg's contents, skipping the metadata directory"""
     walker = os.walk(egg_dir)
     base,dirs,files = walker.next()
     if 'EGG-INFO' in dirs:
         dirs.remove('EGG-INFO')
-    yield base,dirs,files
+    yield base, dirs, files
     for bdf in walker:
         yield bdf
+
 
 def analyze_egg(egg_dir, stubs):
     # check for existing flag in EGG-INFO
@@ -393,6 +373,7 @@ def analyze_egg(egg_dir, stubs):
                 safe = scan_module(egg_dir, base, name, stubs) and safe
     return safe
 
+
 def write_safety_flag(egg_dir, safe):
     # Write or remove zip safety flag file(s)
     for flag,fn in safety_flags.items():
@@ -402,6 +383,7 @@ def write_safety_flag(egg_dir, safe):
                 os.unlink(fn)
         elif safe is not None and bool(safe)==flag:
             f=open(fn,'wb'); f.write('\n'); f.close()
+
 
 safety_flags = {
     True: 'zip-safe',
@@ -414,6 +396,7 @@ def scan_module(egg_dir, base, name, stubs):
     filename = os.path.join(base,name)
     if filename[:-1] in stubs:
         return True     # Extension module
+
     pkg = base[len(egg_dir)+1:].replace(os.sep,'.')
     module = pkg+(pkg and '.' or '')+os.path.splitext(name)[0]
     f = open(filename,'rb'); f.read(8)   # skip magic & date
@@ -439,6 +422,7 @@ def scan_module(egg_dir, base, name, stubs):
             safe = False
     return safe
 
+
 def iter_symbols(code):
     """Yield names and strings used by `code` and its nested code objects"""
     for name in code.co_names: yield name
@@ -449,6 +433,7 @@ def iter_symbols(code):
             for name in iter_symbols(const):
                 yield name
 
+
 def can_scan():
     if not sys.platform.startswith('java') and sys.platform != 'cli':
         # CPython, PyPy, etc.
@@ -458,38 +443,6 @@ def can_scan():
              " setting (either True or False) in the package's setup.py")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Attribute names of options for commands that might need to be convinced to
 # install to the egg build directory
 
@@ -497,9 +450,8 @@ INSTALL_DIRECTORY_ATTRS = [
     'install_lib', 'install_dir', 'install_data', 'install_base'
 ]
 
-def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=None,
-    mode='w'
-):
+def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0,
+                 compress=None, mode='w'):
     """Create a zip file from all the files under 'base_dir'.  The output
     zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
     Python module (if available) or the InfoZIP "zip" utility (if installed
@@ -507,6 +459,7 @@ def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=None,
     raises DistutilsExecError.  Returns the name of the output zip file.
     """
     import zipfile
+
     mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
     log.info("creating '%s' and adding '%s' to it", zip_filename, base_dir)
 
@@ -530,4 +483,3 @@ def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=None,
     else:
         os.path.walk(base_dir, visit, None)
     return zip_filename
-#

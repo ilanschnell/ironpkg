@@ -3,6 +3,7 @@ from distutils.command.build_py import build_py as _build_py
 from distutils.util import convert_path
 from glob import glob
 
+
 class build_py(_build_py):
     """Enhanced 'build_py' command that includes data files with packages
 
@@ -17,6 +18,7 @@ class build_py(_build_py):
         self.package_data = self.distribution.package_data
         self.exclude_package_data = self.distribution.exclude_package_data or {}
         if 'data_files' in self.__dict__: del self.__dict__['data_files']
+
 
     def run(self):
         """Build modules, packages, and copy data files to build directory"""
@@ -34,10 +36,12 @@ class build_py(_build_py):
         # output files are.
         self.byte_compile(_build_py.get_outputs(self, include_bytecode=0))
 
+
     def __getattr__(self,attr):
         if attr=='data_files':  # lazily compute data files
             self.data_files = files = self._get_data_files(); return files
         return _build_py.__getattr__(self,attr)
+
 
     def _get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
@@ -60,6 +64,7 @@ class build_py(_build_py):
             data.append( (package, src_dir, build_dir, filenames) )
         return data
 
+
     def find_data_files(self, package, src_dir):
         """Return filenames for package's data files in 'src_dir'"""
         globs = (self.package_data.get('', [])
@@ -69,6 +74,7 @@ class build_py(_build_py):
             # Each pattern has to be converted to a platform-specific path
             files.extend(glob(os.path.join(src_dir, convert_path(pattern))))
         return self.exclude_data_files(package, src_dir, files)
+
 
     def build_package_data(self):
         """Copy data files into build directory"""
@@ -104,9 +110,13 @@ class build_py(_build_py):
                     continue    # it's a module, not data
                 mf.setdefault(src_dirs[d],[]).append(path)
 
-    def get_data_files(self): pass  # kludge 2.4 for lazy computation
 
-    if sys.version<"2.4":    # Python 2.4 already has this code
+    def get_data_files(self):
+        # kludge 2.4 for lazy computation
+        pass
+
+
+    if sys.version < "2.4":    # Python 2.4 already has this code
         def get_outputs(self, include_bytecode=1):
             """Return complete list of files copied to the build directory
 
@@ -120,6 +130,7 @@ class build_py(_build_py):
                 for package, src_dir, build_dir,filenames in self.data_files
                 for filename in filenames
                 ]
+
 
     def check_package(self, package, package_dir):
         """Check namespace packages' __init__ for declare_namespace"""
@@ -152,14 +163,10 @@ class build_py(_build_py):
         f.close()
         return init_py
 
+
     def initialize_options(self):
         self.packages_checked={}
         _build_py.initialize_options(self)
-
-
-
-
-
 
 
     def exclude_data_files(self, package, src_dir, files):
@@ -192,14 +199,4 @@ def assert_relative(path):
 
 setup() arguments must *always* be /-separated paths relative to the
 setup.py directory, *never* absolute paths.
-""" % path
-    )
-
-
-
-
-
-
-
-
-
+""" % path)

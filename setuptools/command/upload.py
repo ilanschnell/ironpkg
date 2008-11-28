@@ -69,7 +69,8 @@ class upload(Command):
 
     def run(self):
         if not self.distribution.dist_files:
-            raise DistutilsOptionError("No dist file created in earlier command")
+            raise DistutilsOptionError(
+                "No dist file created in earlier command")
         for command, pyversion, filename in self.distribution.dist_files:
             self.upload_file(command, pyversion, filename)
 
@@ -111,7 +112,8 @@ class upload(Command):
                                      open(filename+".asc").read())
 
         # set up the authentication
-        auth = "Basic " + base64.encodestring(self.username + ":" + self.password).strip()
+        auth = "Basic " + base64.encodestring(self.username + ":" +
+                                              self.password).strip()
 
         # Build up the MIME payload for the POST data
         boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
@@ -140,7 +142,8 @@ class upload(Command):
         body.write("\n")
         body = body.getvalue()
 
-        self.announce("Submitting %s to %s" % (filename, self.repository), log.INFO)
+        self.announce("Submitting %s to %s" % (filename, self.repository),
+                      log.INFO)
 
         # build the Request
         # We can't use urllib2 since we need to send the Basic

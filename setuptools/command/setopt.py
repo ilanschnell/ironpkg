@@ -26,19 +26,6 @@ def config_file(kind="local"):
     )
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 def edit_config(filename, settings, dry_run=False):
     """Edit a configuration file to include `settings`
 
@@ -62,23 +49,21 @@ def edit_config(filename, settings, dry_run=False):
             for option,value in options.items():
                 if value is None:
                     log.debug("Deleting %s.%s from %s",
-                        section, option, filename
-                    )
+                              section, option, filename)
                     opts.remove_option(section,option)
                     if not opts.options(section):
                         log.info("Deleting empty [%s] section from %s",
-                                  section, filename)
+                                 section, filename)
                         opts.remove_section(section)
                 else:
-                    log.debug(
-                        "Setting %s.%s to %r in %s",
-                        section, option, value, filename
-                    )
+                    log.debug("Setting %s.%s to %r in %s",
+                              section, option, value, filename)
                     opts.set(section,option,value)
 
     log.info("Writing %s", filename)
     if not dry_run:
         f = open(filename,'w'); opts.write(f); f.close()
+
 
 class option_base(Command):
     """Abstract base class for commands that mess with config files"""
@@ -119,8 +104,6 @@ class option_base(Command):
         self.filename, = filenames    
 
 
-
-
 class setopt(option_base):
     """Save command-line options to a file"""
 
@@ -156,9 +139,3 @@ class setopt(option_base):
             },
             self.dry_run
         )
-
-
-
-
-
-

@@ -29,13 +29,11 @@ elif os.name != 'nt':
     except ImportError:
         pass
 
+
 def if_dl(s):
     if have_rtld:
         return s
     return ''
-
-
-
 
 
 
@@ -70,14 +68,15 @@ class build_ext(_build_ext):
                 self.write_stub(package_dir or os.curdir, ext, True)
 
 
-    if _build_ext is not _du_build_ext and not hasattr(_build_ext,'pyrex_sources'):
+    if _build_ext is not _du_build_ext and \
+       not hasattr(_build_ext,'pyrex_sources'):
+
         # Workaround for problems using some Pyrex versions w/SWIG and/or 2.4
         def swig_sources(self, sources, *otherargs):
             # first do any Pyrex processing
             sources = _build_ext.swig_sources(self, sources) or sources
             # Then do any actual SWIG stuff on the remainder
             return _du_build_ext.swig_sources(self, sources, *otherargs)
-
 
 
     def get_ext_filename(self, fullname):
@@ -92,22 +91,26 @@ class build_ext(_build_ext):
         else:
             return filename
 
+
     def initialize_options(self):
         _build_ext.initialize_options(self)
         self.shlib_compiler = None
         self.shlibs = []
         self.ext_map = {}
 
+
     def finalize_options(self):
         _build_ext.finalize_options(self)
         self.extensions = self.extensions or []
         self.check_extensions_list(self.extensions)
         self.shlibs = [ext for ext in self.extensions
-                        if isinstance(ext,Library)]
+                       if isinstance(ext,Library)]
         if self.shlibs:
             self.setup_shlib_compiler()
+
         for ext in self.extensions:
             ext._full_name = self.get_ext_fullname(ext.name)
+
         for ext in self.extensions:
             fullname = ext._full_name
             self.ext_map[fullname] = ext
@@ -116,10 +119,13 @@ class build_ext(_build_ext):
             ext._needs_stub = ltd and use_stubs and not isinstance(ext,Library)
             filename = ext._file_name = self.get_ext_filename(fullname)
             libdir = os.path.dirname(os.path.join(self.build_lib,filename))
+
             if ltd and libdir not in ext.library_dirs:
                 ext.library_dirs.append(libdir)
+
             if ltd and use_stubs and os.curdir not in ext.runtime_library_dirs:
                 ext.runtime_library_dirs.append(os.curdir)
+
 
     def setup_shlib_compiler(self):
         compiler = self.shlib_compiler = new_compiler(
@@ -129,7 +135,8 @@ class build_ext(_build_ext):
             tmp = _config_vars.copy()
             try:
                 # XXX Help!  I don't have any idea whether these are right...
-                _config_vars['LDSHARED'] = "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
+                _config_vars['LDSHARED'] = \
+                    "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
                 _config_vars['CCSHARED'] = " -dynamiclib"
                 _config_vars['SO'] = ".dylib"
                 customize_compiler(compiler)
@@ -141,19 +148,25 @@ class build_ext(_build_ext):
 
         if self.include_dirs is not None:
             compiler.set_include_dirs(self.include_dirs)
+
         if self.define is not None:
             # 'define' option is a list of (name,value) tuples
             for (name,value) in self.define:
                 compiler.define_macro(name, value)
+
         if self.undef is not None:
             for macro in self.undef:
                 compiler.undefine_macro(macro)
+
         if self.libraries is not None:
             compiler.set_libraries(self.libraries)
+
         if self.library_dirs is not None:
             compiler.set_library_dirs(self.library_dirs)
+
         if self.rpath is not None:
             compiler.set_runtime_library_dirs(self.rpath)
+
         if self.link_objects is not None:
             compiler.set_link_objects(self.link_objects)
 
@@ -161,11 +174,11 @@ class build_ext(_build_ext):
         compiler.link_shared_object = link_shared_object.__get__(compiler)
 
 
-
     def get_export_symbols(self, ext):
         if isinstance(ext,Library):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self,ext)
+
 
     def build_extension(self, ext):
         _compiler = self.compiler
@@ -180,6 +193,7 @@ class build_ext(_build_ext):
         finally:
             self.compiler = _compiler
 
+
     def links_to_dynamic(self, ext):
         """Return true if 'ext' links to a dynamic lib in the same package"""
         # XXX this should check to ensure the lib is actually being built
@@ -190,6 +204,7 @@ class build_ext(_build_ext):
         for libname in ext.libraries:
             if pkg+libname in libnames: return True
         return False
+
 
     def get_outputs(self):
         outputs = _build_ext.get_outputs(self)
@@ -202,6 +217,7 @@ class build_ext(_build_ext):
                 if optimize:
                     outputs.append(base+'.pyo')
         return outputs
+
 
     def write_stub(self, output_dir, ext, compile=False):
         log.info("writing stub loader for %s to %s",ext._full_name, output_dir)
@@ -248,10 +264,11 @@ if use_stubs or os.name=='nt':
     # Build shared libraries
     #
     def link_shared_object(self, objects, output_libname, output_dir=None,
-        libraries=None, library_dirs=None, runtime_library_dirs=None,
-        export_symbols=None, debug=0, extra_preargs=None,
-        extra_postargs=None, build_temp=None, target_lang=None
-    ):  self.link(
+                           libraries=None, library_dirs=None,
+                           runtime_library_dirs=None, export_symbols=None,
+                           debug=0, extra_preargs=None, extra_postargs=None,
+                           build_temp=None, target_lang=None):
+        self.link(
             self.SHARED_LIBRARY, objects, output_libname,
             output_dir, libraries, library_dirs, runtime_library_dirs,
             export_symbols, debug, extra_preargs, extra_postargs,
@@ -262,10 +279,10 @@ else:
     libtype = 'static'
 
     def link_shared_object(self, objects, output_libname, output_dir=None,
-        libraries=None, library_dirs=None, runtime_library_dirs=None,
-        export_symbols=None, debug=0, extra_preargs=None,
-        extra_postargs=None, build_temp=None, target_lang=None
-    ):
+                           libraries=None, library_dirs=None,
+                           runtime_library_dirs=None, export_symbols=None,
+                           debug=0, extra_preargs=None, extra_postargs=None,
+                           build_temp=None, target_lang=None):
         # XXX we need to either disallow these attrs on Library instances,
         #     or warn/abort here if set, or something...
         #libraries=None, library_dirs=None, runtime_library_dirs=None,
@@ -273,15 +290,13 @@ else:
         #build_temp=None
 
         assert output_dir is None   # distutils build_ext doesn't pass this
-        output_dir,filename = os.path.split(output_libname)
+        output_dir, filename = os.path.split(output_libname)
         basename, ext = os.path.splitext(filename)
+
         if self.library_filename("x").startswith('lib'):
             # strip 'lib' prefix; this is kludgy if some platform uses
             # a different prefix
             basename = basename[3:]
 
         self.create_static_lib(
-            objects, basename, output_dir, debug, target_lang
-        )
-
-
+            objects, basename, output_dir, debug, target_lang)

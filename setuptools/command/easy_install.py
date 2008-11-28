@@ -369,8 +369,6 @@ Please make the appropriate changes for your system and try again.
         raise DistutilsError(msg)
 
 
-
-
     def check_pth_processing(self):
         """Empirically verify whether .pth files are supported in inst. dir"""
         instdir = self.install_dir
@@ -426,8 +424,9 @@ Please make the appropriate changes for your system and try again.
         if os.path.isdir(path):
             for base, dirs, files in os.walk(path):
                 for filename in files:
-                    self.outputs.append(os.path.join(base,filename))
-                    self.outputs_this_package.append(os.path.join(base,filename))
+                    self.outputs.append(os.path.join(base, filename))
+                    self.outputs_this_package.append(os.path.join(base,
+                                                                  filename))
         else:
             self.outputs.append(path)
             self.outputs_this_package.append(path)
@@ -455,10 +454,10 @@ Please make the appropriate changes for your system and try again.
         uninstalled and a dependency is also being uninstalled, this will help
         check to see if any other packages will be broken by the dependency. It
         returns a dictionary in the format
-        {dependency: {project1: dependency_version}, {project2: dependency_version}}
-        
+        {dependency: {project1: dependency_version},
+                     {project2: dependency_version}}
         """
-        
+
         # Get the set of installed packages
         projects = WorkingSet()
         
@@ -501,12 +500,15 @@ Please make the appropriate changes for your system and try again.
                     version_list.append(''.join(version))
                 version_string = ','.join(version_list)
                 if low_dep_dict.has_key(item.project_name):
-                    low_dep_dict[item.project_name][key.project_name] = version_string
+                    low_dep_dict[item.project_name][key.project_name] = \
+                        version_string
                 else:
-                    low_dep_dict[item.project_name] = {key.project_name: version_string}
-        
+                    low_dep_dict[item.project_name] = \
+                        {key.project_name: version_string}
+
         # low_dep_dict is in the form
-        # {dependency: {project1: dependency_version}, {project2: dependency_version}}
+        # {dependency: {project1: dependency_version},
+        #              {project2: dependency_version}}
         return low_dep_dict
 
     def check_deps(self, current_dep, user_spec, all):
@@ -514,16 +516,17 @@ Please make the appropriate changes for your system and try again.
         for removal, and the set of all packages that something depends upon.
         Returns True or False based on user confirmation
         """
-        
+
         if current_dep not in all.keys():
             print "Nothing else depends on %s." % current_dep
         
         # Check to see if a dependency is is only required by the package
         # specified for removal.
-        elif len(all[current_dep]) == 1 and user_spec in all[current_dep].keys():
+        elif len(all[current_dep]) == 1 and \
+             user_spec in all[current_dep].keys():
             print "Only %s seems to require %s." % (user_spec, current_dep)
+
         else:
-            
             # Fetch dictionary of projects that require current_dep
             depends_on_dep = all[current_dep]
             
@@ -570,14 +573,15 @@ Please make the appropriate changes for your system and try again.
             try:
                 execute_script(pi_script)
             except Exception, err :
-                log.error("Error: problem running post-install script %s: %s\n" \
-                          % (pi_script, err) )
+                log.error("Error: problem running post-install script "
+                          "%s: %s\n" % (pi_script, err) )
 
         #
         # cleanup if a temp extraction was done
         #
-        if(tmp_unpack_dir != ""):
+        if tmp_unpack_dir != "":
             self._rm_rf(tmp_unpack_dir)
+
 
     def _run_pre_uninstall(self, installed_egg_path):
         """
@@ -624,7 +628,8 @@ Please make the appropriate changes for your system and try again.
         including scripts generated.  Also does a back-check of dependencies
         on the package(s) being uninstalled and prompts the user for
         uninstalling unnecessary dependencies that can be removed
-        and warns if uninstalling a package could break another installed package.
+        and warns if uninstalling a package could break another installed
+        package.
         """
         try:
             # If no dependencies, then just get the distributions from
@@ -704,7 +709,8 @@ Please make the appropriate changes for your system and try again.
         # Check for the installed_files.log file in the EGG-INFO of the
         #   egg and remove all files listed in it.
         #   This check will look inside zip-safe and non-zip-safe eggs.
-        files_file_path = path.join(package_path, 'EGG-INFO', 'installed_files.log')
+        files_file_path = path.join(package_path,
+                                    'EGG-INFO', 'installed_files.log')
         if path.isdir(package_path):
             if path.exists(files_file_path):
                 fh = open(files_file_path, "r")
@@ -978,7 +984,6 @@ Please make the appropriate changes for your system and try again.
                 self.write_script(*args)
 
 
-
     def install_script(self, dist, script_name, script_text, dev_path=None):
         """Generate a legacy script wrapper and install it"""
         spec = str(dist.as_requirement())
@@ -1015,9 +1020,7 @@ Please make the appropriate changes for your system and try again.
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
-            chmod(target,0755)
-
-
+            chmod(target, 0755)
 
 
     def install_eggs(self, spec, dist_filename, tmpdir):
@@ -1031,12 +1034,14 @@ Please make the appropriate changes for your system and try again.
         setup_base = tmpdir
         if os.path.isfile(dist_filename) and not dist_filename.endswith('.py'):
             unpack_archive(dist_filename, tmpdir, self.unpack_progress)
+
         elif os.path.isdir(dist_filename):
             setup_base = os.path.abspath(dist_filename)
 
-        if (setup_base.startswith(tmpdir)   # something we downloaded
-            and self.build_directory and spec is not None
-        ):
+        if (setup_base.startswith(tmpdir) and   # something we downloaded
+            self.build_directory
+            and spec is not None):
+
             setup_base = self.maybe_move(spec, dist_filename, setup_base)
 
         # Find the setup.py file
@@ -1046,11 +1051,13 @@ Please make the appropriate changes for your system and try again.
             setups = glob(os.path.join(setup_base, '*', 'setup.py'))
             if not setups:
                 raise DistutilsError(
-                    "Couldn't find a setup script in %s" % os.path.abspath(dist_filename)
+                    "Couldn't find a setup script in %s" %
+                    os.path.abspath(dist_filename)
                 )
             if len(setups)>1:
                 raise DistutilsError(
-                    "Multiple setup scripts in %s" % os.path.abspath(dist_filename)
+                    "Multiple setup scripts in %s" %
+                    os.path.abspath(dist_filename)
                 )
             setup_script = setups[0]
 
@@ -1066,7 +1073,9 @@ Please make the appropriate changes for your system and try again.
             metadata = PathMetadata(egg_path,os.path.join(egg_path,'EGG-INFO'))
         else:
             metadata = EggMetadata(zipimport.zipimporter(egg_path))
+
         return Distribution.from_filename(egg_path,metadata=metadata)
+
 
     def install_egg(self, egg_path, tmpdir):
         destination = os.path.join(self.install_dir,os.path.basename(egg_path))
@@ -1101,6 +1110,7 @@ Please make the appropriate changes for your system and try again.
 
         self.add_output(destination)
         return self.egg_distribution(destination)
+
 
     def install_exe(self, dist_filename, tmpdir):
         # See if it's valid, get data
@@ -1142,6 +1152,7 @@ Please make the appropriate changes for your system and try again.
         )
         # install the .egg
         return self.install_egg(egg_path, tmpdir)
+
 
     def exe_to_egg(self, dist_filename, egg_tmp):
         """Extract a bdist_wininst to the directories an egg would use"""
@@ -1190,6 +1201,7 @@ Please make the appropriate changes for your system and try again.
                 if not os.path.exists(txt):
                     open(txt,'w').write('\n'.join(locals()[name])+'\n')
 
+
     def check_conflicts(self, dist):
         """Verify that there are no conflicting "old-style" packages"""
 
@@ -1198,7 +1210,9 @@ Please make the appropriate changes for your system and try again.
         from glob import glob
 
         blockers = []
-        names = dict.fromkeys(dist._get_metadata('top_level.txt')) # XXX private attr
+
+        # XXX private attr
+        names = dict.fromkeys(dist._get_metadata('top_level.txt'))
 
         exts = {'.pyc':1, '.pyo':1}     # get_suffixes() might leave one out
         for ext,mode,typ in get_suffixes():
@@ -1320,8 +1334,7 @@ See the setuptools documentation for the "develop" command for more info.
         if self.dry_run:
             args.insert(0,'-n')
         log.info(
-            "Running %s %s", setup_script[len(setup_base)+1:], ' '.join(args)
-        )
+            "Running %s %s", setup_script[len(setup_base)+1:], ' '.join(args))
         try:
             run_setup(setup_script, args)
         except SystemExit, v:
@@ -1329,9 +1342,8 @@ See the setuptools documentation for the "develop" command for more info.
 
     def build_and_install(self, setup_script, setup_base):
         args = ['bdist_egg', '--dist-dir']
-        dist_dir = tempfile.mkdtemp(
-            prefix='egg-dist-tmp-', dir=os.path.dirname(setup_script)
-        )
+        dist_dir = tempfile.mkdtemp(prefix='egg-dist-tmp-',
+                                    dir=os.path.dirname(setup_script))
         try:
             args.append(dist_dir)
             self.run_setup(setup_script, setup_base, args)
@@ -1422,7 +1434,6 @@ See the setuptools documentation for the "develop" command for more info.
                 )
         finally:
             log.set_verbosity(self.verbose)     # restore original verbosity
-
 
 
     def no_default_version_msg(self):
@@ -1638,6 +1649,7 @@ def extract_wininst_cfg(dist_filename):
     finally:
         f.close()
 
+
 def get_exe_prefixes(exe_filename):
     """Get exe->egg path translations for a given .exe file"""
 
@@ -1666,6 +1678,7 @@ def get_exe_prefixes(exe_filename):
                         prefixes.append((('%s/%s/' % (parts[0],pth)), ''))
     finally:
         z.close()
+
     prefixes = [(x.lower(),y) for x, y in prefixes]
     prefixes.sort(); prefixes.reverse()
     return prefixes
@@ -1760,7 +1773,6 @@ class PthDistributions(Environment):
             self.paths.remove(dist.location); self.dirty = True
         Environment.remove(self,dist)
 
-
     def make_relative(self,path):
         npath, last = os.path.split(normalize_path(path))
         baselen = len(self.basedir)
@@ -1775,6 +1787,7 @@ class PthDistributions(Environment):
             parts.append(last)
         else:
             return path
+
 
 def get_script_header(script_text, executable=sys_executable, wininst=False):
     """Create a #! line, getting options (if any) from script_text"""
@@ -1802,6 +1815,7 @@ def get_script_header(script_text, executable=sys_executable, wininst=False):
     hdr = "#!%(executable)s%(options)s\n" % locals()
     return hdr
 
+
 def auto_chmod(func, arg, exc):
     if func is os.remove and os.name=='nt':
         chmod(arg, stat.S_IWRITE)
@@ -1809,11 +1823,13 @@ def auto_chmod(func, arg, exc):
     exc = sys.exc_info()
     raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
 
+
 def uncache_zipdir(path):
     """Ensure that the importer caches dont have stale info for `path`"""
     from zipimport import _zip_directory_cache as zdc
     _uncache(path, zdc)
     _uncache(path, sys.path_importer_cache)
+
 
 def _uncache(path, cache):
     if path in cache:
@@ -1825,6 +1841,7 @@ def _uncache(path, cache):
                 del cache[p]
                 return
 
+
 def is_python(text, filename='<string>'):
     "Is this string a valid Python script?"
     try:
@@ -1834,6 +1851,7 @@ def is_python(text, filename='<string>'):
     else:
         return True
 
+
 def is_sh(executable):
     """Determine if the specified executable is a .sh (contains a #! line)"""
     try:
@@ -1842,6 +1860,7 @@ def is_sh(executable):
         fp.close()
     except (OSError,IOError): return executable
     return magic == '#!'
+
 
 def nt_quote_arg(arg):
     """Quote a command line argument according to Windows parsing rules"""
@@ -1890,11 +1909,13 @@ def is_python_script(script_text, filename):
 
     return False    # Not any Python I can recognize
 
+
 try:
     from os import chmod as _chmod
 except ImportError:
     # Jython compatibility
     def _chmod(*args): pass
+
 
 def chmod(path, mode):
     log.debug("changing mode of %s to %o", path, mode)
@@ -1903,18 +1924,21 @@ def chmod(path, mode):
     except os.error, e:
         log.debug("chmod failed: %s", e)
 
+
 def fix_jython_executable(executable, options):
     if sys.platform.startswith('java') and is_sh(executable):
         # Workaround Jython's sys.executable being a .sh (an invalid
         # shebang line interpreter)
         if options:
             # Can't apply the workaround, leave it broken
-            log.warn("WARNING: Unable to adapt shebang line for Jython,"
-                             " the following script is NOT executable\n"
-                     "         see http://bugs.jython.org/issue1112 for"
-                             " more information.")
+            log.warn(
+                "WARNING: Unable to adapt shebang line for Jython,"
+                " the following script is NOT executable\n"
+                "         see http://bugs.jython.org/issue1112 for"
+                " more information.")
         else:
             return '/usr/bin/env %s' % executable
+
     return executable
 
 
@@ -1939,11 +1963,11 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                 if group=='gui_scripts':
                     ext, launcher = '-script.pyw', 'gui.exe'
                     old = ['.pyw']
-                    new_header = re.sub('(?i)python.exe','pythonw.exe',header)
+                    new_header = re.sub('(?i)python.exe','pythonw.exe', header)
                 else:
                     ext, launcher = '-script.py', 'cli.exe'
                     old = ['.py','.pyc','.pyo']
-                    new_header = re.sub('(?i)pythonw.exe','python.exe',header)
+                    new_header = re.sub('(?i)pythonw.exe','python.exe', header)
 
                 if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
                     hdr = new_header
@@ -1958,6 +1982,7 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                 # On other platforms, we assume the right thing to do is to
                 # just write the stub with no extension.
                 yield (name, header+script_text)
+
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     """Recursively delete a directory tree.
@@ -1993,6 +2018,7 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
         os.rmdir(path)
     except os.error:
         onerror(os.rmdir, path, sys.exc_info())
+
 
 def bootstrap():
     # This function is called when enstaller*.egg is run using /bin/sh

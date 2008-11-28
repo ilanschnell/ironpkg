@@ -7,4 +7,3 @@ class register(_register):
         # Make sure that we are using valid current name/version info
         self.run_command('egg_info')
         _register.run(self)
-

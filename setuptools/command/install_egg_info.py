@@ -30,13 +30,14 @@ class install_egg_info(Command):
         target = self.target
         if os.path.isdir(self.target) and not os.path.islink(self.target):
             dir_util.remove_tree(self.target, dry_run=self.dry_run)
+
         elif os.path.exists(self.target):
             self.execute(os.unlink,(self.target,),"Removing "+self.target)
+
         if not self.dry_run:
             pkg_resources.ensure_directory(self.target)
         self.execute(self.copytree, (),
-            "Copying %s to %s" % (self.source, self.target)
-        )
+                     "Copying %s to %s" % (self.source, self.target))
         self.install_namespaces()
 
     def get_outputs(self):
@@ -55,29 +56,6 @@ class install_egg_info(Command):
             log.debug("Copying %s to %s", src, dst)
             return dst
         unpack_archive(self.source, self.target, skimmer)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     def install_namespaces(self):
@@ -119,5 +97,3 @@ class install_egg_info(Command):
         nsp=list(nsp)
         nsp.sort()  # set up shorter names first
         return nsp
-
-

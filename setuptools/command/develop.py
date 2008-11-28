@@ -5,6 +5,7 @@ from distutils import log
 from distutils.errors import *
 import sys, os, setuptools, glob
 
+
 class develop(easy_install):
     """Set up package for development"""
 
@@ -54,12 +55,13 @@ class develop(easy_install):
             self.egg_path = os.path.abspath(ei.egg_base)
 
         target = normalize_path(self.egg_base)
-        if normalize_path(os.path.join(self.install_dir, self.egg_path)) != target:
+        if normalize_path(os.path.join(
+                self.install_dir, self.egg_path)) != target:
             raise DistutilsOptionError(
                 "--egg-path must be a relative path from the install"
                 " directory to "+target
         )
-        
+
         # Make a distribution for the package's source
         self.dist = Distribution(
             target,
@@ -80,6 +82,7 @@ class develop(easy_install):
     def install_for_development(self):
         # Ensure metadata is up-to-date
         self.run_command('egg_info')
+
         # Build extensions in-place
         self.reinitialize_command('build_ext', inplace=1)
         self.run_command('build_ext')
@@ -94,6 +97,7 @@ class develop(easy_install):
             f = open(self.egg_link,"w")
             f.write(self.egg_path + "\n" + self.setup_path)
             f.close()
+
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
         self.process_distribution(None, self.dist, not self.no_deps)
@@ -103,19 +107,20 @@ class develop(easy_install):
         if os.path.exists(self.egg_link):
             log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
             contents = [line.rstrip() for line in file(self.egg_link)]
-            if contents not in ([self.egg_path], [self.egg_path, self.setup_path]):
+            if contents not in ([self.egg_path],
+                                [self.egg_path, self.setup_path]):
                 log.warn("Link points to %s: uninstall aborted", contents)
                 return
+
             if not self.dry_run:
                 os.unlink(self.egg_link)
+
         if not self.dry_run:
             self.update_pth(self.dist)  # remove any .pth link to us
+
         if self.distribution.scripts:
             # XXX should also check for entry point scripts!
             log.warn("Note: you must uninstall or replace scripts manually!")
-
-
-
 
 
     def install_egg_scripts(self, dist):
@@ -136,26 +141,3 @@ class develop(easy_install):
             script_text = f.read()
             f.close()
             self.install_script(dist, script_name, script_text, script_path)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
