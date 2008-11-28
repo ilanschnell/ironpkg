@@ -12,3 +12,10 @@ Minor bug fixes
 3.0.0
 -----
 First public release on PyPi
+
+
+Historical Note:
+    The was an earlier Enstaller project at Enthought which was
+    never released as open source software.  This is the reason the
+    version number starts at 3.0.  The Enstaller 3.0 is a ground-up
+    re-write of the older Enstaller.
