@@ -170,7 +170,7 @@ def main(argv, version=DEFAULT_VERSION):
             from setuptools.command.easy_install import main
             main(argv)
         else:
-            print "Enwstaller version",version,"or greater has been installed."
+            print "Enstaller version %s or greater has been installed." % version
             print '(Run "ez_setup.py -U enstaller" to reinstall or upgrade.)'
 
 def update_md5(filenames):
