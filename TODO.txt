@@ -2,8 +2,6 @@
 
 Enhancements:
 
- * Add --version option to easy_install
-
  * Add support for writing (or appending) all output to a specified logfile.
    This is useful when other programs run easy_install during an install
    or uninstall process.  This should be done using the standard python

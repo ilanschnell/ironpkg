@@ -212,15 +212,15 @@ class easy_install(Command):
         if self.delete_conflicting and self.ignore_conflicts_at_my_risk:
             raise DistutilsOptionError(
                 "Can't use both --delete-conflicting and "
-                "--ignore-conflicts-at-my-risk at the same time"
-            )
+                "--ignore-conflicts-at-my-risk at the same time")
+
         if self.editable and not self.build_directory:
             raise DistutilsArgError(
-                "Must specify a build directory (-b) when using --editable"
-            )
+                "Must specify a build directory (-b) when using --editable")
+
         if not self.args:
             raise DistutilsArgError(
-                "No urls, filenames, or requirements specified (see --help)")
+                "No urls, filenames, or requirements specified, see --help")
 
         self.outputs = []
 
@@ -2055,6 +2055,11 @@ usage: %(script)s [options] requirement_or_url ...
 
     if argv is None:
         argv = sys.argv[1:]
+
+    if '--version' in argv:
+        from enstaller import __version__
+        print "Enstaller version %s" % __version__
+        return
 
     with_ei_usage(lambda:
         setup(
