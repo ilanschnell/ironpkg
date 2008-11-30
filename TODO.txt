@@ -1,12 +1,5 @@
 
-
 Enhancements:
-
- * Add support for writing (or appending) all output to a specified logfile.
-   This is useful when other programs run easy_install during an install
-   or uninstall process.  This should be done using the standard python
-   logging module (sell also PEP 282) instead of distutils.log since it is
-   depricated and undocumented.
 
  * ability to use .egg_info files located alongside the .egg file for
    getting dependency information (not complete)

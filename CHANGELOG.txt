@@ -1,6 +1,7 @@
 
 3.0.4
 -----
+Added --version option to both enpkg and easy_install
 Cleanup of setuptools code
 
 
