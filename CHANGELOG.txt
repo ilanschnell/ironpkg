@@ -12,11 +12,13 @@ Minor bug fixes
 
 3.0.0
 -----
-First public release on PyPi
+* Re-architected and re-wrote Enstaller using portions of old source code.
+* First public release on PyPi
 
 
-Historical Note:
-    The was an earlier Enstaller project at Enthought which was
-    never released as open source software.  This is the reason the
-    version number starts at 3.0.  The Enstaller 3.0 is a ground-up
-    re-write of the older Enstaller.
+All earlier versions
+--------------------
+All earlier versions of Enstaller used a completely different architecture
+and design and were quickly deprecated from active usage due to instability
+problems.
+
