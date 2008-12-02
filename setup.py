@@ -14,7 +14,7 @@ import sys
 scripts = []
 
 setup(
-    name="enstaller",
+    name="Enstaller",
     version=VERSION,
     description = "A replacement for setuptools that builds on top of it and adds additional features.",
     author="Enthought, Inc.",
