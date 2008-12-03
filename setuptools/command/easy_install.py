@@ -1390,7 +1390,7 @@ See the setuptools documentation for the "develop" command for more info.
             if dist.key=='enstaller':
                 # Ensure that enstaller itself never becomes unavailable!
                 # XXX should this check for latest version?
-                filename = os.path.join(self.install_dir,'enstaller.pth')
+                filename = os.path.join(self.install_dir, 'Enstaller.pth')
                 if os.path.islink(filename): os.unlink(filename)
                 f = open(filename, 'wt')
                 f.write(self.pth_file.make_relative(dist.location)+'\n')
@@ -1595,7 +1595,7 @@ def expand_paths(inputs):
             if not name.endswith('.pth'):
                 # We only care about the .pth files
                 continue
-            if name in ('easy-install.pth','enstaller.pth'):
+            if name in ('easy-install.pth','Enstaller.pth'):
                 # Ignore .pth files that we control
                 continue
 
