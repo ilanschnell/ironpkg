@@ -1,5 +1,5 @@
 The Enstaller project is a replacement for setuptools that builds on
-top of it and adds significant features.   
+top of it and adds significant features.
 
 It is based on setuptools 0.6c9
 
@@ -11,8 +11,8 @@ Improvements added:
  * added support for removing a package
  * added support for post-install and pre-uninstall scripts
  * improved dependency resolution with enpkg.
- * easy_install can work through a proxy
+ * easy_install can now work through a proxy for both http and https urls.
  * setup.py develop also runs post-install scripts and --uninstall runs
    pre-uninstall scripts
- * easy_install and enpkg now prefers released versions of files.
-
+ * easy_install and enpkg now prefer final releases of distributions over dev
+   builds.
