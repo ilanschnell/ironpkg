@@ -1,17 +1,17 @@
 #!python
-"""Bootstrap enstaller installation
+"""Bootstrap Enstaller installation
 
-If you want to use enstaller in your package's setup.py, just include this
+If you want to use Enstaller in your package's setup.py, just include this
 file in the same directory with it, and add this to the top of your setup.py::
 
     from ez_setup import use_setuptools
     use_setuptools()
 
-If you want to require a specific version of enstaller, set a download
+If you want to require a specific version of Enstaller, set a download
 mirror, or use an alternate download directory, you can do so by supplying
 the appropriate options to ``use_setuptools()``.
 
-This file can also be run as a script to install or upgrade enstaller.
+This file can also be run as a script to install or upgrade Enstaller.
 """
 import sys
 DEFAULT_VERSION = "3.0.3"
@@ -46,14 +46,14 @@ def use_setuptools(
     version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
     download_delay=15
 ):
-    """Automatically find/download enstaller and make it available on sys.path
+    """Automatically find/download Enstaller and make it available on sys.path
 
-    `version` should be a valid enstaller version number that is available
+    `version` should be a valid Enstaller version number that is available
     as an egg for download under the `download_base` URL (which should end with
-    a '/').  `to_dir` is the directory where enstaller will be downloaded, if
+    a '/').  `to_dir` is the directory where Enstaller will be downloaded, if
     it is not already available.  If `download_delay` is specified, it should
     be the number of seconds that will be paused before initiating a download,
-    should one be required.  If an older version of enstaller is installed,
+    should one be required.  If an older version of Enstaller is installed,
     this routine will print a message to ``sys.stderr`` and raise SystemExit in
     an attempt to abort the calling script.
     """
@@ -67,13 +67,13 @@ def use_setuptools(
     except ImportError:
         return do_download()       
     try:
-        pkg_resources.require("enstaller>="+version); return
+        pkg_resources.require("Enstaller>="+version); return
     except pkg_resources.VersionConflict, e:
         if was_imported:
             print >>sys.stderr, (
-            "The required version of enstaller (>=%s) is not available, and\n"
+            "The required version of Enstaller (>=%s) is not available, and\n"
             "can't be installed while this script is running. Please install\n"
-            " a more recent version first, using 'easy_install -U enstaller'."
+            " a more recent version first, using 'easy_install -U Enstaller'."
             "\n\n(Currently using %r)"
             ) % (version, e.args[0])
             sys.exit(2)
@@ -95,7 +95,7 @@ def download_setuptools(
     `delay` is the number of seconds to pause before an actual download attempt.
     """
     import urllib2, shutil
-    egg_name = "enstaller-%s-py%s.egg" % (version,sys.version[:3])
+    egg_name = "Enstaller-%s-py%s.egg" % (version,sys.version[:3])
     url = download_base + egg_name
     saveto = os.path.join(to_dir, egg_name)
     src = dst = None
@@ -105,7 +105,7 @@ def download_setuptools(
             if delay:
                 log.warn("""
 ---------------------------------------------------------------------------
-This script requires enstaller version %s to run (even to display
+This script requires Enstaller version %s to run (even to display
 help).  I will attempt to download it for you (from
 %s), but
 you may need to enable firewall access for this script first.
@@ -132,7 +132,7 @@ and place it in this directory before rerunning this script.)
 
 
 def main(argv, version=DEFAULT_VERSION):
-    """Install or upgrade enstaller"""
+    """Install or upgrade Enstaller"""
     try:
         import setuptools
     except ImportError:
@@ -154,7 +154,7 @@ def main(argv, version=DEFAULT_VERSION):
             )
             sys.exit(2)
 
-    req = "enstaller>="+version
+    req = "Enstaller>="+version
     import pkg_resources
     try:
         pkg_resources.require(req)
@@ -171,7 +171,7 @@ def main(argv, version=DEFAULT_VERSION):
             main(argv)
         else:
             print "Enstaller version %s or greater has been installed." % version
-            print '(Run "ez_setup.py -U enstaller" to reinstall or upgrade.)'
+            print '(Run "ez_setup.py -U Enstaller" to reinstall or upgrade.)'
 
 def update_md5(filenames):
     """Update our built-in md5 registry"""
