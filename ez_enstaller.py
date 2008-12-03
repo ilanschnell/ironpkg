@@ -13,23 +13,27 @@ the appropriate options to ``use_setuptools()``.
 
 This file can also be run as a script to install or upgrade Enstaller.
 """
-import sys
-DEFAULT_VERSION = "3.0.3"
-#DEFAULT_URL     = "http://pypi.python.org/packages/%s/e/enstaller/" % sys.version[:3]
-DEFAULT_URL     = "http://code.enthought.com/enstaller/eggs/"
 
+
+import os
+import sys
+
+try: from hashlib import md5
+except ImportError: from md5 import md5
+
+
+# Setup some global vars
+DEFAULT_VERSION = "3.0.3"
+DEFAULT_URL = "http://pypi.python.org/packages/%s/E/Enstaller/" % sys.version[:3]
 md5_data = {
     'enstaller-3.0.1-py2.4.egg': '9e688ab0a059e90ea2aba5885ded9838',
     'enstaller-3.0.1-py2.5.egg': '064b48279d7eb8aa337369ae1dddf8bd',
     'enstaller-3.0.2-py2.4.egg': '84052f10fd36340257c211e01aa6b308',
     'enstaller-3.0.2-py2.5.egg': '2801a25cb88007d0ea701599303a74e5',
     'enstaller-3.0.3-py2.4.egg': '2b69205fb2d1b32e4da3f7a6f8e2af07',
-    'enstaller-3.0.3-py2.5.egg': '1c3be6a688f5992cf36a253f7a0732a4',        
-}
+    'enstaller-3.0.3-py2.5.egg': '1c3be6a688f5992cf36a253f7a0732a4',
+    }
 
-import sys, os
-try: from hashlib import md5
-except ImportError: from md5 import md5
 
 def _validate_md5(egg_name, data):
     if egg_name in md5_data:
@@ -41,6 +45,7 @@ def _validate_md5(egg_name, data):
             )
             sys.exit(2)
     return data
+
 
 def use_setuptools(
     version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
@@ -65,7 +70,7 @@ def use_setuptools(
     try:
         import pkg_resources
     except ImportError:
-        return do_download()       
+        return do_download()
     try:
         pkg_resources.require("Enstaller>="+version); return
     except pkg_resources.VersionConflict, e:
@@ -82,6 +87,7 @@ def use_setuptools(
             return do_download()
     except pkg_resources.DistributionNotFound:
         return do_download()
+
 
 def download_setuptools(
     version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
@@ -171,7 +177,8 @@ def main(argv, version=DEFAULT_VERSION):
             main(argv)
         else:
             print "Enstaller version %s or greater has been installed." % version
-            print '(Run "ez_setup.py -U Enstaller" to reinstall or upgrade.)'
+            print '(Run "ez_enstaller.py -U Enstaller" to reinstall or upgrade.)'
+
 
 def update_md5(filenames):
     """Update our built-in md5 registry"""
