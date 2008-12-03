@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2007 by Enthought, Inc.
+# Copyright (c) 2007-2008 by Enthought, Inc.
 # All rights reserved.
 #
 # This software is provided without warranty under the terms of the BSD license
