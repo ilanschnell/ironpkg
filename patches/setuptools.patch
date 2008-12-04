@@ -1,16 +1,1011 @@
-Only in ../../Enstaller/setuptools: archive_util.pyc
-Only in ../../Enstaller/setuptools/command: alias.pyc
-Only in ../../Enstaller/setuptools/command: bdist_egg.pyc
-Only in ../../Enstaller/setuptools/command: bdist_rpm.pyc
-Only in ../../Enstaller/setuptools/command: bdist_wininst.pyc
-Only in ../../Enstaller/setuptools/command: build_ext.pyc
-Only in ../../Enstaller/setuptools/command: build_py.pyc
-diff -cr ../../setuptools-0.6c9/setuptools/command/develop.py ../../Enstaller/setuptools/command/develop.py
+diff -cr ../../setuptools-0.6c9/setuptools/archive_util.py ../setuptools/archive_util.py
+*** ../../setuptools-0.6c9/setuptools/archive_util.py	2006-09-20 16:05:03.000000000 -0500
+--- ../setuptools/archive_util.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 1,6 ****
+  """Utilities for extracting common archive formats"""
+  
+- 
+  __all__ = [
+      "unpack_archive", "unpack_zipfile", "unpack_tarfile", "default_filter",
+      "UnrecognizedFormat", "extraction_drivers", "unpack_directory",
+--- 1,5 ----
+***************
+*** 18,44 ****
+      return dst
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def unpack_archive(filename, extract_dir, progress_filter=default_filter,
+      drivers=None
+  ):
+--- 17,22 ----
+***************
+*** 75,85 ****
+          )
+  
+  
+- 
+- 
+- 
+- 
+- 
+  def unpack_directory(filename, extract_dir, progress_filter=default_filter):
+      """"Unpack" a directory, using the same interface as for archives
+  
+--- 53,58 ----
+***************
+*** 105,126 ****
+              shutil.copystat(f, target)
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
+      """Unpack zip `filename` to `extract_dir`
+  
+--- 78,83 ----
+***************
+*** 184,190 ****
+                  name = member.name
+                  # don't extract absolute paths or ones with .. in them
+                  if not name.startswith('/') and '..' not in name:
+!                     dst = os.path.join(extract_dir, *name.split('/'))                
+                      dst = progress_filter(name, dst)
+                      if dst:
+                          if dst.endswith(os.sep):
+--- 141,147 ----
+                  name = member.name
+                  # don't extract absolute paths or ones with .. in them
+                  if not name.startswith('/') and '..' not in name:
+!                     dst = os.path.join(extract_dir, *name.split('/'))
+                      dst = progress_filter(name, dst)
+                      if dst:
+                          if dst.endswith(os.sep):
+***************
+*** 195,205 ****
+          tarobj.close()
+  
+  
+- 
+- 
+  extraction_drivers = unpack_directory, unpack_zipfile, unpack_tarfile
+- 
+- 
+- 
+- 
+- 
+--- 152,155 ----
+Only in ../setuptools: archive_util.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/alias.py ../setuptools/command/alias.py
+*** ../../setuptools-0.6c9/setuptools/command/alias.py	2006-09-20 16:05:03.000000000 -0500
+--- ../setuptools/command/alias.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 5,10 ****
+--- 5,11 ----
+  from distutils.errors import *
+  from setuptools.command.setopt import edit_config, option_base, config_file
+  
++ 
+  def shquote(arg):
+      """Quote an argument for later parsing by shlex.split()"""
+      for c in '"', "'", "\\", "#":
+***************
+*** 77,82 ****
+      else:
+          source = '--filename=%r' % source
+      return source+name+' '+command
+-             
+- 
+- 
+--- 78,80 ----
+diff -cr ../../setuptools-0.6c9/setuptools/command/bdist_egg.py ../setuptools/command/bdist_egg.py
+*** ../../setuptools-0.6c9/setuptools/command/bdist_egg.py	2008-09-24 12:10:34.000000000 -0500
+--- ../setuptools/command/bdist_egg.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 14,19 ****
+--- 14,20 ----
+  from types import CodeType
+  from setuptools.extension import Library
+  
++ 
+  def strip_module(filename):
+      if '.' in filename:
+          filename = os.path.splitext(filename)[0]
+***************
+*** 21,26 ****
+--- 22,28 ----
+          filename = filename[:-6]
+      return filename
+  
++ 
+  def write_stub(resource, pyfile):
+      f = open(pyfile,'w')
+      f.write('\n'.join([
+***************
+*** 36,41 ****
+--- 38,44 ----
+      ]))
+      f.close()
+  
++ 
+  # stub __init__.py for packages distributed without one
+  NS_PKG_STUB = '__import__("pkg_resources").declare_namespace(__name__)'
+  
+***************
+*** 65,85 ****
+      ]
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+      def initialize_options (self):
+          self.bdist_dir = None
+          self.plat_name = None
+--- 68,73 ----
+***************
+*** 115,126 ****
+              self.egg_output = os.path.join(self.dist_dir, basename+'.egg')
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+      def do_install_data(self):
+          # Hack for packages that install data to install's --install-lib
+          self.get_finalized_command('install').install_lib = self.bdist_dir
+--- 103,108 ----
+***************
+*** 242,249 ****
+              ('bdist_egg',get_python_version(),self.egg_output))
+  
+  
+- 
+- 
+      def zap_pyfiles(self):
+          log.info("Removing .py files from temporary directory")
+          for base,dirs,files in walk_egg(self.bdist_dir):
+--- 224,229 ----
+***************
+*** 253,258 ****
+--- 233,239 ----
+                      log.debug("Deleting %s", path)
+                      os.unlink(path)
+  
++ 
+      def zip_safe(self):
+          safe = getattr(self.distribution,'zip_safe',None)
+          if safe is not None:
+***************
+*** 260,265 ****
+--- 241,247 ----
+          log.warn("zip_safe flag not set; analyzing archive contents...")
+          return analyze_egg(self.bdist_dir, self.stubs)
+  
++ 
+      def make_init_files(self):
+          """Create missing package __init__ files"""
+          init_files = []
+***************
+*** 285,290 ****
+--- 267,273 ----
+  
+          return init_files
+  
++ 
+      def gen_header(self):
+          epm = EntryPoint.parse_map(self.distribution.entry_points or '')
+          ep = epm.get('setuptools.installation',{}).get('eggsecutable')
+***************
+*** 314,322 ****
+              '  echo $0 is not the correct name for this egg file.\n'
+              '  echo Please rename it back to %(basename)s and try again.\n'
+              '  exec false\n'
+!             'fi\n'
+! 
+!         ) % locals()
+  
+          if not self.dry_run:
+              mkpath(os.path.dirname(self.egg_output), dry_run=self.dry_run)
+--- 297,303 ----
+              '  echo $0 is not the correct name for this egg file.\n'
+              '  echo Please rename it back to %(basename)s and try again.\n'
+              '  exec false\n'
+!             'fi\n') % locals()
+  
+          if not self.dry_run:
+              mkpath(os.path.dirname(self.egg_output), dry_run=self.dry_run)
+***************
+*** 334,339 ****
+--- 315,321 ----
+                  ensure_directory(target)
+                  self.copy_file(path, target)
+  
++ 
+      def get_ext_outputs(self):
+          """Get a list of relative paths to C extensions in the output distro"""
+  
+***************
+*** 364,382 ****
+  
+  NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
+  
+- 
+- 
+- 
+  def walk_egg(egg_dir):
+      """Walk an unpacked egg's contents, skipping the metadata directory"""
+      walker = os.walk(egg_dir)
+      base,dirs,files = walker.next()
+      if 'EGG-INFO' in dirs:
+          dirs.remove('EGG-INFO')
+!     yield base,dirs,files
+      for bdf in walker:
+          yield bdf
+  
+  def analyze_egg(egg_dir, stubs):
+      # check for existing flag in EGG-INFO
+      for flag,fn in safety_flags.items():
+--- 346,362 ----
+  
+  NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
+  
+  def walk_egg(egg_dir):
+      """Walk an unpacked egg's contents, skipping the metadata directory"""
+      walker = os.walk(egg_dir)
+      base,dirs,files = walker.next()
+      if 'EGG-INFO' in dirs:
+          dirs.remove('EGG-INFO')
+!     yield base, dirs, files
+      for bdf in walker:
+          yield bdf
+  
++ 
+  def analyze_egg(egg_dir, stubs):
+      # check for existing flag in EGG-INFO
+      for flag,fn in safety_flags.items():
+***************
+*** 393,398 ****
+--- 373,379 ----
+                  safe = scan_module(egg_dir, base, name, stubs) and safe
+      return safe
+  
++ 
+  def write_safety_flag(egg_dir, safe):
+      # Write or remove zip safety flag file(s)
+      for flag,fn in safety_flags.items():
+***************
+*** 403,408 ****
+--- 384,390 ----
+          elif safe is not None and bool(safe)==flag:
+              f=open(fn,'wb'); f.write('\n'); f.close()
+  
++ 
+  safety_flags = {
+      True: 'zip-safe',
+      False: 'not-zip-safe',
+***************
+*** 414,419 ****
+--- 396,402 ----
+      filename = os.path.join(base,name)
+      if filename[:-1] in stubs:
+          return True     # Extension module
++ 
+      pkg = base[len(egg_dir)+1:].replace(os.sep,'.')
+      module = pkg+(pkg and '.' or '')+os.path.splitext(name)[0]
+      f = open(filename,'rb'); f.read(8)   # skip magic & date
+***************
+*** 439,444 ****
+--- 422,428 ----
+              safe = False
+      return safe
+  
++ 
+  def iter_symbols(code):
+      """Yield names and strings used by `code` and its nested code objects"""
+      for name in code.co_names: yield name
+***************
+*** 449,454 ****
+--- 433,439 ----
+              for name in iter_symbols(const):
+                  yield name
+  
++ 
+  def can_scan():
+      if not sys.platform.startswith('java') and sys.platform != 'cli':
+          # CPython, PyPy, etc.
+***************
+*** 458,495 ****
+               " setting (either True or False) in the package's setup.py")
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  # Attribute names of options for commands that might need to be convinced to
+  # install to the egg build directory
+  
+--- 443,448 ----
+***************
+*** 497,505 ****
+      'install_lib', 'install_dir', 'install_data', 'install_base'
+  ]
+  
+! def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=None,
+!     mode='w'
+! ):
+      """Create a zip file from all the files under 'base_dir'.  The output
+      zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
+      Python module (if available) or the InfoZIP "zip" utility (if installed
+--- 450,457 ----
+      'install_lib', 'install_dir', 'install_data', 'install_base'
+  ]
+  
+! def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0,
+!                  compress=None, mode='w'):
+      """Create a zip file from all the files under 'base_dir'.  The output
+      zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
+      Python module (if available) or the InfoZIP "zip" utility (if installed
+***************
+*** 507,512 ****
+--- 459,465 ----
+      raises DistutilsExecError.  Returns the name of the output zip file.
+      """
+      import zipfile
++ 
+      mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
+      log.info("creating '%s' and adding '%s' to it", zip_filename, base_dir)
+  
+***************
+*** 530,533 ****
+      else:
+          os.path.walk(base_dir, visit, None)
+      return zip_filename
+- #
+--- 483,485 ----
+Only in ../setuptools/command: bdist_egg.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/bdist_rpm.py ../setuptools/command/bdist_rpm.py
+*** ../../setuptools-0.6c9/setuptools/command/bdist_rpm.py	2007-05-22 16:55:51.000000000 -0500
+--- ../setuptools/command/bdist_rpm.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 27,44 ****
+          self.run_command('egg_info')    # ensure distro name is up-to-date
+          _bdist_rpm.run(self)
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+      def _make_spec_file(self):
+          version = self.distribution.get_version()
+          rpmversion = version.replace('-','_')
+--- 27,32 ----
+***************
+*** 60,82 ****
+          ]
+          spec.insert(spec.index(line24)+1, "%define unmangled_version "+version)
+          return spec
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+--- 48,50 ----
+diff -cr ../../setuptools-0.6c9/setuptools/command/bdist_wininst.py ../setuptools/command/bdist_wininst.py
+*** ../../setuptools-0.6c9/setuptools/command/bdist_wininst.py	2008-09-24 12:10:28.000000000 -0500
+--- ../setuptools/command/bdist_wininst.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 1,6 ****
+--- 1,7 ----
+  from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
+  import os, sys
+  
++ 
+  class bdist_wininst(_bdist_wininst):
+  
+      def create_exe(self, arcname, fullname, bitmap=None):
+***************
+*** 25,30 ****
+--- 26,32 ----
+          if good not in dist_files:
+              dist_files.append(good)
+  
++ 
+      def reinitialize_command (self, command, reinit_subcommands=0):
+          cmd = self.distribution.reinitialize_command(
+              command, reinit_subcommands)
+***************
+*** 32,41 ****
+              cmd.install_lib = None  # work around distutils bug
+          return cmd
+  
+      def run(self):
+          self._is_running = True
+          try:
+              _bdist_wininst.run(self)
+          finally:
+              self._is_running = False
+- 
+--- 34,43 ----
+              cmd.install_lib = None  # work around distutils bug
+          return cmd
+  
++ 
+      def run(self):
+          self._is_running = True
+          try:
+              _bdist_wininst.run(self)
+          finally:
+              self._is_running = False
+diff -cr ../../setuptools-0.6c9/setuptools/command/build_ext.py ../setuptools/command/build_ext.py
+*** ../../setuptools-0.6c9/setuptools/command/build_ext.py	2008-09-24 12:10:28.000000000 -0500
+--- ../setuptools/command/build_ext.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 29,34 ****
+--- 29,35 ----
+      except ImportError:
+          pass
+  
++ 
+  def if_dl(s):
+      if have_rtld:
+          return s
+***************
+*** 36,44 ****
+  
+  
+  
+- 
+- 
+- 
+  class build_ext(_build_ext):
+      def run(self):
+          """Build extensions in build directory, then copy if --inplace"""
+--- 37,42 ----
+***************
+*** 70,76 ****
+                  self.write_stub(package_dir or os.curdir, ext, True)
+  
+  
+!     if _build_ext is not _du_build_ext and not hasattr(_build_ext,'pyrex_sources'):
+          # Workaround for problems using some Pyrex versions w/SWIG and/or 2.4
+          def swig_sources(self, sources, *otherargs):
+              # first do any Pyrex processing
+--- 68,76 ----
+                  self.write_stub(package_dir or os.curdir, ext, True)
+  
+  
+!     if _build_ext is not _du_build_ext and \
+!        not hasattr(_build_ext,'pyrex_sources'):
+! 
+          # Workaround for problems using some Pyrex versions w/SWIG and/or 2.4
+          def swig_sources(self, sources, *otherargs):
+              # first do any Pyrex processing
+***************
+*** 79,85 ****
+              return _du_build_ext.swig_sources(self, sources, *otherargs)
+  
+  
+- 
+      def get_ext_filename(self, fullname):
+          filename = _build_ext.get_ext_filename(self,fullname)
+          ext = self.ext_map[fullname]
+--- 79,84 ----
+***************
+*** 92,113 ****
+          else:
+              return filename
+  
+      def initialize_options(self):
+          _build_ext.initialize_options(self)
+          self.shlib_compiler = None
+          self.shlibs = []
+          self.ext_map = {}
+  
+      def finalize_options(self):
+          _build_ext.finalize_options(self)
+          self.extensions = self.extensions or []
+          self.check_extensions_list(self.extensions)
+          self.shlibs = [ext for ext in self.extensions
+!                         if isinstance(ext,Library)]
+          if self.shlibs:
+              self.setup_shlib_compiler()
+          for ext in self.extensions:
+              ext._full_name = self.get_ext_fullname(ext.name)
+          for ext in self.extensions:
+              fullname = ext._full_name
+              self.ext_map[fullname] = ext
+--- 91,116 ----
+          else:
+              return filename
+  
++ 
+      def initialize_options(self):
+          _build_ext.initialize_options(self)
+          self.shlib_compiler = None
+          self.shlibs = []
+          self.ext_map = {}
+  
++ 
+      def finalize_options(self):
+          _build_ext.finalize_options(self)
+          self.extensions = self.extensions or []
+          self.check_extensions_list(self.extensions)
+          self.shlibs = [ext for ext in self.extensions
+!                        if isinstance(ext,Library)]
+          if self.shlibs:
+              self.setup_shlib_compiler()
++ 
+          for ext in self.extensions:
+              ext._full_name = self.get_ext_fullname(ext.name)
++ 
+          for ext in self.extensions:
+              fullname = ext._full_name
+              self.ext_map[fullname] = ext
+***************
+*** 116,126 ****
+--- 119,132 ----
+              ext._needs_stub = ltd and use_stubs and not isinstance(ext,Library)
+              filename = ext._file_name = self.get_ext_filename(fullname)
+              libdir = os.path.dirname(os.path.join(self.build_lib,filename))
++ 
+              if ltd and libdir not in ext.library_dirs:
+                  ext.library_dirs.append(libdir)
++ 
+              if ltd and use_stubs and os.curdir not in ext.runtime_library_dirs:
+                  ext.runtime_library_dirs.append(os.curdir)
+  
++ 
+      def setup_shlib_compiler(self):
+          compiler = self.shlib_compiler = new_compiler(
+              compiler=self.compiler, dry_run=self.dry_run, force=self.force
+***************
+*** 129,135 ****
+              tmp = _config_vars.copy()
+              try:
+                  # XXX Help!  I don't have any idea whether these are right...
+!                 _config_vars['LDSHARED'] = "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
+                  _config_vars['CCSHARED'] = " -dynamiclib"
+                  _config_vars['SO'] = ".dylib"
+                  customize_compiler(compiler)
+--- 135,142 ----
+              tmp = _config_vars.copy()
+              try:
+                  # XXX Help!  I don't have any idea whether these are right...
+!                 _config_vars['LDSHARED'] = \
+!                     "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
+                  _config_vars['CCSHARED'] = " -dynamiclib"
+                  _config_vars['SO'] = ".dylib"
+                  customize_compiler(compiler)
+***************
+*** 141,159 ****
+--- 148,172 ----
+  
+          if self.include_dirs is not None:
+              compiler.set_include_dirs(self.include_dirs)
++ 
+          if self.define is not None:
+              # 'define' option is a list of (name,value) tuples
+              for (name,value) in self.define:
+                  compiler.define_macro(name, value)
++ 
+          if self.undef is not None:
+              for macro in self.undef:
+                  compiler.undefine_macro(macro)
++ 
+          if self.libraries is not None:
+              compiler.set_libraries(self.libraries)
++ 
+          if self.library_dirs is not None:
+              compiler.set_library_dirs(self.library_dirs)
++ 
+          if self.rpath is not None:
+              compiler.set_runtime_library_dirs(self.rpath)
++ 
+          if self.link_objects is not None:
+              compiler.set_link_objects(self.link_objects)
+  
+***************
+*** 161,172 ****
+          compiler.link_shared_object = link_shared_object.__get__(compiler)
+  
+  
+- 
+      def get_export_symbols(self, ext):
+          if isinstance(ext,Library):
+              return ext.export_symbols
+          return _build_ext.get_export_symbols(self,ext)
+  
+      def build_extension(self, ext):
+          _compiler = self.compiler
+          try:
+--- 174,185 ----
+          compiler.link_shared_object = link_shared_object.__get__(compiler)
+  
+  
+      def get_export_symbols(self, ext):
+          if isinstance(ext,Library):
+              return ext.export_symbols
+          return _build_ext.get_export_symbols(self,ext)
+  
++ 
+      def build_extension(self, ext):
+          _compiler = self.compiler
+          try:
+***************
+*** 180,185 ****
+--- 193,199 ----
+          finally:
+              self.compiler = _compiler
+  
++ 
+      def links_to_dynamic(self, ext):
+          """Return true if 'ext' links to a dynamic lib in the same package"""
+          # XXX this should check to ensure the lib is actually being built
+***************
+*** 191,196 ****
+--- 205,211 ----
+              if pkg+libname in libnames: return True
+          return False
+  
++ 
+      def get_outputs(self):
+          outputs = _build_ext.get_outputs(self)
+          optimize = self.get_finalized_command('build_py').optimize
+***************
+*** 203,208 ****
+--- 218,224 ----
+                      outputs.append(base+'.pyo')
+          return outputs
+  
++ 
+      def write_stub(self, output_dir, ext, compile=False):
+          log.info("writing stub loader for %s to %s",ext._full_name, output_dir)
+          stub_file = os.path.join(output_dir, *ext._full_name.split('.'))+'.py'
+***************
+*** 248,257 ****
+      # Build shared libraries
+      #
+      def link_shared_object(self, objects, output_libname, output_dir=None,
+!         libraries=None, library_dirs=None, runtime_library_dirs=None,
+!         export_symbols=None, debug=0, extra_preargs=None,
+!         extra_postargs=None, build_temp=None, target_lang=None
+!     ):  self.link(
+              self.SHARED_LIBRARY, objects, output_libname,
+              output_dir, libraries, library_dirs, runtime_library_dirs,
+              export_symbols, debug, extra_preargs, extra_postargs,
+--- 264,274 ----
+      # Build shared libraries
+      #
+      def link_shared_object(self, objects, output_libname, output_dir=None,
+!                            libraries=None, library_dirs=None,
+!                            runtime_library_dirs=None, export_symbols=None,
+!                            debug=0, extra_preargs=None, extra_postargs=None,
+!                            build_temp=None, target_lang=None):
+!         self.link(
+              self.SHARED_LIBRARY, objects, output_libname,
+              output_dir, libraries, library_dirs, runtime_library_dirs,
+              export_symbols, debug, extra_preargs, extra_postargs,
+***************
+*** 262,271 ****
+      libtype = 'static'
+  
+      def link_shared_object(self, objects, output_libname, output_dir=None,
+!         libraries=None, library_dirs=None, runtime_library_dirs=None,
+!         export_symbols=None, debug=0, extra_preargs=None,
+!         extra_postargs=None, build_temp=None, target_lang=None
+!     ):
+          # XXX we need to either disallow these attrs on Library instances,
+          #     or warn/abort here if set, or something...
+          #libraries=None, library_dirs=None, runtime_library_dirs=None,
+--- 279,288 ----
+      libtype = 'static'
+  
+      def link_shared_object(self, objects, output_libname, output_dir=None,
+!                            libraries=None, library_dirs=None,
+!                            runtime_library_dirs=None, export_symbols=None,
+!                            debug=0, extra_preargs=None, extra_postargs=None,
+!                            build_temp=None, target_lang=None):
+          # XXX we need to either disallow these attrs on Library instances,
+          #     or warn/abort here if set, or something...
+          #libraries=None, library_dirs=None, runtime_library_dirs=None,
+***************
+*** 273,287 ****
+          #build_temp=None
+  
+          assert output_dir is None   # distutils build_ext doesn't pass this
+!         output_dir,filename = os.path.split(output_libname)
+          basename, ext = os.path.splitext(filename)
+          if self.library_filename("x").startswith('lib'):
+              # strip 'lib' prefix; this is kludgy if some platform uses
+              # a different prefix
+              basename = basename[3:]
+  
+          self.create_static_lib(
+!             objects, basename, output_dir, debug, target_lang
+!         )
+! 
+! 
+--- 290,302 ----
+          #build_temp=None
+  
+          assert output_dir is None   # distutils build_ext doesn't pass this
+!         output_dir, filename = os.path.split(output_libname)
+          basename, ext = os.path.splitext(filename)
++ 
+          if self.library_filename("x").startswith('lib'):
+              # strip 'lib' prefix; this is kludgy if some platform uses
+              # a different prefix
+              basename = basename[3:]
+  
+          self.create_static_lib(
+!             objects, basename, output_dir, debug, target_lang)
+Only in ../setuptools/command: build_ext.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/build_py.py ../setuptools/command/build_py.py
+*** ../../setuptools-0.6c9/setuptools/command/build_py.py	2006-09-20 16:05:03.000000000 -0500
+--- ../setuptools/command/build_py.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 3,8 ****
+--- 3,9 ----
+  from distutils.util import convert_path
+  from glob import glob
+  
++ 
+  class build_py(_build_py):
+      """Enhanced 'build_py' command that includes data files with packages
+  
+***************
+*** 18,23 ****
+--- 19,25 ----
+          self.exclude_package_data = self.distribution.exclude_package_data or {}
+          if 'data_files' in self.__dict__: del self.__dict__['data_files']
+  
++ 
+      def run(self):
+          """Build modules, packages, and copy data files to build directory"""
+          if not self.py_modules and not self.packages:
+***************
+*** 34,44 ****
+--- 36,48 ----
+          # output files are.
+          self.byte_compile(_build_py.get_outputs(self, include_bytecode=0))
+  
++ 
+      def __getattr__(self,attr):
+          if attr=='data_files':  # lazily compute data files
+              self.data_files = files = self._get_data_files(); return files
+          return _build_py.__getattr__(self,attr)
+  
++ 
+      def _get_data_files(self):
+          """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
+          self.analyze_manifest()
+***************
+*** 60,65 ****
+--- 64,70 ----
+              data.append( (package, src_dir, build_dir, filenames) )
+          return data
+  
++ 
+      def find_data_files(self, package, src_dir):
+          """Return filenames for package's data files in 'src_dir'"""
+          globs = (self.package_data.get('', [])
+***************
+*** 70,75 ****
+--- 75,81 ----
+              files.extend(glob(os.path.join(src_dir, convert_path(pattern))))
+          return self.exclude_data_files(package, src_dir, files)
+  
++ 
+      def build_package_data(self):
+          """Copy data files into build directory"""
+          lastdir = None
+***************
+*** 104,112 ****
+                      continue    # it's a module, not data
+                  mf.setdefault(src_dirs[d],[]).append(path)
+  
+-     def get_data_files(self): pass  # kludge 2.4 for lazy computation
+  
+!     if sys.version<"2.4":    # Python 2.4 already has this code
+          def get_outputs(self, include_bytecode=1):
+              """Return complete list of files copied to the build directory
+  
+--- 110,122 ----
+                      continue    # it's a module, not data
+                  mf.setdefault(src_dirs[d],[]).append(path)
+  
+  
+!     def get_data_files(self):
+!         # kludge 2.4 for lazy computation
+!         pass
+! 
+! 
+!     if sys.version < "2.4":    # Python 2.4 already has this code
+          def get_outputs(self, include_bytecode=1):
+              """Return complete list of files copied to the build directory
+  
+***************
+*** 121,126 ****
+--- 131,137 ----
+                  for filename in filenames
+                  ]
+  
++ 
+      def check_package(self, package, package_dir):
+          """Check namespace packages' __init__ for declare_namespace"""
+          try:
+***************
+*** 152,167 ****
+          f.close()
+          return init_py
+  
+      def initialize_options(self):
+          self.packages_checked={}
+          _build_py.initialize_options(self)
+  
+  
+- 
+- 
+- 
+- 
+- 
+      def exclude_data_files(self, package, src_dir, files):
+          """Filter filenames for package's data files in 'src_dir'"""
+          globs = (self.exclude_package_data.get('', [])
+--- 163,174 ----
+          f.close()
+          return init_py
+  
++ 
+      def initialize_options(self):
+          self.packages_checked={}
+          _build_py.initialize_options(self)
+  
+  
+      def exclude_data_files(self, package, src_dir, files):
+          """Filter filenames for package's data files in 'src_dir'"""
+          globs = (self.exclude_package_data.get('', [])
+***************
+*** 192,205 ****
+  
+  setup() arguments must *always* be /-separated paths relative to the
+  setup.py directory, *never* absolute paths.
+! """ % path
+!     )
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+--- 199,202 ----
+  
+  setup() arguments must *always* be /-separated paths relative to the
+  setup.py directory, *never* absolute paths.
+! """ % path)
+Only in ../setuptools/command: build_py.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/develop.py ../setuptools/command/develop.py
 *** ../../setuptools-0.6c9/setuptools/command/develop.py	2008-02-15 11:29:24.000000000 -0600
---- ../../Enstaller/setuptools/command/develop.py	2008-11-10 14:07:42.000000000 -0600
+--- ../setuptools/command/develop.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 5,10 ****
+--- 5,11 ----
+  from distutils.errors import *
+  import sys, os, setuptools, glob
+  
++ 
+  class develop(easy_install):
+      """Set up package for development"""
+  
 ***************
 *** 22,27 ****
---- 22,28 ----
+--- 23,29 ----
       def run(self):
           if self.uninstall:
               self.multi_version = True
@@ -30,14 +1025,136 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/develop.py ../../Enstaller/se
       def finalize_options(self):
           ei = self.get_finalized_command("egg_info")
           if ei.broken_egg_info:
---- 36,41 ----
-Only in ../../Enstaller/setuptools/command: develop.py~
-Only in ../../Enstaller/setuptools/command: develop.pyc
-diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstaller/setuptools/command/easy_install.py
-*** ../../setuptools-0.6c9/setuptools/command/easy_install.py	2008-09-24 12:22:12.000000000 -0500
---- ../../Enstaller/setuptools/command/easy_install.py	2008-11-21 18:10:59.000000000 -0600
+--- 37,42 ----
 ***************
-*** 9,16 ****
+*** 57,68 ****
+              self.egg_path = os.path.abspath(ei.egg_base)
+  
+          target = normalize_path(self.egg_base)
+!         if normalize_path(os.path.join(self.install_dir, self.egg_path)) != target:
+              raise DistutilsOptionError(
+                  "--egg-path must be a relative path from the install"
+                  " directory to "+target
+          )
+!         
+          # Make a distribution for the package's source
+          self.dist = Distribution(
+              target,
+--- 55,67 ----
+              self.egg_path = os.path.abspath(ei.egg_base)
+  
+          target = normalize_path(self.egg_base)
+!         if normalize_path(os.path.join(
+!                 self.install_dir, self.egg_path)) != target:
+              raise DistutilsOptionError(
+                  "--egg-path must be a relative path from the install"
+                  " directory to "+target
+          )
+! 
+          # Make a distribution for the package's source
+          self.dist = Distribution(
+              target,
+***************
+*** 83,88 ****
+--- 82,88 ----
+      def install_for_development(self):
+          # Ensure metadata is up-to-date
+          self.run_command('egg_info')
++ 
+          # Build extensions in-place
+          self.reinitialize_command('build_ext', inplace=1)
+          self.run_command('build_ext')
+***************
+*** 97,102 ****
+--- 97,103 ----
+              f = open(self.egg_link,"w")
+              f.write(self.egg_path + "\n" + self.setup_path)
+              f.close()
++ 
+          # postprocess the installed distro, fixing up .pth, installing scripts,
+          # and handling requirements
+          self.process_distribution(None, self.dist, not self.no_deps)
+***************
+*** 106,126 ****
+          if os.path.exists(self.egg_link):
+              log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
+              contents = [line.rstrip() for line in file(self.egg_link)]
+!             if contents not in ([self.egg_path], [self.egg_path, self.setup_path]):
+                  log.warn("Link points to %s: uninstall aborted", contents)
+                  return
+              if not self.dry_run:
+                  os.unlink(self.egg_link)
+          if not self.dry_run:
+              self.update_pth(self.dist)  # remove any .pth link to us
+          if self.distribution.scripts:
+              # XXX should also check for entry point scripts!
+              log.warn("Note: you must uninstall or replace scripts manually!")
+  
+  
+- 
+- 
+- 
+      def install_egg_scripts(self, dist):
+          if dist is not self.dist:
+              # Installing a dependency, so fall back to normal behavior
+--- 107,128 ----
+          if os.path.exists(self.egg_link):
+              log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
+              contents = [line.rstrip() for line in file(self.egg_link)]
+!             if contents not in ([self.egg_path],
+!                                 [self.egg_path, self.setup_path]):
+                  log.warn("Link points to %s: uninstall aborted", contents)
+                  return
++ 
+              if not self.dry_run:
+                  os.unlink(self.egg_link)
++ 
+          if not self.dry_run:
+              self.update_pth(self.dist)  # remove any .pth link to us
++ 
+          if self.distribution.scripts:
+              # XXX should also check for entry point scripts!
+              log.warn("Note: you must uninstall or replace scripts manually!")
+  
+  
+      def install_egg_scripts(self, dist):
+          if dist is not self.dist:
+              # Installing a dependency, so fall back to normal behavior
+***************
+*** 139,164 ****
+              script_text = f.read()
+              f.close()
+              self.install_script(dist, script_name, script_text, script_path)
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+--- 141,143 ----
+diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../setuptools/command/easy_install.py
+*** ../../setuptools-0.6c9/setuptools/command/easy_install.py	2008-09-24 12:22:12.000000000 -0500
+--- ../setuptools/command/easy_install.py	2008-12-03 18:30:36.000000000 -0600
+***************
+*** 8,16 ****
+  file, or visit the `EasyInstall home page`__.
   
   __ http://peak.telecommunity.com/DevCenter/EasyInstall
   """
@@ -46,9 +1163,12 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
   from setuptools import Command
   from setuptools.sandbox import run_setup
   from distutils import log, dir_util
---- 9,24 ----
+--- 8,26 ----
+  file, or visit the `EasyInstall home page`__.
   
   __ http://peak.telecommunity.com/DevCenter/EasyInstall
++ 
++ This is a patched version for Enstaller.
   """
 ! 
 ! # Patched with easy_install.patch and prefer_released.patch from Enthought
@@ -65,7 +1185,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
   from distutils import log, dir_util
 ***************
 *** 39,44 ****
---- 47,57 ----
+--- 49,59 ----
           os.path.normpath(os.path.normcase(p2))
       )
   
@@ -79,7 +1199,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
       description = "Find/get/install Python packages"
 ***************
 *** 49,54 ****
---- 62,68 ----
+--- 64,70 ----
           ("zip-ok", "z", "install package as a zipfile"),
           ("multi-version", "m", "make apps have to require() a version"),
           ("upgrade", "U", "force upgrade (searches PyPI for latest versions)"),
@@ -102,7 +1222,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
       ]
       negative_opt = {'always-unzip': 'zip-ok'}
       create_index = PackageIndex
---- 83,97 ----
+--- 85,99 ----
           ('site-dirs=','S',"list of directories where .pth files work"),
           ('editable', 'e', "Install specified packages in editable form"),
           ('no-deps', 'N', "don't install dependencies"),
@@ -120,7 +1240,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
       create_index = PackageIndex
 ***************
 *** 88,95 ****
---- 104,114 ----
+--- 106,116 ----
           self.build_directory = None
           self.args = None
           self.optimize = self.record = None
@@ -133,7 +1253,33 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
   
           # Options not specifiable via command line
 ***************
-*** 203,227 ****
+*** 177,182 ****
+--- 198,208 ----
+                  self.find_links = self.find_links.split()
+          else:
+              self.find_links = []
++ 
++         # Add any additional configured repos.
++         from enstaller.config import get_configured_repos
++         self.find_links.extend(get_configured_repos())
++ 
+          if self.local_snapshots_ok:
+              self.package_index.scan_egg_links(self.shadow_path+sys.path)
+          self.package_index.add_find_links(self.find_links)
+***************
+*** 191,227 ****
+          if self.delete_conflicting and self.ignore_conflicts_at_my_risk:
+              raise DistutilsOptionError(
+                  "Can't use both --delete-conflicting and "
+!                 "--ignore-conflicts-at-my-risk at the same time"
+!             )
+          if self.editable and not self.build_directory:
+              raise DistutilsArgError(
+!                 "Must specify a build directory (-b) when using --editable"
+!             )
+          if not self.args:
+              raise DistutilsArgError(
+!                 "No urls, filenames, or requirements specified (see --help)")
   
           self.outputs = []
   
@@ -159,7 +1305,19 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
           finally:
               log.set_verbosity(self.distribution.verbose)
   
---- 222,262 ----
+--- 217,269 ----
+          if self.delete_conflicting and self.ignore_conflicts_at_my_risk:
+              raise DistutilsOptionError(
+                  "Can't use both --delete-conflicting and "
+!                 "--ignore-conflicts-at-my-risk at the same time")
+! 
+          if self.editable and not self.build_directory:
+              raise DistutilsArgError(
+!                 "Must specify a build directory (-b) when using --editable")
+! 
+          if not self.args:
+              raise DistutilsArgError(
+!                 "No urls, filenames, or requirements specified, see --help")
   
           self.outputs = []
   
@@ -203,7 +1361,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
   
 ***************
 *** 249,254 ****
---- 284,297 ----
+--- 291,304 ----
           instdir = normalize_path(self.install_dir)
           pth_file = os.path.join(instdir,'easy-install.pth')
   
@@ -227,7 +1385,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
   
           if is_site_dir:
               if self.pth_file is None:
---- 311,317 ----
+--- 318,324 ----
   
           if not is_site_dir and not self.multi_version:
               # Can't install non-multi to non-site dir
@@ -236,12 +1394,34 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
           if is_site_dir:
               if self.pth_file is None:
 ***************
-*** 382,389 ****
---- 425,434 ----
+*** 324,331 ****
+          raise DistutilsError(msg)
+  
+  
+- 
+- 
+      def check_pth_processing(self):
+          """Empirically verify whether .pth files are supported in inst. dir"""
+          instdir = self.install_dir
+--- 374,379 ----
+***************
+*** 381,389 ****
+          if os.path.isdir(path):
               for base, dirs, files in os.walk(path):
                   for filename in files:
-                      self.outputs.append(os.path.join(base,filename))
-+                     self.outputs_this_package.append(os.path.join(base,filename))
+!                     self.outputs.append(os.path.join(base,filename))
+          else:
+              self.outputs.append(path)
+  
+      def not_editable(self, spec):
+          if self.editable:
+--- 429,440 ----
+          if os.path.isdir(path):
+              for base, dirs, files in os.walk(path):
+                  for filename in files:
+!                     self.outputs.append(os.path.join(base, filename))
+!                     self.outputs_this_package.append(os.path.join(base,
+!                                                                   filename))
           else:
               self.outputs.append(path)
 +             self.outputs_this_package.append(path)
@@ -249,54 +1429,53 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
       def not_editable(self, spec):
           if self.editable:
 ***************
-*** 402,411 ****
---- 447,750 ----
-                  "%r already exists in %s; can't do a checkout there" %
+*** 403,411 ****
+--- 454,763 ----
                   (spec.key, self.build_directory)
               )
-+     
+  
 +     def get_deps(self):
 +         """Check for back dependencies. The idea is that if a package is being
 +         uninstalled and a dependency is also being uninstalled, this will help
 +         check to see if any other packages will be broken by the dependency. It
 +         returns a dictionary in the format
-+         {dependency: {project1: dependency_version}, {project2: dependency_version}}
-+         
++         {dependency: {project1: dependency_version},
++                      {project2: dependency_version}}
 +         """
-+         
++ 
 +         # Get the set of installed packages
 +         projects = WorkingSet()
-+         
++ 
 +         # Instantiate dictionary of project requirements
 +         reqdict = {}
-+         
++ 
 +         # Instantiate back-dependency dictionary. The ONLY items in this
 +         # will be projects that are depended upon by something else.
 +         low_dep_dict = {}
-+         
++ 
 +         # Create dictionary of each installed project and related dependencies
 +         for project in projects:
-+             
++ 
 +             # list of requirements for each project
 +             try:
 +                 reqs = require(project.project_name)
 +             except DistributionNotFound:
 +                 continue
 +             reqdict[project] = reqs
-+         
++ 
 +         # Create the dictionary of packages being depended on.
 +         for key, value in reqdict.iteritems():
 +             for item in value:
-+                 
-+                 # This keeps out entries that have only themselves in the 
++ 
++                 # This keeps out entries that have only themselves in the
 +                 # dependency list
 +                 if item.project_name == key.project_name:
 +                     continue
-+                
-+                 # spec becomes a list of tuples of version numbers and 
++ 
++                 # spec becomes a list of tuples of version numbers and
 +                 # operators, eg [(">=", "2.0"), ("<=", 3.0")]
 +                 spec = value[0].requires()[0].specs
-+                 
++ 
 +                 # version_list will become a concatenated list of versions, eg
 +                 # ['>=2.0', '<=3.0']
 +                 version_list = []
@@ -306,12 +1485,15 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +                     version_list.append(''.join(version))
 +                 version_string = ','.join(version_list)
 +                 if low_dep_dict.has_key(item.project_name):
-+                     low_dep_dict[item.project_name][key.project_name] = version_string
++                     low_dep_dict[item.project_name][key.project_name] = \
++                         version_string
 +                 else:
-+                     low_dep_dict[item.project_name] = {key.project_name: version_string}
-+         
++                     low_dep_dict[item.project_name] = \
++                         {key.project_name: version_string}
++ 
 +         # low_dep_dict is in the form
-+         # {dependency: {project1: dependency_version}, {project2: dependency_version}}
++         # {dependency: {project1: dependency_version},
++         #              {project2: dependency_version}}
 +         return low_dep_dict
 + 
 +     def check_deps(self, current_dep, user_spec, all):
@@ -319,24 +1501,25 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +         for removal, and the set of all packages that something depends upon.
 +         Returns True or False based on user confirmation
 +         """
-+         
++ 
 +         if current_dep not in all.keys():
 +             print "Nothing else depends on %s." % current_dep
-+         
++ 
 +         # Check to see if a dependency is is only required by the package
 +         # specified for removal.
-+         elif len(all[current_dep]) == 1 and user_spec in all[current_dep].keys():
++         elif len(all[current_dep]) == 1 and \
++              user_spec in all[current_dep].keys():
 +             print "Only %s seems to require %s." % (user_spec, current_dep)
++ 
 +         else:
-+             
 +             # Fetch dictionary of projects that require current_dep
 +             depends_on_dep = all[current_dep]
-+             
++ 
 +             # Print list of projects that need current_dep
 +             for project in depends_on_dep:
 +                 print "%s %s is needed by %s." % \
 +                 (current_dep, depends_on_dep[project], project)
-+         
++ 
 +         choice = ''
 +         while 1:
 +             if choice.lower() == 'n':
@@ -345,7 +1528,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +                 return True
 +             else:
 +                 choice = raw_input("Remove %s? [Y/N] " % current_dep)
-  
++ 
 +     def _run_post_install(self, installed_egg_path):
 +         """
 +         run any post-install scripts in the newly-installed egg defined by the
@@ -354,7 +1537,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +         about the package downloaded (not just installed)).
 +         """
 +         tmp_unpack_dir = ""
-  
++ 
 +         #
 +         # if the egg installed is a dir, simply check the EGG-INFO subdir
 +         # for a post_install.py script and run it, otherwise, unzip it to
@@ -375,15 +1558,16 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +             try:
 +                 execute_script(pi_script)
 +             except Exception, err :
-+                 self.log("Error: problem running post-install script %s: %s\n" \
-+                           % (pi_script, err) )
++                 log.error("Error: problem running post-install script "
++                           "%s: %s\n" % (pi_script, err) )
 + 
 +         #
 +         # cleanup if a temp extraction was done
 +         #
-+         if(tmp_unpack_dir != ""):
++         if tmp_unpack_dir != "":
 +             self._rm_rf(tmp_unpack_dir)
-  
++ 
++ 
 +     def _run_pre_uninstall(self, installed_egg_path):
 +         """
 +         run any pre-uninstall scripts in the installed egg defined by the
@@ -392,7 +1576,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +         about the package.
 +         """
 +         tmp_unpack_dir = ""
-  
++ 
 +         #
 +         # if the egg installed is a dir, simply check the EGG-INFO subdir
 +         # for a post_install.py script and run it, otherwise, unzip it to
@@ -400,7 +1584,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +         #
 +         if path.isdir(installed_egg_path):
 +             egg_dir = installed_egg_path
-+             
++ 
 +         else:
 +             tmp_unpack_dir = tempfile.mkdtemp(prefix="easy_install-")
 +             egg_dir = path.join(tmp_unpack_dir,
@@ -414,7 +1598,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +             try:
 +                 execute_script(uinstall_script)
 +             except Exception, err :
-+                 self.log("Error: problem running uninstall script %s: %s\n" \
++                 log.error("Error: problem running uninstall script %s: %s\n" \
 +                          % (uninstall_script, err))
 + 
 +         #
@@ -423,13 +1607,14 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +         if tmp_unpack_dir != "":
 +             self._rm_rf(tmp_unpack_dir)
 + 
-+     
++ 
 +     def uninstall(self, specs):
 +         """ Uninstall function to remove all files associated with an egg,
 +         including scripts generated.  Also does a back-check of dependencies
 +         on the package(s) being uninstalled and prompts the user for
 +         uninstalling unnecessary dependencies that can be removed
-+         and warns if uninstalling a package could break another installed package.
++         and warns if uninstalling a package could break another installed
++         package.
 +         """
 +         try:
 +             # If no dependencies, then just get the distributions from
@@ -442,28 +1627,28 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +                         raise DistributionNotFound
 +                     self._remove_dist(dist)
 +             return
-+                 
++ 
 +             all_deps = self.get_deps()
-+                     
+  
 +             for spec in specs:
 +                 pkgs = require(spec)
-+                 
+  
 +                 # If the package found has dependencies, prompt the user if they
 +                 # want the dependencies to be uninstalled as well.
 +                 if len(pkgs) > 1:
 +                     for dep in pkgs[1:]:
 +                         if self.check_deps(dep.project_name, spec, all_deps):
 +                             self._remove_dist(dep)
-+                             
+  
 +                 # Finally, check if user-specified package can be safely
 +                 # removed.
 +                 if self.check_deps(pkgs[0].project_name, spec, all_deps):
 +                     self._remove_dist(pkgs[0])
-+                         
++ 
 +         except DistributionNotFound:
 +                 log.info("Could not find suitable package for: %s" % spec)
-+             
-+             
++ 
++ 
 +     def _remove_dist(self, dist):
 +         """ Module to remove Distribution objects.
 +         """
@@ -471,8 +1656,8 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +         log.info("Removing %s..." % pkg_path)
 +         self._run_pre_uninstall(pkg_path)
 +         self._remove_package_file(pkg_path)
-+         
-+         
++ 
++ 
 +     def _remove_package_file(self, package_filepath):
 +         """
 +         Finds the easy_install.pth file and removes the line containing the
@@ -499,17 +1684,18 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +                     chkline = chkline[2:]
 +                 if chkline != package_fullname:
 +                     newlines.append(line)
-+                     
++ 
 +             else:
 +                 fh = open(pth_file, "wu")
 +                 for line in newlines:
 +                     fh.write(line)
 +                 fh.close()
-+                 
++ 
 +         # Check for the installed_files.log file in the EGG-INFO of the
 +         #   egg and remove all files listed in it.
 +         #   This check will look inside zip-safe and non-zip-safe eggs.
-+         files_file_path = path.join(package_path, 'EGG-INFO', 'installed_files.log')
++         files_file_path = path.join(package_path,
++                                     'EGG-INFO', 'installed_files.log')
 +         if path.isdir(package_path):
 +             if path.exists(files_file_path):
 +                 fh = open(files_file_path, "r")
@@ -528,11 +1714,11 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +             egg_file.close()
 +             for file in installed_files:
 +                 retcode = self._rm_rf(file) or retcode
-+             
-+         # If it can't find the .files file, just try to remove the 
++ 
++         # If it can't find the .files file, just try to remove the
 +         # directory or egg file.
 +         retcode = self._rm_rf(package_path) or retcode
-+         
++ 
 +         return retcode
 + 
 +     def _rm_rf(self, file_or_dir):
@@ -548,7 +1734,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +                     os.remove(file_or_dir)
 + 
 +         except (IOError, OSError), err :
-+             self.log("Error: could not remove %s: %s\n" % (file_or_dir, err))
++             log.error("Error: could not remove %s: %s\n" % (file_or_dir, err))
 +             retcode = 1
 + 
 +         return retcode
@@ -564,7 +1750,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
               )
   
               if dist is None:
---- 769,776 ----
+--- 782,789 ----
   
               self.check_editable(spec)
               dist = self.package_index.fetch_distribution(
@@ -575,15 +1761,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
               if dist is None:
 ***************
 *** 486,493 ****
-                      return dist
-  
-  
-  
-! 
-  
-  
-      def process_distribution(self, requirement, dist, deps=True, *info):
---- 826,889 ----
+--- 839,902 ----
                       return dist
   
   
@@ -596,61 +1774,61 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +         if len(outputs) == 0:
 +             log.warn('No files installed.')
 +             return
-+         
+  
 +         # Check for either a zipped egg or an egg directory
 +         egg_zip = None
 +         egg_path = ''
 +         for file in outputs:
-+             
++ 
 +             # If an EGG-INFO path is found, save the .egg path
 +             if len(file.split('EGG-INFO')) > 1:
 +                 egg_path = file.split('EGG-INFO')[0]
 +                 break
-+                 
++ 
 +             # If a .egg is found, open the egg and save its path
 +             if file.endswith('.egg'):
 +                 egg_zip = zipfile.ZipFile(file, 'a')
 +                 egg_path = os.path.split(file)[0]
 +                 break
   
-!         # If nothing was found, return
-!         if egg_path == '':
-!             return
-!         
-!         # Strip any package prefixes
-!         if self.root:
-!             root_len = len(self.root)
-!             for counter in xrange(len(outputs)):
-!                 outputs[counter] = outputs[counter][root_len:]
-!         
-!         # If egg was not zip-safe, set path to 'EGG-INFO' dir
-!         if egg_zip is None:
-!             log_path = os.path.join(egg_path, 'EGG-INFO',
-!                                     'installed_files.log')
-!         # Else, set path to the dir that the .egg file is in
-!         else:
-!             log_path = os.path.join(egg_path, 'installed_files.log')
-!         
-!         # Create the file in the path set above
-!         file = open(log_path, 'w')
-! 
-!         # For each installed file, write then on a new line in the log
-!         for installed_file in outputs:
-!             file.write(installed_file + '\n')
-!         file.close()
-!         
-!         # If .egg file was found, put the log file in the egg, then
-!         # remove the file from the directory the egg is in
-!         if egg_zip is not None:
-!             egg_zip.write(log_path, 'EGG-INFO/installed_files.log')
-!             egg_zip.close()
-!             os.remove(log_path)
++         # If nothing was found, return
++         if egg_path == '':
++             return
++ 
++         # Strip any package prefixes
++         if self.root:
++             root_len = len(self.root)
++             for counter in xrange(len(outputs)):
++                 outputs[counter] = outputs[counter][root_len:]
++ 
++         # If egg was not zip-safe, set path to 'EGG-INFO' dir
++         if egg_zip is None:
++             log_path = os.path.join(egg_path, 'EGG-INFO',
++                                     'installed_files.log')
++         # Else, set path to the dir that the .egg file is in
++         else:
++             log_path = os.path.join(egg_path, 'installed_files.log')
++ 
++         # Create the file in the path set above
++         file = open(log_path, 'w')
++ 
++         # For each installed file, write then on a new line in the log
++         for installed_file in outputs:
++             file.write(installed_file + '\n')
++         file.close()
++ 
++         # If .egg file was found, put the log file in the egg, then
++         # remove the file from the directory the egg is in
++         if egg_zip is not None:
++             egg_zip.write(log_path, 'EGG-INFO/installed_files.log')
++             egg_zip.close()
++             os.remove(log_path)
   
   
       def process_distribution(self, requirement, dist, deps=True, *info):
 ***************
 *** 496,501 ****
---- 892,902 ----
+--- 905,915 ----
           self.local_index.add(dist)
           self.install_egg_scripts(dist)
           self.installed_projects[dist.key] = dist
@@ -658,23 +1836,208 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 +         # Add the log of all the installed files to EGG-INFO
 +         self.add_installed_files_list()
 +         self.outputs_this_package = []
-+         
++ 
           log.info(self.installation_report(requirement, dist, *info))
           if dist.has_metadata('dependency_links.txt'):
               self.package_index.add_find_links(
 ***************
 *** 513,518 ****
---- 914,923 ----
+--- 927,936 ----
               requirement = Requirement(
                   distreq.project_name, distreq.specs, requirement.extras
               )
 + 
 +         # Run post-install scripts
 +         self._run_post_install(dist.location)
-+             
++ 
           log.info("Processing dependencies for %s", requirement)
           try:
               distros = WorkingSet([]).resolve(
+***************
+*** 571,577 ****
+                  self.write_script(*args)
+  
+  
+- 
+      def install_script(self, dist, script_name, script_text, dev_path=None):
+          """Generate a legacy script wrapper and install it"""
+          spec = str(dist.as_requirement())
+--- 989,994 ----
+***************
+*** 608,616 ****
+              f = open(target,"w"+mode)
+              f.write(contents)
+              f.close()
+!             chmod(target,0755)
+! 
+! 
+  
+  
+      def install_eggs(self, spec, dist_filename, tmpdir):
+--- 1025,1031 ----
+              f = open(target,"w"+mode)
+              f.write(contents)
+              f.close()
+!             chmod(target, 0755)
+  
+  
+      def install_eggs(self, spec, dist_filename, tmpdir):
+***************
+*** 624,635 ****
+          setup_base = tmpdir
+          if os.path.isfile(dist_filename) and not dist_filename.endswith('.py'):
+              unpack_archive(dist_filename, tmpdir, self.unpack_progress)
+          elif os.path.isdir(dist_filename):
+              setup_base = os.path.abspath(dist_filename)
+  
+!         if (setup_base.startswith(tmpdir)   # something we downloaded
+!             and self.build_directory and spec is not None
+!         ):
+              setup_base = self.maybe_move(spec, dist_filename, setup_base)
+  
+          # Find the setup.py file
+--- 1039,1052 ----
+          setup_base = tmpdir
+          if os.path.isfile(dist_filename) and not dist_filename.endswith('.py'):
+              unpack_archive(dist_filename, tmpdir, self.unpack_progress)
++ 
+          elif os.path.isdir(dist_filename):
+              setup_base = os.path.abspath(dist_filename)
+  
+!         if (setup_base.startswith(tmpdir) and   # something we downloaded
+!             self.build_directory
+!             and spec is not None):
+! 
+              setup_base = self.maybe_move(spec, dist_filename, setup_base)
+  
+          # Find the setup.py file
+***************
+*** 639,649 ****
+              setups = glob(os.path.join(setup_base, '*', 'setup.py'))
+              if not setups:
+                  raise DistutilsError(
+!                     "Couldn't find a setup script in %s" % os.path.abspath(dist_filename)
+                  )
+              if len(setups)>1:
+                  raise DistutilsError(
+!                     "Multiple setup scripts in %s" % os.path.abspath(dist_filename)
+                  )
+              setup_script = setups[0]
+  
+--- 1056,1068 ----
+              setups = glob(os.path.join(setup_base, '*', 'setup.py'))
+              if not setups:
+                  raise DistutilsError(
+!                     "Couldn't find a setup script in %s" %
+!                     os.path.abspath(dist_filename)
+                  )
+              if len(setups)>1:
+                  raise DistutilsError(
+!                     "Multiple setup scripts in %s" %
+!                     os.path.abspath(dist_filename)
+                  )
+              setup_script = setups[0]
+  
+***************
+*** 659,666 ****
+--- 1078,1087 ----
+              metadata = PathMetadata(egg_path,os.path.join(egg_path,'EGG-INFO'))
+          else:
+              metadata = EggMetadata(zipimport.zipimporter(egg_path))
++ 
+          return Distribution.from_filename(egg_path,metadata=metadata)
+  
++ 
+      def install_egg(self, egg_path, tmpdir):
+          destination = os.path.join(self.install_dir,os.path.basename(egg_path))
+          destination = os.path.abspath(destination)
+***************
+*** 695,700 ****
+--- 1116,1122 ----
+          self.add_output(destination)
+          return self.egg_distribution(destination)
+  
++ 
+      def install_exe(self, dist_filename, tmpdir):
+          # See if it's valid, get data
+          cfg = extract_wininst_cfg(dist_filename)
+***************
+*** 736,741 ****
+--- 1158,1164 ----
+          # install the .egg
+          return self.install_egg(egg_path, tmpdir)
+  
++ 
+      def exe_to_egg(self, dist_filename, egg_tmp):
+          """Extract a bdist_wininst to the directories an egg would use"""
+          # Check for .pth file and set up prefix translations
+***************
+*** 783,788 ****
+--- 1206,1212 ----
+                  if not os.path.exists(txt):
+                      open(txt,'w').write('\n'.join(locals()[name])+'\n')
+  
++ 
+      def check_conflicts(self, dist):
+          """Verify that there are no conflicting "old-style" packages"""
+  
+***************
+*** 791,797 ****
+          from glob import glob
+  
+          blockers = []
+!         names = dict.fromkeys(dist._get_metadata('top_level.txt')) # XXX private attr
+  
+          exts = {'.pyc':1, '.pyo':1}     # get_suffixes() might leave one out
+          for ext,mode,typ in get_suffixes():
+--- 1215,1223 ----
+          from glob import glob
+  
+          blockers = []
+! 
+!         # XXX private attr
+!         names = dict.fromkeys(dist._get_metadata('top_level.txt'))
+  
+          exts = {'.pyc':1, '.pyo':1}     # get_suffixes() might leave one out
+          for ext,mode,typ in get_suffixes():
+***************
+*** 913,920 ****
+          if self.dry_run:
+              args.insert(0,'-n')
+          log.info(
+!             "Running %s %s", setup_script[len(setup_base)+1:], ' '.join(args)
+!         )
+          try:
+              run_setup(setup_script, args)
+          except SystemExit, v:
+--- 1339,1345 ----
+          if self.dry_run:
+              args.insert(0,'-n')
+          log.info(
+!             "Running %s %s", setup_script[len(setup_base)+1:], ' '.join(args))
+          try:
+              run_setup(setup_script, args)
+          except SystemExit, v:
+***************
+*** 922,930 ****
+  
+      def build_and_install(self, setup_script, setup_base):
+          args = ['bdist_egg', '--dist-dir']
+!         dist_dir = tempfile.mkdtemp(
+!             prefix='egg-dist-tmp-', dir=os.path.dirname(setup_script)
+!         )
+          try:
+              args.append(dist_dir)
+              self.run_setup(setup_script, setup_base, args)
+--- 1347,1354 ----
+  
+      def build_and_install(self, setup_script, setup_base):
+          args = ['bdist_egg', '--dist-dir']
+!         dist_dir = tempfile.mkdtemp(prefix='egg-dist-tmp-',
+!                                     dir=os.path.dirname(setup_script))
+          try:
+              args.append(dist_dir)
+              self.run_setup(setup_script, setup_base, args)
 ***************
 *** 968,977 ****
   
@@ -687,22 +2050,23 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
                   if os.path.islink(filename): os.unlink(filename)
                   f = open(filename, 'wt')
                   f.write(self.pth_file.make_relative(dist.location)+'\n')
---- 1373,1382 ----
+--- 1392,1401 ----
   
               self.pth_file.save()
   
 !             if dist.key=='enstaller':
 !                 # Ensure that enstaller itself never becomes unavailable!
                   # XXX should this check for latest version?
-!                 filename = os.path.join(self.install_dir,'enstaller.pth')
+!                 filename = os.path.join(self.install_dir, 'Enstaller.pth')
                   if os.path.islink(filename): os.unlink(filename)
                   f = open(filename, 'wt')
                   f.write(self.pth_file.make_relative(dist.location)+'\n')
 ***************
-*** 1018,1028 ****
+*** 1017,1028 ****
+              log.set_verbosity(self.verbose)     # restore original verbosity
   
   
-  
+- 
 - 
 - 
 - 
@@ -711,7 +2075,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
       def no_default_version_msg(self):
           return """bad install directory or PYTHONPATH
   
---- 1423,1428 ----
+--- 1441,1446 ----
 ***************
 *** 1051,1069 ****
   
@@ -733,7 +2097,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
       def install_site_py(self):
           """Make sure there's a site.py in the target dir, if needed"""
   
---- 1451,1461 ----
+--- 1469,1479 ----
   
     http://peak.telecommunity.com/EasyInstall.html#custom-installation-locations
   
@@ -754,7 +2118,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
           current = ""
   
           if os.path.exists(sitepy):
---- 1463,1469 ----
+--- 1481,1487 ----
               return  # already did it, or don't need to
   
           sitepy = os.path.join(self.install_dir, "site.py")
@@ -771,7 +2135,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
                       " remove it." % sitepy
                   )
   
---- 1471,1477 ----
+--- 1489,1495 ----
               current = open(sitepy,'rb').read()
               if not current.startswith('def __boot():'):
                   raise DistutilsError(
@@ -797,7 +2161,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
       INSTALL_SCHEMES = dict(
           posix = dict(
               install_dir = '$base/lib/python$py_version_short/site-packages',
---- 1487,1492 ----
+--- 1505,1510 ----
 ***************
 *** 1138,1151 ****
                       val = os.path.expanduser(val)
@@ -814,7 +2178,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
   def get_site_dirs():
       # return a list of 'site' dirs
       sitedirs = filter(None,os.environ.get('PYTHONPATH','').split(os.pathsep))
---- 1520,1525 ----
+--- 1538,1543 ----
 ***************
 *** 1208,1214 ****
               if not name.endswith('.pth'):
@@ -824,20 +2188,19 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
                   # Ignore .pth files that we control
                   continue
   
---- 1582,1588 ----
+--- 1600,1606 ----
               if not name.endswith('.pth'):
                   # We only care about the .pth files
                   continue
-!             if name in ('easy-install.pth','enstaller.pth'):
+!             if name in ('easy-install.pth','Enstaller.pth'):
                   # Ignore .pth files that we control
                   continue
   
 ***************
-*** 1262,1274 ****
-      finally:
+*** 1263,1274 ****
           f.close()
   
-- 
+  
 - 
 - 
 - 
@@ -847,7 +2210,17 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
   def get_exe_prefixes(exe_filename):
       """Get exe->egg path translations for a given .exe file"""
   
---- 1636,1641 ----
+--- 1655,1660 ----
+***************
+*** 1297,1302 ****
+--- 1683,1689 ----
+                          prefixes.append((('%s/%s/' % (parts[0],pth)), ''))
+      finally:
+          z.close()
++ 
+      prefixes = [(x.lower(),y) for x, y in prefixes]
+      prefixes.sort(); prefixes.reverse()
+      return prefixes
 ***************
 *** 1362,1370 ****
               data = (
@@ -859,7 +2232,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
                   " sys.__egginsert = p+len(new)\n"
               ) % data
   
---- 1729,1737 ----
+--- 1749,1757 ----
               data = (
                   "import sys; sys.__plen = len(sys.path)\n"
                   "%s\n"
@@ -868,6 +2241,83 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 !                 " p=getattr(sys,'__egginsert',len(os.environ.get('PYTHONPATH','').split(os.pathsep))); sys.path[p:p]=new;"
                   " sys.__egginsert = p+len(new)\n"
               ) % data
+  
+***************
+*** 1391,1397 ****
+              self.paths.remove(dist.location); self.dirty = True
+          Environment.remove(self,dist)
+  
+- 
+      def make_relative(self,path):
+          npath, last = os.path.split(normalize_path(path))
+          baselen = len(self.basedir)
+--- 1778,1783 ----
+***************
+*** 1407,1412 ****
+--- 1793,1799 ----
+          else:
+              return path
+  
++ 
+  def get_script_header(script_text, executable=sys_executable, wininst=False):
+      """Create a #! line, getting options (if any) from script_text"""
+      from distutils.command.build_scripts import first_line_re
+***************
+*** 1433,1438 ****
+--- 1820,1826 ----
+      hdr = "#!%(executable)s%(options)s\n" % locals()
+      return hdr
+  
++ 
+  def auto_chmod(func, arg, exc):
+      if func is os.remove and os.name=='nt':
+          chmod(arg, stat.S_IWRITE)
+***************
+*** 1440,1451 ****
+--- 1828,1841 ----
+      exc = sys.exc_info()
+      raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
+  
++ 
+  def uncache_zipdir(path):
+      """Ensure that the importer caches dont have stale info for `path`"""
+      from zipimport import _zip_directory_cache as zdc
+      _uncache(path, zdc)
+      _uncache(path, sys.path_importer_cache)
+  
++ 
+  def _uncache(path, cache):
+      if path in cache:
+          del cache[path]
+***************
+*** 1456,1461 ****
+--- 1846,1852 ----
+                  del cache[p]
+                  return
+  
++ 
+  def is_python(text, filename='<string>'):
+      "Is this string a valid Python script?"
+      try:
+***************
+*** 1465,1470 ****
+--- 1856,1862 ----
+      else:
+          return True
+  
++ 
+  def is_sh(executable):
+      """Determine if the specified executable is a .sh (contains a #! line)"""
+      try:
+***************
+*** 1474,1479 ****
+--- 1866,1872 ----
+      except (OSError,IOError): return executable
+      return magic == '#!'
+  
++ 
+  def nt_quote_arg(arg):
+      """Quote a command line argument according to Windows parsing rules"""
   
 ***************
 *** 1508,1520 ****
@@ -884,9 +2334,104 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
   def is_python_script(script_text, filename):
       """Is this text, as a whole, a Python script? (as opposed to shell/bat/etc.
       """
---- 1875,1880 ----
+--- 1901,1906 ----
 ***************
-*** 1633,1639 ****
+*** 1528,1539 ****
+--- 1914,1927 ----
+  
+      return False    # Not any Python I can recognize
+  
++ 
+  try:
+      from os import chmod as _chmod
+  except ImportError:
+      # Jython compatibility
+      def _chmod(*args): pass
+  
++ 
+  def chmod(path, mode):
+      log.debug("changing mode of %s to %o", path, mode)
+      try:
+***************
+*** 1541,1558 ****
+      except os.error, e:
+          log.debug("chmod failed: %s", e)
+  
+  def fix_jython_executable(executable, options):
+      if sys.platform.startswith('java') and is_sh(executable):
+          # Workaround Jython's sys.executable being a .sh (an invalid
+          # shebang line interpreter)
+          if options:
+              # Can't apply the workaround, leave it broken
+!             log.warn("WARNING: Unable to adapt shebang line for Jython,"
+!                              " the following script is NOT executable\n"
+!                      "         see http://bugs.jython.org/issue1112 for"
+!                              " more information.")
+          else:
+              return '/usr/bin/env %s' % executable
+      return executable
+  
+  
+--- 1929,1949 ----
+      except os.error, e:
+          log.debug("chmod failed: %s", e)
+  
++ 
+  def fix_jython_executable(executable, options):
+      if sys.platform.startswith('java') and is_sh(executable):
+          # Workaround Jython's sys.executable being a .sh (an invalid
+          # shebang line interpreter)
+          if options:
+              # Can't apply the workaround, leave it broken
+!             log.warn(
+!                 "WARNING: Unable to adapt shebang line for Jython,"
+!                 " the following script is NOT executable\n"
+!                 "         see http://bugs.jython.org/issue1112 for"
+!                 " more information.")
+          else:
+              return '/usr/bin/env %s' % executable
++ 
+      return executable
+  
+  
+***************
+*** 1577,1587 ****
+                  if group=='gui_scripts':
+                      ext, launcher = '-script.pyw', 'gui.exe'
+                      old = ['.pyw']
+!                     new_header = re.sub('(?i)python.exe','pythonw.exe',header)
+                  else:
+                      ext, launcher = '-script.py', 'cli.exe'
+                      old = ['.py','.pyc','.pyo']
+!                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
+  
+                  if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
+                      hdr = new_header
+--- 1968,1978 ----
+                  if group=='gui_scripts':
+                      ext, launcher = '-script.pyw', 'gui.exe'
+                      old = ['.pyw']
+!                     new_header = re.sub('(?i)python.exe','pythonw.exe', header)
+                  else:
+                      ext, launcher = '-script.py', 'cli.exe'
+                      old = ['.py','.pyc','.pyo']
+!                     new_header = re.sub('(?i)pythonw.exe','python.exe', header)
+  
+                  if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
+                      hdr = new_header
+***************
+*** 1597,1602 ****
+--- 1988,1994 ----
+                  # just write the stub with no extension.
+                  yield (name, header+script_text)
+  
++ 
+  def rmtree(path, ignore_errors=False, onerror=auto_chmod):
+      """Recursively delete a directory tree.
+  
+***************
+*** 1632,1639 ****
+      except os.error:
           onerror(os.rmdir, path, sys.exc_info())
   
   def bootstrap():
@@ -894,14 +2439,30 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
       import setuptools; argv0 = os.path.dirname(setuptools.__path__[0])
       sys.argv[0] = argv0; sys.argv.append(argv0); main()
   
---- 1993,1999 ----
+--- 2024,2032 ----
+      except os.error:
           onerror(os.rmdir, path, sys.exc_info())
   
++ 
   def bootstrap():
 !     # This function is called when enstaller*.egg is run using /bin/sh
       import setuptools; argv0 = os.path.dirname(setuptools.__path__[0])
       sys.argv[0] = argv0; sys.argv.append(argv0); main()
   
+***************
+*** 1668,1673 ****
+--- 2061,2071 ----
+      if argv is None:
+          argv = sys.argv[1:]
+  
++     if '--version' in argv:
++         from enstaller import __version__
++         print "Enstaller version %s" % __version__
++         return
++ 
+      with_ei_usage(lambda:
+          setup(
+              script_args = ['-q','easy_install', '-v']+argv,
 ***************
 *** 1675,1681 ****
               distclass=DistributionWithoutHelpCommands, **kw
@@ -911,31 +2472,1205 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../../Enstall
 - 
 - 
 - 
---- 2035,2037 ----
-Only in ../../Enstaller/setuptools/command: easy_install.py~
-Only in ../../Enstaller/setuptools/command: easy_install.pyc
-Only in ../../Enstaller/setuptools/command: easy_install.py.orig
-Only in ../../Enstaller/setuptools/command: easy_install.py.rej
-Only in ../../Enstaller/setuptools/command: egg_info.pyc
-Only in ../../Enstaller/setuptools/command: __init__.pyc
-Only in ../../Enstaller/setuptools/command: install_egg_info.pyc
-Only in ../../Enstaller/setuptools/command: install_lib.pyc
-Only in ../../Enstaller/setuptools/command: install.pyc
-Only in ../../Enstaller/setuptools/command: install_scripts.pyc
-Only in ../../Enstaller/setuptools/command: register.pyc
-Only in ../../Enstaller/setuptools/command: rotate.pyc
-Only in ../../Enstaller/setuptools/command: saveopts.pyc
-Only in ../../Enstaller/setuptools/command: sdist.pyc
-Only in ../../Enstaller/setuptools/command: setopt.pyc
-Only in ../../Enstaller/setuptools/command: .svn
-Only in ../../Enstaller/setuptools/command: test.pyc
-Only in ../../Enstaller/setuptools/command: upload.pyc
-Only in ../../Enstaller/setuptools: depends.pyc
-Only in ../../Enstaller/setuptools: dist.pyc
-Only in ../../Enstaller/setuptools: extension.pyc
-diff -cr ../../setuptools-0.6c9/setuptools/__init__.py ../../Enstaller/setuptools/__init__.py
+--- 2073,2075 ----
+Only in ../setuptools/command: easy_install.py~
+Only in ../setuptools/command: easy_install.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/egg_info.py ../setuptools/command/egg_info.py
+*** ../../setuptools-0.6c9/setuptools/command/egg_info.py	2008-09-24 12:10:28.000000000 -0500
+--- ../setuptools/command/egg_info.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 33,44 ****
+      negative_opt = {'no-svn-revision': 'tag-svn-revision',
+                      'no-date': 'tag-date'}
+  
+- 
+- 
+- 
+- 
+- 
+- 
+      def initialize_options(self):
+          self.egg_name = None
+          self.egg_version = None
+--- 33,38 ----
+***************
+*** 59,85 ****
+              }
+          )
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+      def finalize_options (self):
+          self.egg_name = safe_name(self.distribution.get_name())
+          self.vtags = self.tags()
+--- 53,58 ----
+***************
+*** 188,208 ****
+          return version
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+      def get_svn_revision(self):
+          revision = 0
+          urlre = re.compile('url="([^"]+)"')
+--- 161,166 ----
+***************
+*** 221,230 ****
+                  data = map(str.splitlines,data.split('\n\x0c\n'))
+                  del data[0][0]  # get rid of the '8' or '9'
+                  dirurl = data[0][3]
+!                 localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
+              elif data.startswith('<?xml'):
+                  dirurl = urlre.search(data).group(1)    # get repository URL
+!                 localrev = max([int(m.group(1)) for m in revre.finditer(data)]+[0])
+              else:
+                  log.warn("unrecognized .svn/entries format; skipping %s", base)
+                  dirs[:] = []
+--- 179,190 ----
+                  data = map(str.splitlines,data.split('\n\x0c\n'))
+                  del data[0][0]  # get rid of the '8' or '9'
+                  dirurl = data[0][3]
+!                 localrev = max([int(d[9]) for d in data 
+!                                 if len(d)>9 and d[9]]+[0])
+              elif data.startswith('<?xml'):
+                  dirurl = urlre.search(data).group(1)    # get repository URL
+!                 localrev = max([int(m.group(1))
+!                                 for m in revre.finditer(data)]+[0])
+              else:
+                  log.warn("unrecognized .svn/entries format; skipping %s", base)
+                  dirs[:] = []
+***************
+*** 239,249 ****
+          return str(revision or get_pkg_info_revision())
+  
+  
+- 
+- 
+- 
+- 
+- 
+      def find_sources(self):
+          """Generate SOURCES.txt manifest file"""
+          manifest_filename = os.path.join(self.egg_info,"SOURCES.txt")
+--- 199,204 ----
+***************
+*** 267,272 ****
+--- 222,228 ----
+              self.broken_egg_info = self.egg_info
+              self.egg_info = bei     # make it work for now
+  
++ 
+  class FileList(FileList):
+      """File list that accepts only existing, platform-independent paths"""
+  
+***************
+*** 278,290 ****
+              self.files.append(path)
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  class manifest_maker(sdist):
+  
+      template = "MANIFEST.in"
+--- 234,239 ----
+***************
+*** 356,372 ****
+      f.close()
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def write_pkg_info(cmd, basename, filename):
+      log.info("writing %s", filename)
+      if not cmd.dry_run:
+--- 305,310 ----
+***************
+*** 407,413 ****
+      cmd.write_file("top-level names", filename, '\n'.join(pkgs)+'\n')
+  
+  
+- 
+  def overwrite_arg(cmd, basename, filename):
+      write_arg(cmd, basename, filename, True)
+  
+--- 345,350 ----
+***************
+*** 445,451 ****
+              if match:
+                  return int(match.group(1))
+      return 0
+- 
+- 
+- 
+- #
+--- 382,384 ----
+Only in ../setuptools/command: egg_info.pyc
+Only in ../setuptools/command: __init__.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/install_egg_info.py ../setuptools/command/install_egg_info.py
+*** ../../setuptools-0.6c9/setuptools/command/install_egg_info.py	2007-09-03 23:11:09.000000000 -0500
+--- ../setuptools/command/install_egg_info.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 30,42 ****
+          target = self.target
+          if os.path.isdir(self.target) and not os.path.islink(self.target):
+              dir_util.remove_tree(self.target, dry_run=self.dry_run)
+          elif os.path.exists(self.target):
+              self.execute(os.unlink,(self.target,),"Removing "+self.target)
+          if not self.dry_run:
+              pkg_resources.ensure_directory(self.target)
+          self.execute(self.copytree, (),
+!             "Copying %s to %s" % (self.source, self.target)
+!         )
+          self.install_namespaces()
+  
+      def get_outputs(self):
+--- 30,43 ----
+          target = self.target
+          if os.path.isdir(self.target) and not os.path.islink(self.target):
+              dir_util.remove_tree(self.target, dry_run=self.dry_run)
++ 
+          elif os.path.exists(self.target):
+              self.execute(os.unlink,(self.target,),"Removing "+self.target)
++ 
+          if not self.dry_run:
+              pkg_resources.ensure_directory(self.target)
+          self.execute(self.copytree, (),
+!                      "Copying %s to %s" % (self.source, self.target))
+          self.install_namespaces()
+  
+      def get_outputs(self):
+***************
+*** 57,85 ****
+          unpack_archive(self.source, self.target, skimmer)
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+      def install_namespaces(self):
+          nsp = self._get_all_ns_packages()
+          if not nsp: return
+--- 58,63 ----
+***************
+*** 119,123 ****
+          nsp=list(nsp)
+          nsp.sort()  # set up shorter names first
+          return nsp
+- 
+- 
+--- 97,99 ----
+diff -cr ../../setuptools-0.6c9/setuptools/command/install_lib.py ../setuptools/command/install_lib.py
+*** ../../setuptools-0.6c9/setuptools/command/install_lib.py	2006-09-20 16:05:03.000000000 -0500
+--- ../setuptools/command/install_lib.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 27,35 ****
+          exclude = {}
+          nsp = self.distribution.namespace_packages
+  
+!         if (nsp and self.get_finalized_command('install')
+!                .single_version_externally_managed
+!         ):
+              for pkg in nsp:
+                  parts = pkg.split('.')
+                  while parts:
+--- 27,35 ----
+          exclude = {}
+          nsp = self.distribution.namespace_packages
+  
+!         if (nsp and 
+!             self.get_finalized_command(
+!                 'install').single_version_externally_managed):
+              for pkg in nsp:
+                  parts = pkg.split('.')
+                  while parts:
+***************
+*** 39,48 ****
+                      parts.pop()
+          return exclude
+  
+!     def copy_tree(
+!         self, infile, outfile,
+!         preserve_mode=1, preserve_times=1, preserve_symlinks=0, level=1
+!     ):
+          assert preserve_mode and preserve_times and not preserve_symlinks
+          exclude = self.get_exclusions()
+  
+--- 39,47 ----
+                      parts.pop()
+          return exclude
+  
+!     def copy_tree(self, infile, outfile,
+!                   preserve_mode=1, preserve_times=1,
+!                   preserve_symlinks=0, level=1):
+          assert preserve_mode and preserve_times and not preserve_symlinks
+          exclude = self.get_exclusions()
+  
+***************
+*** 74,82 ****
+          if exclude:
+              return [f for f in outputs if f not in exclude]
+          return outputs
+- 
+- 
+- 
+- 
+- 
+- 
+--- 73,75 ----
+Only in ../setuptools/command: install_lib.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/install.py ../setuptools/command/install.py
+*** ../../setuptools-0.6c9/setuptools/command/install.py	2008-02-15 11:29:24.000000000 -0600
+--- ../setuptools/command/install.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 76,85 ****
+              self.do_egg_install()
+  
+  
+- 
+- 
+- 
+- 
+      def do_egg_install(self):
+  
+          easy_install = self.distribution.get_command_class('easy_install')
+--- 76,81 ----
+***************
+*** 103,123 ****
+          cmd.args = args
+          cmd.run()
+          setuptools.bootstrap_install_from = None
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- #
+--- 99,101 ----
+Only in ../setuptools/command: install.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/install_scripts.py ../setuptools/command/install_scripts.py
+*** ../../setuptools-0.6c9/setuptools/command/install_scripts.py	2008-02-15 11:29:24.000000000 -0600
+--- ../setuptools/command/install_scripts.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 36,44 ****
+              self.write_script(*args)
+  
+  
+- 
+- 
+- 
+      def write_script(self, script_name, contents, mode="t", *ignored):
+          """Write an executable file to the scripts directory"""
+          log.info("Installing %s script to %s", script_name, self.install_dir)
+--- 36,41 ----
+***************
+*** 51,82 ****
+              f.write(contents)
+              f.close()
+              chmod(target,0755)
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+--- 48,50 ----
+diff -cr ../../setuptools-0.6c9/setuptools/command/register.py ../setuptools/command/register.py
+*** ../../setuptools-0.6c9/setuptools/command/register.py	2006-09-20 16:05:03.000000000 -0500
+--- ../setuptools/command/register.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 7,10 ****
+          # Make sure that we are using valid current name/version info
+          self.run_command('egg_info')
+          _register.run(self)
+- 
+--- 7,9 ----
+Only in ../setuptools/command: register.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/rotate.py ../setuptools/command/rotate.py
+*** ../../setuptools-0.6c9/setuptools/command/rotate.py	2006-09-20 16:05:03.000000000 -0500
+--- ../setuptools/command/rotate.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 55,82 ****
+                  log.info("Deleting %s", f)
+                  if not self.dry_run:
+                      os.unlink(f)
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+--- 55,57 ----
+diff -cr ../../setuptools-0.6c9/setuptools/command/saveopts.py ../setuptools/command/saveopts.py
+*** ../../setuptools-0.6c9/setuptools/command/saveopts.py	2006-09-20 16:05:03.000000000 -0500
+--- ../setuptools/command/saveopts.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 22,25 ****
+                      settings.setdefault(cmd,{})[opt] = val
+  
+          edit_config(self.filename, settings, self.dry_run)
+- 
+--- 22,24 ----
+diff -cr ../../setuptools-0.6c9/setuptools/command/sdist.py ../setuptools/command/sdist.py
+*** ../../setuptools-0.6c9/setuptools/command/sdist.py	2008-09-24 12:10:28.000000000 -0500
+--- ../setuptools/command/sdist.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 9,18 ****
+  ]
+  
+  def unescape(data):
+!     for old,new in entities:
+          data = data.replace(old,new)
+      return data
+  
+  def re_finder(pattern, postproc=None):
+      def find(dirname, filename):
+          f = open(filename,'rU')
+--- 9,19 ----
+  ]
+  
+  def unescape(data):
+!     for old, new in entities:
+          data = data.replace(old,new)
+      return data
+  
++ 
+  def re_finder(pattern, postproc=None):
+      def find(dirname, filename):
+          f = open(filename,'rU')
+***************
+*** 25,50 ****
+              yield joinpath(dirname,path)
+      return find
+  
+  def joinpath(prefix,suffix):
+      if not prefix:
+          return suffix
+      return os.path.join(prefix,suffix)
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def walk_revctrl(dirname=''):
+      """Find all files under revision control"""
+      for ep in pkg_resources.iter_entry_points('setuptools.file_finders'):
+          for item in ep.load()(dirname):
+              yield item
+  
+  def _default_revctrl(dirname=''):
+      for path, finder in finders:
+          path = joinpath(dirname,path)
+--- 26,45 ----
+              yield joinpath(dirname,path)
+      return find
+  
++ 
+  def joinpath(prefix,suffix):
+      if not prefix:
+          return suffix
+      return os.path.join(prefix,suffix)
+  
+  
+  def walk_revctrl(dirname=''):
+      """Find all files under revision control"""
+      for ep in pkg_resources.iter_entry_points('setuptools.file_finders'):
+          for item in ep.load()(dirname):
+              yield item
+  
++ 
+  def _default_revctrl(dirname=''):
+      for path, finder in finders:
+          path = joinpath(dirname,path)
+***************
+*** 56,61 ****
+--- 51,57 ----
+                      for item in _default_revctrl(path):
+                          yield item
+  
++ 
+  def externals_finder(dirname, filename):
+      """Find any 'svn:externals' directories"""
+      found = False
+***************
+*** 106,126 ****
+      (convert_path('.svn/dir-prop-base'), externals_finder),  # svn 1.4
+  ]
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  class sdist(_sdist):
+      """Smart sdist that finds anything supported by revision control"""
+  
+--- 102,107 ----
+***************
+*** 185,205 ****
+              self.copy_file('setup.cfg', dest)
+  
+          self.get_finalized_command('egg_info').save_version_info(dest)
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- #
+--- 166,168 ----
+Only in ../setuptools/command: sdist.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/setopt.py ../setuptools/command/setopt.py
+*** ../../setuptools-0.6c9/setuptools/command/setopt.py	2006-09-20 16:05:03.000000000 -0500
+--- ../setuptools/command/setopt.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 26,44 ****
+      )
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def edit_config(filename, settings, dry_run=False):
+      """Edit a configuration file to include `settings`
+  
+--- 26,31 ----
+***************
+*** 62,85 ****
+              for option,value in options.items():
+                  if value is None:
+                      log.debug("Deleting %s.%s from %s",
+!                         section, option, filename
+!                     )
+                      opts.remove_option(section,option)
+                      if not opts.options(section):
+                          log.info("Deleting empty [%s] section from %s",
+!                                   section, filename)
+                          opts.remove_section(section)
+                  else:
+!                     log.debug(
+!                         "Setting %s.%s to %r in %s",
+!                         section, option, value, filename
+!                     )
+                      opts.set(section,option,value)
+  
+      log.info("Writing %s", filename)
+      if not dry_run:
+          f = open(filename,'w'); opts.write(f); f.close()
+  
+  class option_base(Command):
+      """Abstract base class for commands that mess with config files"""
+      
+--- 49,70 ----
+              for option,value in options.items():
+                  if value is None:
+                      log.debug("Deleting %s.%s from %s",
+!                               section, option, filename)
+                      opts.remove_option(section,option)
+                      if not opts.options(section):
+                          log.info("Deleting empty [%s] section from %s",
+!                                  section, filename)
+                          opts.remove_section(section)
+                  else:
+!                     log.debug("Setting %s.%s to %r in %s",
+!                               section, option, value, filename)
+                      opts.set(section,option,value)
+  
+      log.info("Writing %s", filename)
+      if not dry_run:
+          f = open(filename,'w'); opts.write(f); f.close()
+  
++ 
+  class option_base(Command):
+      """Abstract base class for commands that mess with config files"""
+      
+***************
+*** 119,126 ****
+          self.filename, = filenames    
+  
+  
+- 
+- 
+  class setopt(option_base):
+      """Save command-line options to a file"""
+  
+--- 104,109 ----
+***************
+*** 156,164 ****
+              },
+              self.dry_run
+          )
+- 
+- 
+- 
+- 
+- 
+- 
+--- 139,141 ----
+Only in ../setuptools/command: setopt.pyc
+Only in ../setuptools/command: .svn
+diff -cr ../../setuptools-0.6c9/setuptools/command/test.py ../setuptools/command/test.py
+*** ../../setuptools-0.6c9/setuptools/command/test.py	2008-02-15 11:29:24.000000000 -0600
+--- ../setuptools/command/test.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 79,85 ****
+              self.test_loader = "setuptools.command.test:ScanningLoader"
+  
+  
+- 
+      def with_project_on_sys_path(self, func):
+          # Ensure metadata is up-to-date
+          self.run_command('egg_info')
+--- 79,84 ----
+***************
+*** 108,114 ****
+  
+      def run(self):
+          if self.distribution.install_requires:
+!             self.distribution.fetch_build_eggs(self.distribution.install_requires)
+          if self.distribution.tests_require:
+              self.distribution.fetch_build_eggs(self.distribution.tests_require)
+  
+--- 107,114 ----
+  
+      def run(self):
+          if self.distribution.install_requires:
+!             self.distribution.fetch_build_eggs(
+!                 self.distribution.install_requires)
+          if self.distribution.tests_require:
+              self.distribution.fetch_build_eggs(self.distribution.tests_require)
+  
+***************
+*** 129,164 ****
+              None, None, [unittest.__file__]+self.test_args,
+              testLoader = loader_class()
+          )
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+--- 129,131 ----
+Only in ../setuptools/command: test.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/command/upload.py ../setuptools/command/upload.py
+*** ../../setuptools-0.6c9/setuptools/command/upload.py	2008-09-24 12:10:28.000000000 -0500
+--- ../setuptools/command/upload.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 69,75 ****
+  
+      def run(self):
+          if not self.distribution.dist_files:
+!             raise DistutilsOptionError("No dist file created in earlier command")
+          for command, pyversion, filename in self.distribution.dist_files:
+              self.upload_file(command, pyversion, filename)
+  
+--- 69,76 ----
+  
+      def run(self):
+          if not self.distribution.dist_files:
+!             raise DistutilsOptionError(
+!                 "No dist file created in earlier command")
+          for command, pyversion, filename in self.distribution.dist_files:
+              self.upload_file(command, pyversion, filename)
+  
+***************
+*** 111,117 ****
+                                       open(filename+".asc").read())
+  
+          # set up the authentication
+!         auth = "Basic " + base64.encodestring(self.username + ":" + self.password).strip()
+  
+          # Build up the MIME payload for the POST data
+          boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
+--- 112,119 ----
+                                       open(filename+".asc").read())
+  
+          # set up the authentication
+!         auth = "Basic " + base64.encodestring(self.username + ":" +
+!                                               self.password).strip()
+  
+          # Build up the MIME payload for the POST data
+          boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
+***************
+*** 140,146 ****
+          body.write("\n")
+          body = body.getvalue()
+  
+!         self.announce("Submitting %s to %s" % (filename, self.repository), log.INFO)
+  
+          # build the Request
+          # We can't use urllib2 since we need to send the Basic
+--- 142,149 ----
+          body.write("\n")
+          body = body.getvalue()
+  
+!         self.announce("Submitting %s to %s" % (filename, self.repository),
+!                       log.INFO)
+  
+          # build the Request
+          # We can't use urllib2 since we need to send the Basic
+Only in ../setuptools/command: upload.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/depends.py ../setuptools/depends.py
+*** ../../setuptools-0.6c9/setuptools/depends.py	2008-09-24 12:10:35.000000000 -0500
+--- ../setuptools/depends.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 113,126 ****
+          yield op,arg
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def find_module(module, paths=None):
+      """Just like 'imp.find_module()', but with package support"""
+  
+--- 113,118 ----
+***************
+*** 140,167 ****
+      return info
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  def get_module_constant(module, symbol, default=-1, paths=None):
+  
+      """Find 'module' by searching 'paths', and extract 'symbol'
+--- 132,137 ----
+***************
+*** 197,208 ****
+      return extract_constant(code,symbol,default)
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+  def extract_constant(code,symbol,default=-1):
+      """Extract the constant value of 'symbol' from 'code'
+  
+--- 167,172 ----
+***************
+*** 242,246 ****
+      del extract_constant, get_module_constant
+      __all__.remove('extract_constant')
+      __all__.remove('get_module_constant')
+- 
+- 
+--- 206,208 ----
+Only in ../setuptools: depends.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/dist.py ../setuptools/dist.py
+*** ../../setuptools-0.6c9/setuptools/dist.py	2008-02-15 11:29:24.000000000 -0600
+--- ../setuptools/dist.py	2008-11-28 21:51:19.000000000 -0600
+***************
+*** 48,53 ****
+--- 48,54 ----
+              "%r must be a list of strings (got %r)" % (attr,value)
+          )
+  
++ 
+  def check_nsp(dist, attr, value):
+      """Verify that namespace packages are valid"""
+      assert_string_list(dist,attr,value)
+***************
+*** 65,70 ****
+--- 66,72 ----
+                      " please correct this in setup.py", nsp, parent
+                  )
+  
++ 
+  def check_extras(dist, attr, value):
+      """Verify that extras_require mapping is valid"""
+      try:
+***************
+*** 78,91 ****
+          )
+  
+  
+- 
+- 
+  def assert_bool(dist, attr, value):
+      """Verify that value is True, False, 0, or 1"""
+      if bool(value) != value:
+          raise DistutilsSetupError(
+              "%r must be a boolean value (got %r)" % (attr,value)
+          )
+  def check_requirements(dist, attr, value):
+      """Verify that install_requires is a valid requirements list"""
+      try:
+--- 80,93 ----
+          )
+  
+  
+  def assert_bool(dist, attr, value):
+      """Verify that value is True, False, 0, or 1"""
+      if bool(value) != value:
+          raise DistutilsSetupError(
+              "%r must be a boolean value (got %r)" % (attr,value)
+          )
++ 
++ 
+  def check_requirements(dist, attr, value):
+      """Verify that install_requires is a valid requirements list"""
+      try:
+***************
+*** 95,100 ****
+--- 97,104 ----
+              "%r must be a string or list of strings "
+              "containing valid project/version requirement specifiers" % (attr,)
+          )
++ 
++ 
+  def check_entry_points(dist, attr, value):
+      """Verify that entry_points map is parseable"""
+      try:
+***************
+*** 102,111 ****
+--- 106,117 ----
+      except ValueError, e:
+          raise DistutilsSetupError(e)
+  
++ 
+  def check_test_suite(dist, attr, value):
+      if not isinstance(value,basestring):
+          raise DistutilsSetupError("test_suite must be a string")
+  
++ 
+  def check_package_data(dist, attr, value):
+      """Verify that value is a dictionary of package names to glob lists"""
+      if isinstance(value,dict):
+***************
+*** 121,126 ****
+--- 127,133 ----
+          "wildcard patterns"
+      )
+  
++ 
+  class Distribution(_Distribution):
+      """Distribution with support for features, tests, and package data
+  
+***************
+*** 310,331 ****
+          self.negative_opt = self.feature_negopt = no
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+      def _finalize_features(self):
+          """Add/remove features and resolve dependencies between them"""
+  
+--- 317,322 ----
+***************
+*** 359,372 ****
+      def print_commands(self):
+          for ep in pkg_resources.iter_entry_points('distutils.commands'):
+              if ep.name not in self.cmdclass:
+!                 cmdclass = ep.load(False) # don't require extras, we're not running
+                  self.cmdclass[ep.name] = cmdclass
+          return _Distribution.print_commands(self)
+  
+  
+- 
+- 
+- 
+      def _set_feature(self,name,status):
+          """Set feature's inclusion status"""
+          setattr(self,self._feature_attrname(name),status)
+--- 350,361 ----
+      def print_commands(self):
+          for ep in pkg_resources.iter_entry_points('distutils.commands'):
+              if ep.name not in self.cmdclass:
+!                 # don't require extras, we're not running
+!                 cmdclass = ep.load(False)
+                  self.cmdclass[ep.name] = cmdclass
+          return _Distribution.print_commands(self)
+  
+  
+      def _set_feature(self,name,status):
+          """Set feature's inclusion status"""
+          setattr(self,self._feature_attrname(name),status)
+***************
+*** 441,454 ****
+                  return True
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+      def _exclude_misc(self,name,value):
+          """Handle 'exclude()' for list/tuple attrs without a special handler"""
+          if not isinstance(value,sequence):
+--- 430,435 ----
+***************
+*** 521,536 ****
+          map(self.exclude_package, packages)
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+      def _parse_command_opts(self, parser, args):
+          # Remove --with-X/--without-X options when processing command args
+          self.global_options = self.__class__.global_options
+--- 502,507 ----
+***************
+*** 558,577 ****
+          return nargs
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+      def get_cmdline_options(self):
+          """Return a '{cmd: {opt:val}}' map of all command-line options
+  
+--- 529,534 ----
+***************
+*** 636,659 ****
+      module.Distribution = Distribution
+  
+  
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+  class Feature:
+      """A subset of the distribution that can be excluded if unneeded/wanted
+  
+--- 593,598 ----
+***************
+*** 705,712 ****
+      at are 'description' and 'optional'.
+      """
+      def __init__(self, description, standard=False, available=True,
+!         optional=True, require_features=(), remove=(), **extras
+!     ):
+  
+          self.description = description
+          self.standard = standard
+--- 644,650 ----
+      at are 'description' and 'optional'.
+      """
+      def __init__(self, description, standard=False, available=True,
+!                  optional=True, require_features=(), remove=(), **extras):
+  
+          self.description = description
+          self.standard = standard
+***************
+*** 758,764 ****
+              dist.include_feature(f)
+  
+  
+- 
+      def exclude_from(self,dist):
+  
+          """Ensure feature is excluded from distribution
+--- 696,701 ----
+***************
+*** 776,782 ****
+                  dist.exclude_package(item)
+  
+  
+- 
+      def validate(self,dist):
+  
+          """Verify that feature makes sense in context of distribution
+--- 713,718 ----
+***************
+*** 796,820 ****
+                      " doesn't contain any packages or modules under %s"
+                      % (self.description, item, item)
+                  )
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+--- 732,734 ----
+Only in ../setuptools: dist.pyc
+Only in ../setuptools: extension.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/__init__.py ../setuptools/__init__.py
 *** ../../setuptools-0.6c9/setuptools/__init__.py	2008-09-24 12:10:35.000000000 -0500
---- ../../Enstaller/setuptools/__init__.py	2008-11-10 14:41:27.000000000 -0600
+--- ../setuptools/__init__.py	2008-12-03 18:30:36.000000000 -0600
 ***************
 *** 7,13 ****
   from distutils.util import convert_path
@@ -945,20 +3680,54 @@ diff -cr ../../setuptools-0.6c9/setuptools/__init__.py ../../Enstaller/setuptool
   __all__ = [
       'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
       'find_packages'
---- 7,14 ----
+--- 7,15 ----
   from distutils.util import convert_path
   import os.path
   
-! # hacked from 0.6c9 so we know it is enstallers and comes *after* 0.6c9 in revision.
+! # hacked from 0.6c9 so we know it is Enstaller's and comes *after* 0.6c9 in
+! # revision.
 ! __version__ = '0.6c9-s1'
   __all__ = [
       'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
       'find_packages'
-Only in ../../Enstaller/setuptools: __init__.py~
-Only in ../../Enstaller/setuptools: __init__.pyc
-diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../../Enstaller/setuptools/package_index.py
+***************
+*** 40,46 ****
+      return out
+  
+  setup = distutils.core.setup
+!     
+  _Command = _get_unpatched(_Command)
+  
+  class Command(_Command):
+--- 42,48 ----
+      return out
+  
+  setup = distutils.core.setup
+! 
+  _Command = _get_unpatched(_Command)
+  
+  class Command(_Command):
+***************
+*** 53,59 ****
+          _Command.__init__(self,dist)
+          for k,v in kw.items():
+              setattr(self,k,v)
+!             
+      def reinitialize_command(self, command, reinit_subcommands=0, **kw):
+          cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
+          for k,v in kw.items():
+--- 55,61 ----
+          _Command.__init__(self,dist)
+          for k,v in kw.items():
+              setattr(self,k,v)
+! 
+      def reinitialize_command(self, command, reinit_subcommands=0, **kw):
+          cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
+          for k,v in kw.items():
+Only in ../setuptools: __init__.pyc
+diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/package_index.py
 *** ../../setuptools-0.6c9/setuptools/package_index.py	2008-09-24 12:10:36.000000000 -0500
---- ../../Enstaller/setuptools/package_index.py	2008-11-14 10:51:01.000000000 -0600
+--- ../setuptools/package_index.py	2008-11-28 21:51:19.000000000 -0600
 ***************
 *** 141,148 ****
               if match:
@@ -1192,8 +3961,9 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../../Enstaller/setu
 - 
 - # this line is a kludge to keep the trailing blank lines for pje's editor
 --- 744,746 ----
-Only in ../../Enstaller/setuptools: package_index.py~
-Only in ../../Enstaller/setuptools: package_index.pyc
-Only in ../../Enstaller/setuptools: sandbox.pyc
-Only in ../../Enstaller/setuptools: .svn
-Only in ../../Enstaller/setuptools/tests: .svn
+Only in ../setuptools: package_index.pyc
+Only in ../setuptools: sandbox.pyc
+Only in ../setuptools: .svn
+Only in ../setuptools/tests: doctest.pyc
+Only in ../setuptools/tests: __init__.pyc
+Only in ../setuptools/tests: .svn

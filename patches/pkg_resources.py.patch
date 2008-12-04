@@ -1,5 +1,5 @@
 *** ../../setuptools-0.6c9/pkg_resources.py	2008-09-24 12:10:45.000000000 -0500
---- ../../Enstaller/pkg_resources.py	2008-11-21 18:17:22.000000000 -0600
+--- ../pkg_resources.py	2008-11-25 17:34:17.000000000 -0600
 ***************
 *** 24,44 ****
   from os import open as os_open

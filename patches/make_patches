@@ -1,4 +1,4 @@
 #!/bin/sh
-diff -cr ../../setuptools-0.6c9/setuptools ../../Enstaller/setuptools > setuptools.patch
-diff -c ../../setuptools-0.6c9/pkg_resources.py ../../Enstaller/pkg_resources.py > pkg_resources.py.patch
-diff -c ../../setuptools-0.6c9/setup.py ../../Enstaller/setup.py > setup.py.patch
+diff -cr ../../setuptools-0.6c9/setuptools ../setuptools > setuptools.patch
+diff -c ../../setuptools-0.6c9/pkg_resources.py ../pkg_resources.py > pkg_resources.py.patch
+diff -c ../../setuptools-0.6c9/setup.py ../setup.py > setup.py.patch

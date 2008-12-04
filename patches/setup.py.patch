@@ -1,7 +1,7 @@
 *** ../../setuptools-0.6c9/setup.py	2008-09-24 12:10:45.000000000 -0500
---- ../../Enstaller/setup.py	2008-11-17 14:25:30.000000000 -0600
+--- ../setup.py	2008-12-03 18:30:36.000000000 -0600
 ***************
-*** 7,29 ****
+*** 7,35 ****
   execfile(convert_path('setuptools/command/__init__.py'), d)
   
   SETUP_COMMANDS = d['__all__']
@@ -25,20 +25,27 @@
       test_suite = 'setuptools.tests',
       packages = find_packages(),
       package_data = {'setuptools':['*.exe']},
---- 7,28 ----
+- 
+      py_modules = ['pkg_resources', 'easy_install', 'site'],
+- 
+      zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
+  
+      entry_points = {
+--- 7,33 ----
   execfile(convert_path('setuptools/command/__init__.py'), d)
   
   SETUP_COMMANDS = d['__all__']
-! VERSION = "3.0.2"
+! VERSION = "3.0.4"
   
   from setuptools import setup, find_packages
   import sys
   scripts = []
   
   setup(
-!     name="enstaller",
+!     name="Enstaller",
       version=VERSION,
-!     descriptions = "A replacement for setuptools that builds on top of it and adds additional features.",
+!     description = ("A replacement for setuptools that builds on top of it and "
+!         "adds additional features."),
 !     author="Enthought, Inc.",
 !     author_email="info@enthought.com",
 !     license="BSD",
@@ -48,6 +55,10 @@
       test_suite = 'setuptools.tests',
       packages = find_packages(),
       package_data = {'setuptools':['*.exe']},
+      py_modules = ['pkg_resources', 'easy_install', 'site'],
+      zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
+  
+      entry_points = {
 ***************
 *** 69,75 ****
           "console_scripts": [
@@ -57,7 +68,7 @@
           ],
   
           "setuptools.file_finders":
---- 68,75 ----
+--- 67,74 ----
           "console_scripts": [
                "easy_install = setuptools.command.easy_install:main",
                "easy_install-%s = setuptools.command.easy_install:main"
@@ -67,32 +78,62 @@
   
           "setuptools.file_finders":
 ***************
-*** 83,90 ****
+*** 81,123 ****
+  
+  
       classifiers = [f.strip() for f in """
-      Development Status :: 3 - Alpha
-      Intended Audience :: Developers
+!     Development Status :: 3 - Alpha
+!     Intended Audience :: Developers
 !     License :: OSI Approved :: Python Software Foundation License
 !     License :: OSI Approved :: Zope Public License
-      Operating System :: OS Independent
-      Programming Language :: Python
-      Topic :: Software Development :: Libraries :: Python Modules
---- 83,89 ----
-      classifiers = [f.strip() for f in """
-      Development Status :: 3 - Alpha
-      Intended Audience :: Developers
-!     License :: OSI Approved :: BSD License
-      Operating System :: OS Independent
-      Programming Language :: Python
-      Topic :: Software Development :: Libraries :: Python Modules
-***************
-*** 92,100 ****
-      Topic :: System :: Systems Administration
-      Topic :: Utilities""".splitlines() if f.strip()],
+!     Operating System :: OS Independent
+!     Programming Language :: Python
+!     Topic :: Software Development :: Libraries :: Python Modules
+!     Topic :: System :: Archiving :: Packaging
+!     Topic :: System :: Systems Administration
+!     Topic :: Utilities""".splitlines() if f.strip()],
       scripts = scripts,
 - 
 -     # uncomment for testing
 -     # setup_requires = ['setuptools>=0.6a0'],
   )
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+--- 80,93 ----
   
   
---- 91,96 ----
+      classifiers = [f.strip() for f in """
+!         Development Status :: 3 - Alpha
+!         Intended Audience :: Developers
+!         License :: OSI Approved :: BSD License
+!         Operating System :: OS Independent
+!         Programming Language :: Python
+!         Topic :: Software Development :: Libraries :: Python Modules
+!         Topic :: System :: Archiving :: Packaging
+!         Topic :: System :: Systems Administration
+!         Topic :: Utilities""".splitlines() if f.strip()],
+      scripts = scripts,
+  )
