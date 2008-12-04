@@ -26,13 +26,15 @@ except ImportError: from md5 import md5
 DEFAULT_VERSION = "3.0.3"
 DEFAULT_URL = "http://pypi.python.org/packages/%s/E/Enstaller/" % sys.version[:3]
 md5_data = {
+    'Enstaller-3.0.4-py2.4.egg': '6110e9daf82a72b990cf22cacd63db7c',
+    'Enstaller-3.0.4-py2.5.egg': '90be6f931429c6bc76654d66b3c9cae1',
     'enstaller-3.0.1-py2.4.egg': '9e688ab0a059e90ea2aba5885ded9838',
     'enstaller-3.0.1-py2.5.egg': '064b48279d7eb8aa337369ae1dddf8bd',
     'enstaller-3.0.2-py2.4.egg': '84052f10fd36340257c211e01aa6b308',
     'enstaller-3.0.2-py2.5.egg': '2801a25cb88007d0ea701599303a74e5',
     'enstaller-3.0.3-py2.4.egg': '2b69205fb2d1b32e4da3f7a6f8e2af07',
     'enstaller-3.0.3-py2.5.egg': '1c3be6a688f5992cf36a253f7a0732a4',
-    }
+}
 
 
 def _validate_md5(egg_name, data):
