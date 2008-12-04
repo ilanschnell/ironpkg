@@ -317,6 +317,13 @@ def list_installed(interactive=True, term_width=0):
         print
 
 
+def list_deps(args):
+    # ...
+    repos = get_local_repos()
+    print args
+
+
+
 def setup_parser():
     description = """\
 Utility for managing packages in the site-packages directory.
@@ -338,7 +345,7 @@ The command needs to be on of the following: install, upgrade, remove, list
 
     parser.set_defaults(interactive=False, logging=INFO, dry_run=False,
         term_width=term_width, remote_html=[PYPI_REPO], remote_xmlrpc=[],
-        allow_unstable=False, proxy="")
+        allow_unstable=False, proxy="", find_links=[])
 
     parser.add_option("-i", "--interactive", action="store_true",
         dest="interactive", help="prompt user for choices")
@@ -418,6 +425,8 @@ def main():
     elif command == "list":
         list_installed(interactive=options.interactive,
             term_width=options.term_width)
+    elif command == "list_deps":
+        list_deps(args)
 
 
 if __name__ == "__main__":
