@@ -16,7 +16,8 @@ scripts = []
 setup(
     name="Enstaller",
     version=VERSION,
-    description = "A replacement for setuptools that builds on top of it and adds additional features.",
+    description = ("A replacement for setuptools that builds on top of it and "
+        "adds additional features."),
     author="Enthought, Inc.",
     author_email="info@enthought.com",
     license="BSD",
@@ -26,9 +27,7 @@ setup(
     test_suite = 'setuptools.tests',
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
-
     py_modules = ['pkg_resources', 'easy_install', 'site'],
-
     zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
 
     entry_points = {
@@ -81,14 +80,14 @@ setup(
 
 
     classifiers = [f.strip() for f in """
-    Development Status :: 3 - Alpha
-    Intended Audience :: Developers
-    License :: OSI Approved :: BSD License
-    Operating System :: OS Independent
-    Programming Language :: Python
-    Topic :: Software Development :: Libraries :: Python Modules
-    Topic :: System :: Archiving :: Packaging
-    Topic :: System :: Systems Administration
-    Topic :: Utilities""".splitlines() if f.strip()],
+        Development Status :: 3 - Alpha
+        Intended Audience :: Developers
+        License :: OSI Approved :: BSD License
+        Operating System :: OS Independent
+        Programming Language :: Python
+        Topic :: Software Development :: Libraries :: Python Modules
+        Topic :: System :: Archiving :: Packaging
+        Topic :: System :: Systems Administration
+        Topic :: Utilities""".splitlines() if f.strip()],
     scripts = scripts,
 )

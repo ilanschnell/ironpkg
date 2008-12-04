@@ -10,6 +10,7 @@
 # Corran Webster
 #------------------------------------------------------------------------------
 
+
 # standard library imports
 import sys
 import os
@@ -21,11 +22,12 @@ from logging import basicConfig, error, warning, info, debug, DEBUG, INFO, \
 from pkg_resources import Requirement
 
 # enstaller imports
+from config import get_configured_repos
 from package import EasyInstallPackage, RemotePackage
-from repository import EasyInstallRepository, HTMLRepository, RepositoryUnion
-from utilities import remove_eggs_from_path, rst_table, get_platform
-from upgrade import upgrade
 from proxy.api import setup_proxy
+from repository import EasyInstallRepository, HTMLRepository, RepositoryUnion
+from upgrade import upgrade
+from utilities import remove_eggs_from_path, rst_table, get_platform
 
 
 try:
@@ -36,14 +38,6 @@ except ImportError:
 
 # set up global variables
 PLAT, PLAT_VER = get_platform()
-
-ENTHOUGHT_REPO = (
-    "http://code.enthought.com/enstaller/eggs/%s/%s" % (PLAT, PLAT_VER))
-
-ENTHOUGHT_UNSTABLE_REPO = (
-    "http://code.enthought.com/enstaller/eggs/%s/%s/unstable" %
-    (PLAT, PLAT_VER))
-
 PYPI_REPO = "http://pypi.python.org/simple"
 
 
@@ -150,8 +144,7 @@ def install_requirement(requirements, target_repo=None, local_repos=None,
     if target_repo is None:
         target_repo = get_site_packages()
     if remote_repos is None:
-        remote_repos = [HTMLRepository("http://code.enthought.com/"),
-            HTMLRepository("http://pypi.python.org/simple")]
+        remote_repos = [HTMLRepository("http://pypi.python.org/simple")]
     if local_repos is None:
         local_repos = get_local_repos()
     local = RepositoryUnion(get_local_repos())
@@ -344,8 +337,7 @@ The command needs to be on of the following: install, upgrade, remove, list
         pass
 
     parser.set_defaults(interactive=False, logging=INFO, dry_run=False,
-        term_width=term_width, remote_html=[PYPI_REPO],
-        find_links=[ENTHOUGHT_REPO], remote_xmlrpc=[],
+        term_width=term_width, remote_html=[PYPI_REPO], remote_xmlrpc=[],
         allow_unstable=False, proxy="")
 
     parser.add_option("-i", "--interactive", action="store_true",
@@ -372,47 +364,35 @@ The command needs to be on of the following: install, upgrade, remove, list
 
 
 def main():
-    # get our options
+
+    # Get and validate our options and arguments
     parser = setup_parser()
     options, args = parser.parse_args()
-
     if len(args) < 1:
         parser.error("Must call enpkg with one of 'install', 'upgrade', "
-                     "'remove', or 'list', see -h for more details")
+            "'remove', or 'list', see -h for more details")
 
-    # set up logging
+    # Set up logging
     basicConfig(level=options.logging, format="%(message)s")
 
-    # warn the user if the detected platform may not be supported
-    supported = ["windows", "macosx", "debian", "rhel", "suse", "ubuntu"]
-
-    if PLAT not in supported or PLAT_VER == "":
-        msg = """
-        Warning: There may not be an Enthought repository for
-        platform "%s" "%s".
-        Check
-
-            http://code.enthought.com/enstaller/eggs
-
-        for the available platforms.
-        """ % (PLAT, PLAT_VER)
-
-        warning(msg)
-
-    if options.allow_unstable:
-        options.find_links.append(ENTHOUGHT_UNSTABLE_REPO)
+    # Build the list of remote repositories we'll search for distributions to
+    # install.  Note that we include any repos specified in our config file but
+    # that list depends on whether the user requested "unstable" repos or not.
     remote_repos=[HTMLRepository(arg) for arg in options.remote_html]
     # XXX hack!  Should make the find_packages part of the Repository object
     remote_repos[0].environment.add_find_links(options.find_links)
+    remote_repos.extend([HTMLRepository(arg) for arg in
+        get_configured_repos(unstable=options.allow_unstable)])
 
+    # Try to set up a proxy server, either from options or environment vars.
+    # This makes urllib2 calls do the right thing.
     try:
-        # try to set up a proxy server, either from options or environment
-        # this makes urllib2 calls do the right thing
         installed = setup_proxy(options.proxy)
     except ValueError, e:
         error('Proxy configuration error: %s' % e)
         sys.exit(2)
 
+    # Do the user's requested command.
     command = args[0]
     args = args[1:]
     if command == "install":

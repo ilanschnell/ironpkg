@@ -198,6 +198,11 @@ class easy_install(Command):
                 self.find_links = self.find_links.split()
         else:
             self.find_links = []
+
+        # Add any additional configured repos.
+        from enstaller.config import get_configured_repos
+        self.find_links.extend(get_configured_repos())
+
         if self.local_snapshots_ok:
             self.package_index.scan_egg_links(self.shadow_path+sys.path)
         self.package_index.add_find_links(self.find_links)
@@ -448,7 +453,7 @@ Please make the appropriate changes for your system and try again.
                 "%r already exists in %s; can't do a checkout there" %
                 (spec.key, self.build_directory)
             )
-    
+
     def get_deps(self):
         """Check for back dependencies. The idea is that if a package is being
         uninstalled and a dependency is also being uninstalled, this will help
@@ -460,37 +465,37 @@ Please make the appropriate changes for your system and try again.
 
         # Get the set of installed packages
         projects = WorkingSet()
-        
+
         # Instantiate dictionary of project requirements
         reqdict = {}
-        
+
         # Instantiate back-dependency dictionary. The ONLY items in this
         # will be projects that are depended upon by something else.
         low_dep_dict = {}
-        
+
         # Create dictionary of each installed project and related dependencies
         for project in projects:
-            
+
             # list of requirements for each project
             try:
                 reqs = require(project.project_name)
             except DistributionNotFound:
                 continue
             reqdict[project] = reqs
-        
+
         # Create the dictionary of packages being depended on.
         for key, value in reqdict.iteritems():
             for item in value:
-                
-                # This keeps out entries that have only themselves in the 
+
+                # This keeps out entries that have only themselves in the
                 # dependency list
                 if item.project_name == key.project_name:
                     continue
-               
-                # spec becomes a list of tuples of version numbers and 
+
+                # spec becomes a list of tuples of version numbers and
                 # operators, eg [(">=", "2.0"), ("<=", 3.0")]
                 spec = value[0].requires()[0].specs
-                
+
                 # version_list will become a concatenated list of versions, eg
                 # ['>=2.0', '<=3.0']
                 version_list = []
@@ -519,7 +524,7 @@ Please make the appropriate changes for your system and try again.
 
         if current_dep not in all.keys():
             print "Nothing else depends on %s." % current_dep
-        
+
         # Check to see if a dependency is is only required by the package
         # specified for removal.
         elif len(all[current_dep]) == 1 and \
@@ -529,12 +534,12 @@ Please make the appropriate changes for your system and try again.
         else:
             # Fetch dictionary of projects that require current_dep
             depends_on_dep = all[current_dep]
-            
+
             # Print list of projects that need current_dep
             for project in depends_on_dep:
                 print "%s %s is needed by %s." % \
                 (current_dep, depends_on_dep[project], project)
-        
+
         choice = ''
         while 1:
             if choice.lower() == 'n':
@@ -599,7 +604,7 @@ Please make the appropriate changes for your system and try again.
         #
         if path.isdir(installed_egg_path):
             egg_dir = installed_egg_path
-            
+
         else:
             tmp_unpack_dir = tempfile.mkdtemp(prefix="easy_install-")
             egg_dir = path.join(tmp_unpack_dir,
@@ -622,7 +627,7 @@ Please make the appropriate changes for your system and try again.
         if tmp_unpack_dir != "":
             self._rm_rf(tmp_unpack_dir)
 
-    
+
     def uninstall(self, specs):
         """ Uninstall function to remove all files associated with an egg,
         including scripts generated.  Also does a back-check of dependencies
@@ -642,28 +647,28 @@ Please make the appropriate changes for your system and try again.
                         raise DistributionNotFound
                     self._remove_dist(dist)
             return
-                
+
             all_deps = self.get_deps()
-                    
+
             for spec in specs:
                 pkgs = require(spec)
-                
+
                 # If the package found has dependencies, prompt the user if they
                 # want the dependencies to be uninstalled as well.
                 if len(pkgs) > 1:
                     for dep in pkgs[1:]:
                         if self.check_deps(dep.project_name, spec, all_deps):
                             self._remove_dist(dep)
-                            
+
                 # Finally, check if user-specified package can be safely
                 # removed.
                 if self.check_deps(pkgs[0].project_name, spec, all_deps):
                     self._remove_dist(pkgs[0])
-                        
+
         except DistributionNotFound:
                 log.info("Could not find suitable package for: %s" % spec)
-            
-            
+
+
     def _remove_dist(self, dist):
         """ Module to remove Distribution objects.
         """
@@ -671,8 +676,8 @@ Please make the appropriate changes for your system and try again.
         log.info("Removing %s..." % pkg_path)
         self._run_pre_uninstall(pkg_path)
         self._remove_package_file(pkg_path)
-        
-        
+
+
     def _remove_package_file(self, package_filepath):
         """
         Finds the easy_install.pth file and removes the line containing the
@@ -699,13 +704,13 @@ Please make the appropriate changes for your system and try again.
                     chkline = chkline[2:]
                 if chkline != package_fullname:
                     newlines.append(line)
-                    
+
             else:
                 fh = open(pth_file, "wu")
                 for line in newlines:
                     fh.write(line)
                 fh.close()
-                
+
         # Check for the installed_files.log file in the EGG-INFO of the
         #   egg and remove all files listed in it.
         #   This check will look inside zip-safe and non-zip-safe eggs.
@@ -729,11 +734,11 @@ Please make the appropriate changes for your system and try again.
             egg_file.close()
             for file in installed_files:
                 retcode = self._rm_rf(file) or retcode
-            
-        # If it can't find the .files file, just try to remove the 
+
+        # If it can't find the .files file, just try to remove the
         # directory or egg file.
         retcode = self._rm_rf(package_path) or retcode
-        
+
         return retcode
 
     def _rm_rf(self, file_or_dir):
@@ -843,17 +848,17 @@ Please make the appropriate changes for your system and try again.
         if len(outputs) == 0:
             log.warn('No files installed.')
             return
-        
+
         # Check for either a zipped egg or an egg directory
         egg_zip = None
         egg_path = ''
         for file in outputs:
-            
+
             # If an EGG-INFO path is found, save the .egg path
             if len(file.split('EGG-INFO')) > 1:
                 egg_path = file.split('EGG-INFO')[0]
                 break
-                
+
             # If a .egg is found, open the egg and save its path
             if file.endswith('.egg'):
                 egg_zip = zipfile.ZipFile(file, 'a')
@@ -863,13 +868,13 @@ Please make the appropriate changes for your system and try again.
         # If nothing was found, return
         if egg_path == '':
             return
-        
+
         # Strip any package prefixes
         if self.root:
             root_len = len(self.root)
             for counter in xrange(len(outputs)):
                 outputs[counter] = outputs[counter][root_len:]
-        
+
         # If egg was not zip-safe, set path to 'EGG-INFO' dir
         if egg_zip is None:
             log_path = os.path.join(egg_path, 'EGG-INFO',
@@ -877,7 +882,7 @@ Please make the appropriate changes for your system and try again.
         # Else, set path to the dir that the .egg file is in
         else:
             log_path = os.path.join(egg_path, 'installed_files.log')
-        
+
         # Create the file in the path set above
         file = open(log_path, 'w')
 
@@ -885,7 +890,7 @@ Please make the appropriate changes for your system and try again.
         for installed_file in outputs:
             file.write(installed_file + '\n')
         file.close()
-        
+
         # If .egg file was found, put the log file in the egg, then
         # remove the file from the directory the egg is in
         if egg_zip is not None:
@@ -904,7 +909,7 @@ Please make the appropriate changes for your system and try again.
         # Add the log of all the installed files to EGG-INFO
         self.add_installed_files_list()
         self.outputs_this_package = []
-        
+
         log.info(self.installation_report(requirement, dist, *info))
         if dist.has_metadata('dependency_links.txt'):
             self.package_index.add_find_links(
@@ -925,7 +930,7 @@ Please make the appropriate changes for your system and try again.
 
         # Run post-install scripts
         self._run_post_install(dist.location)
-            
+
         log.info("Processing dependencies for %s", requirement)
         try:
             distros = WorkingSet([]).resolve(
