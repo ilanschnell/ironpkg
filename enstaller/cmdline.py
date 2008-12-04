@@ -317,13 +317,6 @@ def list_installed(interactive=True, term_width=0):
         print
 
 
-def list_deps(args):
-    # ...
-    repos = get_local_repos()
-    print args
-
-
-
 def setup_parser():
     description = """\
 Utility for managing packages in the site-packages directory.
@@ -425,8 +418,6 @@ def main():
     elif command == "list":
         list_installed(interactive=options.interactive,
             term_width=options.term_width)
-    elif command == "list_deps":
-        list_deps(args)
 
 
 if __name__ == "__main__":
