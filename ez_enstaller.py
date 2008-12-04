@@ -23,7 +23,7 @@ except ImportError: from md5 import md5
 
 
 # Setup some global vars
-DEFAULT_VERSION = "3.0.3"
+DEFAULT_VERSION = "3.0.4"
 DEFAULT_URL = "http://pypi.python.org/packages/%s/E/Enstaller/" % sys.version[:3]
 md5_data = {
     'Enstaller-3.0.4-py2.4.egg': '6110e9daf82a72b990cf22cacd63db7c',
