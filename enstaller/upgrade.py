@@ -209,8 +209,8 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
                                            available, new_reasoning):
                 yield result
     else:
-        # if there are no flexible packages, then the fixed packages are a consistent
-        # set of projects
+        # if there are no flexible packages, then the fixed packages are a
+        # consistent set of projects
         yield fixed, reasoning
     
                 
@@ -220,4 +220,3 @@ def upgrade(packages, installed, available):
     installed_flexible = {}
     return resolve_flexible(fixed, flexible,
                     installed_flexible, installed, available, {})
-                
