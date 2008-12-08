@@ -1,4 +1,12 @@
 
+3.0.5
+-----
+Added installation instructions to README.txt
+Added --debug option which makes it easy to track down which Python is
+running easy_install (in particular useful on systems which have no which
+command).
+
+
 3.0.4
 -----
 Enstaller is now consistently spelled with capital E

@@ -31,4 +31,6 @@ Installation:
 To ensure that you are running Enstaller's easy_install, type at the
 command prompt: ``easy_install --version``
 This will print the Enstaller version number.
+There is also an option ``-debug`` which gives various information about the
+install location.
 
