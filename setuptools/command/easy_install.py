@@ -2066,6 +2066,14 @@ usage: %(script)s [options] requirement_or_url ...
         print "Enstaller version %s" % __version__
         return
 
+    if '--debug' in argv:
+        import setuptools, enstaller
+        print "sys.prefix = %s" % sys.prefix
+        print "setuptools = %s" % setuptools
+        print "enstaller = %s" % enstaller
+        print "Enstaller version = %r" % enstaller.__version__
+        return
+
     with_ei_usage(lambda:
         setup(
             script_args = ['-q','easy_install', '-v']+argv,
