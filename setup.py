@@ -35,7 +35,7 @@ setup(
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
     py_modules = ['pkg_resources', 'easy_install', 'site'],
-    zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
+    zip_safe = bool(sys.version >= "2.5"), # < 2.5 needs unzipped for -m to work
 
     entry_points = {
 
