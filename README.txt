@@ -22,9 +22,11 @@ Installation:
 -------------
 
  * Remove setuptools from your system.
- * Download the installation script for Enstaller:
+ * If your are not on a Windows platform, execute the egg:
+   ``./Enstaller-3.0.4-py2.5.egg``
+ * If you are on Windows, download the installation script for Enstaller:
    `ez_enstaller.py <http://code.enthought.com/src/ez_enstaller.py>`_
- * Run the script at a command prompt: ``python ez_enstaller.py``
+   and then un the script at a command prompt: ``python ez_enstaller.py``
  * Once the script completes, you will have the scripts
    enpkg and easy_install installed on your system.
 
