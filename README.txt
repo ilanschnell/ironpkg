@@ -7,6 +7,7 @@ It starts from the setuptools source and adds the enstaller entry
 point as well as specific improvements.
 
 Improvements added:
+-------------------
 
  * added support for removing a package
  * added support for post-install and pre-uninstall scripts
@@ -16,3 +17,18 @@ Improvements added:
    pre-uninstall scripts
  * easy_install and enpkg now prefer final releases of distributions over dev
    builds.
+
+Installation:
+-------------
+
+ * Remove setuptools from your system.
+ * Download the installation script for Enstaller:
+   `ez_enstaller.py <http://code.enthought.com/src/ez_enstaller.py>`_
+ * Run the script at a command prompt: ``python ez_enstaller.py``
+ * Once the script completes, you will have the scripts
+   enpkg and easy_install installed on your system.
+
+To ensure that you are running Enstaller's easy_install, type at the
+command prompt: ``easy_install --version``
+This will print the Enstaller version number.
+

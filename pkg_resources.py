@@ -584,7 +584,8 @@ class WorkingSet(object):
 class Environment(object):
     """Searchable snapshot of distributions on a search path"""
 
-    def __init__(self, search_path=None, platform=get_supported_platform(), python=PY_MAJOR):
+    def __init__(self, search_path=None, platform=get_supported_platform(),
+                 python=PY_MAJOR):
         """Snapshot distributions available on a search path
 
         Any distributions found on `search_path` are added to the environment.
@@ -1503,12 +1504,15 @@ def find_on_path(importer, path_item, only=False):
                         path_item,entry,metadata,precedence=DEVELOP_DIST
                     )
                 elif not only and lower.endswith('.egg'):
-                    for dist in find_distributions(os.path.join(path_item, entry)):
+                    for dist in find_distributions(os.path.join(path_item,
+                                                                entry)):
                         yield dist
                 elif not only and lower.endswith('.egg-link'):
                     for line in file(os.path.join(path_item, entry)):
                         if not line.strip(): continue
-                        for item in find_distributions(os.path.join(path_item,line.rstrip())):
+                        for item in find_distributions(
+                            os.path.join(path_item, line.rstrip())
+                            ):
                             yield item
                         break
 register_finder(ImpWrapper,find_on_path)

@@ -3,11 +3,20 @@
 
 from distutils.util import convert_path
 
+kwds = {} # Additional keyword arguments for setup
+
 d = {}
 execfile(convert_path('setuptools/command/__init__.py'), d)
-
 SETUP_COMMANDS = d['__all__']
-VERSION = "3.0.5"
+
+d = {}
+execfile(convert_path('enstaller/__init__.py'), d)
+kwds['version'] = d['__version__']
+
+f = open('README.txt')
+kwds['long_description'] = f.read()
+f.close()
+
 
 from setuptools import setup, find_packages
 import sys
@@ -15,13 +24,11 @@ scripts = []
 
 setup(
     name="Enstaller",
-    version=VERSION,
     description = ("A replacement for setuptools that builds on top of it and "
         "adds additional features."),
     author="Enthought, Inc.",
     author_email="info@enthought.com",
     license="BSD",
-    long_description = open('README.txt').read(),
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://code.enthought.com/projects/enstaller",
     test_suite = 'setuptools.tests',
@@ -90,4 +97,5 @@ setup(
         Topic :: System :: Systems Administration
         Topic :: Utilities""".splitlines() if f.strip()],
     scripts = scripts,
+    **kwds
 )
