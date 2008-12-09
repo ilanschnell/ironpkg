@@ -68,13 +68,15 @@ def use_setuptools(
     def do_download():
         egg = download_setuptools(version, download_base, to_dir, download_delay)
         sys.path.insert(0, egg)
-        import setuptools; setuptools.bootstrap_install_from = egg
+        import setuptools
+        setuptools.bootstrap_install_from = egg
     try:
         import pkg_resources
     except ImportError:
         return do_download()
     try:
-        pkg_resources.require("Enstaller>="+version); return
+        pkg_resources.require("Enstaller>="+version)
+        return
     except pkg_resources.VersionConflict, e:
         if was_imported:
             print >>sys.stderr, (
@@ -126,13 +128,16 @@ I will start the download in %d seconds.
 and place it in this directory before rerunning this script.)
 ---------------------------------------------------------------------------""",
                     version, download_base, delay, url
-                ); from time import sleep; sleep(delay)
+                )
+                from time import sleep
+                sleep(delay)
             log.warn("Downloading %s", url)
             src = urllib2.urlopen(url)
             # Read/write all in one block, so we don't create a corrupt file
             # if the download is interrupted.
             data = _validate_md5(egg_name, src.read())
-            dst = open(saveto,"wb"); dst.write(data)
+            dst = open(saveto,"wb")
+            dst.write(data)
         finally:
             if src: src.close()
             if dst: dst.close()
@@ -199,7 +204,9 @@ def update_md5(filenames):
 
     import inspect
     srcfile = inspect.getsourcefile(sys.modules[__name__])
-    f = open(srcfile, 'rb'); src = f.read(); f.close()
+    f = open(srcfile, 'rb')
+    src = f.read()
+    f.close()
 
     match = re.search("\nmd5_data = {\n([^}]+)}", src)
     if not match:
@@ -207,7 +214,7 @@ def update_md5(filenames):
         sys.exit(2)
 
     src = src[:match.start(1)] + repl + src[match.end(1):]
-    f = open(srcfile,'w')
+    f = open(srcfile, 'w')
     f.write(src)
     f.close()
 
