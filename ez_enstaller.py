@@ -28,6 +28,7 @@ DEFAULT_URL = "http://pypi.python.org/packages/%s/E/Enstaller/" % sys.version[:3
 md5_data = {
     'Enstaller-3.0.4-py2.4.egg': '6110e9daf82a72b990cf22cacd63db7c',
     'Enstaller-3.0.4-py2.5.egg': '90be6f931429c6bc76654d66b3c9cae1',
+    'Enstaller-3.0.4-py2.6.egg': 'df2e41fab21ec0b8bbb7952e95b11a0d',
     'enstaller-3.0.1-py2.4.egg': '9e688ab0a059e90ea2aba5885ded9838',
     'enstaller-3.0.1-py2.5.egg': '064b48279d7eb8aa337369ae1dddf8bd',
     'enstaller-3.0.2-py2.4.egg': '84052f10fd36340257c211e01aa6b308',

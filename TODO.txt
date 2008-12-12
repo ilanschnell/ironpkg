@@ -7,6 +7,9 @@ Enhancements:
 
 Bugs:
 
+ * Install requirements (and its dependencies) need to be
+   installed (if necessary) prior to running the postinstall script.
+
  * When specifying a package with the wrong format, e.g.
    > easy_install -rN ply==2.5.0001
    The user is presented with a long traceback, instead of a
