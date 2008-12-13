@@ -1,17 +1,19 @@
 
 3.0.5
 -----
-Added installation instructions to README.txt
-Added --debug option which makes it easy to track down which Python is
-running easy_install (in particular useful on systems which have no which
-command).
+* Fixed bug which prevented uninstall scripts (in the EGG-INFO folder) to be
+  executed.
+* Added installation instructions to README.txt
+* Added --debug option which makes it easy to track down which Python is
+  running easy_install (in particular useful on systems which have no which
+  command).
 
 
 3.0.4
 -----
-Enstaller is now consistently spelled with capital E
-Added --version option to both enpkg and easy_install
-Cleanup of setuptools code
+* Enstaller is now consistently spelled with capital E
+* Added --version option to both enpkg and easy_install
+* Cleanup of setuptools code
 
 
 3.0.1 - 3.0.3
