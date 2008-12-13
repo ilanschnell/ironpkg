@@ -616,7 +616,7 @@ Please make the appropriate changes for your system and try again.
         uninstall_script = path.join(egg_dir, "EGG-INFO", "uninstall.py")
         if path.exists(uninstall_script):
             try:
-                execute_script(uinstall_script)
+                execute_script(uninstall_script)
             except Exception, err :
                 log.error("Error: problem running uninstall script %s: %s\n" \
                          % (uninstall_script, err))
