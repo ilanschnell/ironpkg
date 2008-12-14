@@ -1,6 +1,8 @@
-"""distutils.command.upload
+"""
+distutils.command.upload
 
-Implements the Distutils 'upload' subcommand (upload package to PyPI)."""
+Implements the Distutils 'upload' subcommand (upload package to PyPI).
+"""
 
 from distutils.errors import *
 from distutils.core import Command

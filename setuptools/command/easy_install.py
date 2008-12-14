@@ -631,17 +631,15 @@ Please make the appropriate changes for your system and try again.
             # the requirement specifications and remove them.
             if self.no_deps:
                 for spec in specs:
-                    try:
-                        dist = working_set.find(Requirement.parse(spec))
-                    except:
-                        raise DistributionNotFound
+                    req = Requirement.parse(spec)
+                    # Get an instance of pkg_resources.Distribution
+                    dist = working_set.find(req)
 
-                    if isinstance(dist, Distribution):
-                        self._remove_dist(dist)
+                    if dist is None:
+                        log.error("Error: Could not find installed package "
+                                  "matching %r ", req)
                     else:
-                        log.error("Error: the specified requirement %r "
-                                  "did not match any installed packages.\n",
-                                  spec)
+                        self._remove_dist(dist)
             return
 
             all_deps = self.get_deps()
@@ -662,7 +660,7 @@ Please make the appropriate changes for your system and try again.
                     self._remove_dist(pkgs[0])
 
         except DistributionNotFound:
-                log.info("Could not find suitable package for: %s" % spec)
+            log.info("Could not find suitable package for: %s" % spec)
 
 
     def _remove_dist(self, dist):
@@ -2010,10 +2008,10 @@ usage: %(script)s [options] requirement_or_url ...
 
     if '--debug' in argv:
         import setuptools, enstaller
-        print "sys.prefix = %s" % sys.prefix
-        print "setuptools = %s" % setuptools
-        print "enstaller = %s" % enstaller
+        print "sys.prefix = %r" % sys.prefix
         print "Enstaller version = %r" % enstaller.__version__
+        print setuptools
+        print enstaller
         return
 
     with_ei_usage(lambda:

@@ -42,8 +42,8 @@ def parse_bdist_wininst(name):
 def egg_info_for_url(url):
     scheme, server, path, parameters, query, fragment = urlparse.urlparse(url)
     base = urllib2.unquote(path.split('/')[-1])
-    if '#' in base: base, fragment = base.split('#',1)
-    return base,fragment
+    if '#' in base: base, fragment = base.split('#', 1)
+    return base, fragment
 
 def distros_for_url(url, metadata=None):
     """Yield egg or source distribution objects that might be found at a URL"""
@@ -88,8 +88,9 @@ def distros_for_filename(filename, metadata=None):
 
 
 def interpret_distro_name(location, basename, metadata,
-    py_version=None, precedence=SOURCE_DIST, platform=None
-):
+                          py_version=None,
+                          precedence=SOURCE_DIST,
+                          platform=None):
     """Generate alternative interpretations of a source distro name
 
     Note: if `location` is a filesystem filename, you should call
@@ -149,11 +150,12 @@ user_agent = "Python-urllib/%s enstaller/%s" % (
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
-    def __init__(self, index_url="http://pypi.python.org/simple", hosts=('*',),
-        *args, **kw
-    ):
-        Environment.__init__(self,*args,**kw)
-        self.index_url = index_url + "/"[:not index_url.endswith('/')]
+    def __init__(self, index_url="http://pypi.python.org/simple",
+                 hosts=('*',), *args, **kw):
+
+        Environment.__init__(self, *args, **kw)
+        # Make sure URL has single trailing slash
+        self.index_url = index_url.rstrip("/") + "/"
         self.scanned_urls = {}
         self.fetched_urls = {}
         self.package_pages = {}
