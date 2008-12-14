@@ -19,7 +19,6 @@ import sys, os, os.path, shutil, zipimport, tempfile, re, stat, random
 import zipfile
 from os import path
 from glob import glob
-from subprocess import call
 
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -27,7 +26,7 @@ from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError
-from setuptools.utils import rm_rf, chmod
+from setuptools.utils import rm_rf, chmod, execute_script
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex, parse_bdist_wininst
 from setuptools.package_index import URL_SCHEME
@@ -50,12 +49,6 @@ def samefile(p1, p2):
         os.path.normpath(os.path.normcase(p1)) ==
         os.path.normpath(os.path.normcase(p2))
     )
-
-
-def execute_script(script):
-    retcode = call(["python", script])
-    if retcode != 0:
-        raise RuntimeError, "Return code of %d" % retcode
 
 
 class easy_install(Command):
@@ -557,7 +550,7 @@ Please make the appropriate changes for your system and try again.
         name or package requirement spec, or a package object containing info
         about the package downloaded (not just installed)).
         """
-        tmp_unpack_dir = ""
+        tmp_unpack_dir = None
 
         #
         # if the egg installed is a dir, simply check the EGG-INFO subdir
@@ -584,14 +577,14 @@ Please make the appropriate changes for your system and try again.
             log.info("Found EGG-INFO/post_install.py, executing it")
             try:
                 execute_script(pi_script)
-            except Exception, err :
+            except Exception, err:
                 log.error("Error: problem running post-install script "
                           "%s: %s\n", pi_script, err)
 
         #
         # cleanup if a temp extraction was done
         #
-        if tmp_unpack_dir != "":
+        if tmp_unpack_dir:
             rm_rf(tmp_unpack_dir)
 
 
@@ -602,7 +595,7 @@ Please make the appropriate changes for your system and try again.
         name or package requirement spec, or a package object containing info
         about the package.
         """
-        tmp_unpack_dir = ""
+        tmp_unpack_dir = None
 
         #
         # if the egg installed is a dir, simply check the EGG-INFO subdir
@@ -625,14 +618,14 @@ Please make the appropriate changes for your system and try again.
             log.info("Found EGG-INFO/pre_uninstall.py, executing it")
             try:
                 execute_script(uninstall_script)
-            except Exception, err :
+            except Exception, err:
                 log.error("Error: problem running uninstall script %s: %s\n",
                           uninstall_script, err)
 
         #
         # cleanup if a temp extraction was done
         #
-        if tmp_unpack_dir != "":
+        if tmp_unpack_dir:
             rm_rf(tmp_unpack_dir)
 
 

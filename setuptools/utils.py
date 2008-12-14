@@ -6,7 +6,9 @@ is) unorganized and simple utility functions were defined as class methods
 for no obious reason, uselessly cluttering some of the large classes.
 This module is a place such functions.
 """
+import subprocess
 import shutil
+import sys
 from os import path
 from distutils import log
 
@@ -47,3 +49,15 @@ def rm_rf(file_or_dir):
         retcode = 1
 
     return retcode
+
+
+def execute_script(py_path):
+    """
+    Execute the python script (located at path) and log error message
+    when the return value of the subprocess was non-zero.
+    """
+    retcode = subprocess.call([sys.executable, py_path])
+
+    if retcode != 0:
+        log.warn("WARNING: executing Python script %r returned %i",
+                 py_path, retcode)

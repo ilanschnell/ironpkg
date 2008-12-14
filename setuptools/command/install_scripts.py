@@ -1,9 +1,12 @@
-from distutils.command.install_scripts import install_scripts \
-     as _install_scripts
-from easy_install import get_script_args, sys_executable, chmod
-from pkg_resources import Distribution, PathMetadata, ensure_directory
 import os
 from distutils import log
+from distutils.command.install_scripts import install_scripts \
+     as _install_scripts
+
+from setuptools.utils import chmod
+from easy_install import get_script_args, sys_executable
+from pkg_resources import Distribution, PathMetadata, ensure_directory
+
 
 class install_scripts(_install_scripts):
     """Do normal script install, plus any egg_info wrapper scripts"""
@@ -44,7 +47,7 @@ class install_scripts(_install_scripts):
 
         if not self.dry_run:
             ensure_directory(target)
-            f = open(target,"w"+mode)
+            f = open(target, "w"+mode)
             f.write(contents)
             f.close()
             chmod(target,0755)
