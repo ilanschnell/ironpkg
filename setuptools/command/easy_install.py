@@ -13,7 +13,7 @@ This is a patched version for Enstaller.
 """
 
 # Patched with easy_install.patch and prefer_released.patch from Enthought
-#  starting with setuptools 0.6c9
+# starting with setuptools 0.6c9
 
 import sys, os, os.path, shutil, zipimport, tempfile, re, stat, random
 import zipfile
@@ -27,6 +27,7 @@ from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError
+from setuptools.utils import rm_rf, chmod
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex, parse_bdist_wininst
 from setuptools.package_index import URL_SCHEME
@@ -39,8 +40,9 @@ __all__ = [
     'main', 'get_exe_prefixes',
 ]
 
-def samefile(p1,p2):
-    if hasattr(os.path,'samefile') and (
+
+def samefile(p1, p2):
+    if hasattr(os.path, 'samefile') and (
         os.path.exists(p1) and os.path.exists(p2)
     ):
         return os.path.samefile(p1,p2)
@@ -49,10 +51,12 @@ def samefile(p1,p2):
         os.path.normpath(os.path.normcase(p2))
     )
 
+
 def execute_script(script):
     retcode = call(["python", script])
     if retcode != 0:
         raise RuntimeError, "Return code of %d" % retcode
+
 
 class easy_install(Command):
     """Manage a download/build/install process"""
@@ -137,10 +141,7 @@ class easy_install(Command):
             if os.path.exists(filename) or os.path.islink(filename):
                 log.info("Deleting %s", filename)
                 if not self.dry_run:
-                    if os.path.isdir(filename) and not os.path.islink(filename):
-                        rmtree(filename)
-                    else:
-                        os.unlink(filename)
+                    rm_rf(filename)
 
     def finalize_options(self):
         self._expand('install_dir','script_dir','build_directory','site_dirs')
@@ -275,7 +276,7 @@ class easy_install(Command):
         try:
             pid = os.getpid()
         except:
-            pid = random.randint(0,sys.maxint)
+            pid = random.randint(0, sys.maxint)
         return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
 
     def warn_deprecated_options(self):
@@ -566,6 +567,11 @@ Please make the appropriate changes for your system and try again.
         if(path.isdir(installed_egg_path)):
             egg_dir = installed_egg_path
         else:
+            # FIXME:
+            #     If the installed egg is a zipfile, open the zipfile
+            #     (using the zipfile module) and only store the
+            #     post install script to a tempfile (instead of unpacking
+            #     the whole archive).
             tmp_unpack_dir = tempfile.mkdtemp(prefix="easy_install-")
             egg_dir = path.join(tmp_unpack_dir,
                                 path.basename(installed_egg_path))
@@ -575,17 +581,18 @@ Please make the appropriate changes for your system and try again.
         #
         pi_script = path.join(egg_dir, "EGG-INFO", "post_install.py")
         if path.exists(pi_script):
+            log.info("Found EGG-INFO/post_install.py, executing it")
             try:
                 execute_script(pi_script)
             except Exception, err :
                 log.error("Error: problem running post-install script "
-                          "%s: %s\n" % (pi_script, err) )
+                          "%s: %s\n", pi_script, err)
 
         #
         # cleanup if a temp extraction was done
         #
         if tmp_unpack_dir != "":
-            self._rm_rf(tmp_unpack_dir)
+            rm_rf(tmp_unpack_dir)
 
 
     def _run_pre_uninstall(self, installed_egg_path):
@@ -599,7 +606,7 @@ Please make the appropriate changes for your system and try again.
 
         #
         # if the egg installed is a dir, simply check the EGG-INFO subdir
-        # for a post_install.py script and run it, otherwise, unzip it to
+        # for a pre_uninstall.py script and run it, otherwise, unzip it to
         # a temp location and do the same thing
         #
         if path.isdir(installed_egg_path):
@@ -613,19 +620,20 @@ Please make the appropriate changes for your system and try again.
         #
         # check for uninstall.py and run if present
         #
-        uninstall_script = path.join(egg_dir, "EGG-INFO", "uninstall.py")
+        uninstall_script = path.join(egg_dir, "EGG-INFO", "pre_uninstall.py")
         if path.exists(uninstall_script):
+            log.info("Found EGG-INFO/pre_uninstall.py, executing it")
             try:
                 execute_script(uninstall_script)
             except Exception, err :
-                log.error("Error: problem running uninstall script %s: %s\n" \
-                         % (uninstall_script, err))
+                log.error("Error: problem running uninstall script %s: %s\n",
+                          uninstall_script, err)
 
         #
         # cleanup if a temp extraction was done
         #
         if tmp_unpack_dir != "":
-            self._rm_rf(tmp_unpack_dir)
+            rm_rf(tmp_unpack_dir)
 
 
     def uninstall(self, specs):
@@ -720,9 +728,9 @@ Please make the appropriate changes for your system and try again.
             if path.exists(files_file_path):
                 fh = open(files_file_path, "r")
                 for filename in fh.readlines():
-                    retcode = self._rm_rf(filename.strip()) or retcode
+                    retcode = rm_rf(filename.strip()) or retcode
                 fh.close()
-                retcode = self._rm_rf(files_file_path) or retcode
+                retcode = rm_rf(files_file_path) or retcode
         else:
             egg_file = zipfile.ZipFile(package_path, "r")
             installed_files = []
@@ -730,32 +738,14 @@ Please make the appropriate changes for your system and try again.
                 if filename.endswith('installed_files.log'):
                     log = egg_file.read(filename)
                     installed_files = log.splitlines()
-                    break;
+                    break
             egg_file.close()
             for file in installed_files:
-                retcode = self._rm_rf(file) or retcode
+                retcode = rm_rf(file) or retcode
 
         # If it can't find the .files file, just try to remove the
         # directory or egg file.
-        retcode = self._rm_rf(package_path) or retcode
-
-        return retcode
-
-    def _rm_rf(self, file_or_dir):
-        """
-        Removes the file or directory, returns 0 on success, 1 on failure.
-        """
-        retcode = 0
-        try:
-            if path.exists(file_or_dir):
-                if path.isdir(file_or_dir):
-                    shutil.rmtree(file_or_dir)
-                else:
-                    os.remove(file_or_dir)
-
-        except (IOError, OSError), err :
-            log.error("Error: could not remove %s: %s\n" % (file_or_dir, err))
-            retcode = 1
+        retcode = rm_rf(package_path) or retcode
 
         return retcode
 
@@ -799,8 +789,7 @@ Please make the appropriate changes for your system and try again.
                 return self.install_item(spec, dist.location, tmpdir, deps)
 
         finally:
-            if os.path.exists(tmpdir):
-                rmtree(tmpdir)
+            rm_rf(tmpdir)
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
 
@@ -928,9 +917,6 @@ Please make the appropriate changes for your system and try again.
                 distreq.project_name, distreq.specs, requirement.extras
             )
 
-        # Run post-install scripts
-        self._run_post_install(dist.location)
-
         log.info("Processing dependencies for %s", requirement)
         try:
             distros = WorkingSet([]).resolve(
@@ -951,6 +937,10 @@ Please make the appropriate changes for your system and try again.
                 if dist.key not in self.installed_projects:
                     self.easy_install(dist.as_requirement())
         log.info("Finished processing dependencies for %s", requirement)
+
+        # Run post-install scripts
+        self._run_post_install(dist.location)
+
 
     def should_unzip(self, dist):
         if self.zip_ok is not None:
@@ -980,7 +970,8 @@ Please make the appropriate changes for your system and try again.
                 if os.path.isdir(dist_filename):
                     # if the only thing there is a directory, move it instead
                     setup_base = dist_filename
-        ensure_directory(dst); shutil.move(setup_base, dst)
+        ensure_directory(dst)
+        shutil.move(setup_base, dst)
         return dst
 
     def install_wrapper_scripts(self, dist):
@@ -1194,7 +1185,8 @@ Please make the appropriate changes for your system and try again.
                 resource = parts[-1]
                 parts[-1] = bdist_egg.strip_module(parts[-1])+'.py'
                 pyfile = os.path.join(egg_tmp, *parts)
-                to_compile.append(pyfile); stubs.append(pyfile)
+                to_compile.append(pyfile)
+                stubs.append(pyfile)
                 bdist_egg.write_stub(resource, pyfile)
         self.byte_compile(to_compile)   # compile .py's
         bdist_egg.write_safety_flag(os.path.join(egg_tmp,'EGG-INFO'),
@@ -1362,7 +1354,7 @@ See the setuptools documentation for the "develop" command for more info.
                     dist_dir)
             return eggs
         finally:
-            rmtree(dist_dir)
+            rm_rf(dist_dir)
             log.set_verbosity(self.verbose) # restore our log verbosity
 
     def update_pth(self,dist):
@@ -1407,7 +1399,8 @@ See the setuptools documentation for the "develop" command for more info.
         return dst     # only unpack-and-compile skips files for dry run
 
     def unpack_and_compile(self, egg_path, destination):
-        to_compile = []; to_chmod = []
+        to_compile = []
+        to_chmod = []
 
         def pf(src,dst):
             if dst.endswith('.py') and not src.startswith('EGG-INFO/'):
@@ -1537,6 +1530,7 @@ Proceeding to install.  Please remember that unless you make one of these change
                 if os.name == 'posix':
                     val = os.path.expanduser(val)
                 setattr(self, attr, val)
+
 
 def get_site_dirs():
     # return a list of 'site' dirs
@@ -1685,7 +1679,8 @@ def get_exe_prefixes(exe_filename):
         z.close()
 
     prefixes = [(x.lower(),y) for x, y in prefixes]
-    prefixes.sort(); prefixes.reverse()
+    prefixes.sort()
+    prefixes.reverse()
     return prefixes
 
 
@@ -1697,15 +1692,18 @@ def parse_requirement_arg(spec):
             "Not a URL, existing file, or requirement spec: %r" % (spec,)
         )
 
+
 class PthDistributions(Environment):
     """A .pth file with Distribution paths in it"""
 
     dirty = False
 
     def __init__(self, filename, sitedirs=()):
-        self.filename = filename; self.sitedirs=map(normalize_path, sitedirs)
+        self.filename = filename
+        self.sitedirs=map(normalize_path, sitedirs)
         self.basedir = normalize_path(os.path.dirname(self.filename))
-        self._load(); Environment.__init__(self, [], None, None)
+        self._load()
+        Environment.__init__(self, [], None, None)
         for path in yield_lines(self.paths):
             map(self.add, find_distributions(path, True))
 
@@ -1758,7 +1756,8 @@ class PthDistributions(Environment):
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
             f = open(self.filename,'wb')
-            f.write(data); f.close()
+            f.write(data)
+            f.close()
 
         elif os.path.exists(self.filename):
             log.debug("Deleting empty %s", self.filename)
@@ -1769,13 +1768,15 @@ class PthDistributions(Environment):
     def add(self,dist):
         """Add `dist` to the distribution map"""
         if dist.location not in self.paths and dist.location not in self.sitedirs:
-            self.paths.append(dist.location); self.dirty = True
+            self.paths.append(dist.location)
+            self.dirty = True
         Environment.add(self,dist)
 
     def remove(self,dist):
         """Remove `dist` from the distribution map"""
         while dist.location in self.paths:
-            self.paths.remove(dist.location); self.dirty = True
+            self.paths.remove(dist.location)
+            self.dirty = True
         Environment.remove(self,dist)
 
     def make_relative(self,path):
@@ -1915,21 +1916,6 @@ def is_python_script(script_text, filename):
     return False    # Not any Python I can recognize
 
 
-try:
-    from os import chmod as _chmod
-except ImportError:
-    # Jython compatibility
-    def _chmod(*args): pass
-
-
-def chmod(path, mode):
-    log.debug("changing mode of %s to %o", path, mode)
-    try:
-        _chmod(path, mode)
-    except os.error, e:
-        log.debug("chmod failed: %s", e)
-
-
 def fix_jython_executable(executable, options):
     if sys.platform.startswith('java') and is_sh(executable):
         # Workaround Jython's sys.executable being a .sh (an invalid
@@ -1989,46 +1975,14 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                 yield (name, header+script_text)
 
 
-def rmtree(path, ignore_errors=False, onerror=auto_chmod):
-    """Recursively delete a directory tree.
-
-    This code is taken from the Python 2.4 version of 'shutil', because
-    the 2.3 version doesn't really work right.
-    """
-    if ignore_errors:
-        def onerror(*args):
-            pass
-    elif onerror is None:
-        def onerror(*args):
-            raise
-    names = []
-    try:
-        names = os.listdir(path)
-    except os.error, err:
-        onerror(os.listdir, path, sys.exc_info())
-    for name in names:
-        fullname = os.path.join(path, name)
-        try:
-            mode = os.lstat(fullname).st_mode
-        except os.error:
-            mode = 0
-        if stat.S_ISDIR(mode):
-            rmtree(fullname, ignore_errors, onerror)
-        else:
-            try:
-                os.remove(fullname)
-            except os.error, err:
-                onerror(os.remove, fullname, sys.exc_info())
-    try:
-        os.rmdir(path)
-    except os.error:
-        onerror(os.rmdir, path, sys.exc_info())
-
-
 def bootstrap():
     # This function is called when enstaller*.egg is run using /bin/sh
-    import setuptools; argv0 = os.path.dirname(setuptools.__path__[0])
-    sys.argv[0] = argv0; sys.argv.append(argv0); main()
+    import setuptools
+
+    argv0 = os.path.dirname(setuptools.__path__[0])
+    sys.argv[0] = argv0
+    sys.argv.append(argv0)
+    main()
 
 
 def main(argv=None, **kw):
