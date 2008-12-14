@@ -26,7 +26,7 @@ from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError
-from setuptools.utils import rm_rf, chmod, execute_script
+from setuptools.utils import rm_rf, chmod, execute_script, samefile
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex, parse_bdist_wininst
 from setuptools.package_index import URL_SCHEME
@@ -38,17 +38,6 @@ __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
     'main', 'get_exe_prefixes',
 ]
-
-
-def samefile(p1, p2):
-    if hasattr(os.path, 'samefile') and (
-        os.path.exists(p1) and os.path.exists(p2)
-    ):
-        return os.path.samefile(p1,p2)
-    return (
-        os.path.normpath(os.path.normcase(p1)) ==
-        os.path.normpath(os.path.normcase(p2))
-    )
 
 
 class easy_install(Command):

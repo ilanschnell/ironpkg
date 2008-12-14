@@ -6,9 +6,10 @@ is) unorganized and simple utility functions were defined as class methods
 for no obious reason, uselessly cluttering some of the large classes.
 This module is a place such functions.
 """
+import os
+import sys
 import subprocess
 import shutil
-import sys
 from os import path
 from distutils import log
 
@@ -61,3 +62,20 @@ def execute_script(py_path):
     if retcode != 0:
         log.warn("WARNING: executing Python script %r returned %i",
                  py_path, retcode)
+
+
+def samefile(p1, p2):
+    """
+    Similar as os.path.samefile
+    
+    Note:
+        Only on Macintosh and Unix is the function os.path.samefile available.
+    """
+    if(hasattr(os.path, 'samefile') and
+       os.path.exists(p1) and
+       os.path.exists(p2)
+       ):
+        return os.path.samefile(p1,p2)
+
+    return bool(os.path.normpath(os.path.normcase(p1)) ==
+                os.path.normpath(os.path.normcase(p2)))
