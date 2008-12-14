@@ -222,7 +222,7 @@ class easy_install(Command):
             print self.proxy
 
     def run(self):
-        if self.verbose<>self.distribution.verbose:
+        if self.verbose != self.distribution.verbose:
             log.set_verbosity(self.verbose)
         try:
             if self.remove:
@@ -628,14 +628,20 @@ Please make the appropriate changes for your system and try again.
         """
         try:
             # If no dependencies, then just get the distributions from
-            #  the requirement specifications and remove them.
+            # the requirement specifications and remove them.
             if self.no_deps:
                 for spec in specs:
                     try:
                         dist = working_set.find(Requirement.parse(spec))
                     except:
                         raise DistributionNotFound
-                    self._remove_dist(dist)
+
+                    if isinstance(dist, Distribution):
+                        self._remove_dist(dist)
+                    else:
+                        log.error("Error: the specified requirement %r "
+                                  "did not match any installed packages.\n",
+                                  spec)
             return
 
             all_deps = self.get_deps()
