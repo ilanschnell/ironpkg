@@ -36,3 +36,11 @@ This will print the Enstaller version number.
 There is also an option ``-debug`` which gives various information about the
 install location.
 
+Remarks:
+--------
+
+ * While setuptools 0.6c9 still supports Python 2.3, Enstaller only
+   supports Python 2.4 and higher (except 3.X).  Since much of the code is
+   setuptools code old setuptools features may still work with Python 2.3,
+   but added features may not.  No attempts are being made to maintain
+   compatibility with Python 2.3.
