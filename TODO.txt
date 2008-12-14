@@ -8,6 +8,15 @@ Enhancements:
    egg, the entire egg is currently unzipped, instead of just pulling
    out the single script file.
 
+ * Explicitly list PyPI repository in .enstallerrc
+   - When first created the config file should contain only PyPI
+   - The list of repositories should always be retreived from the config
+     file, such that removing PyPI from the config file will deactivate PyPI
+   - When the config file can not be opened for writing/reading
+     a warning is displayed to the user:
+       "WARNING: could not open .enstallerrc, using PyPI http://..."
+   - Do we really need the "unstable_repos" ?
+     What are they good for ?
 
 Bugs:
 

@@ -71,11 +71,25 @@ def init_config(path):
     This will fail silently if the user can not write to the specified path.
 
     """
+    from enstaller import __version__
+
+    DATA = dict(py_ver=sys.version[:3],
+                prefix=sys.prefix,
+                enst_ver=__version__)
 
     # Save the default config to the specified file.
     cp = default_config()
     try:
         fp = open(path, 'w')
+        fp.write("""\
+# This file contains the default package repositories used by
+# Enstaller version %(enst_ver)s for Python %(py_ver)s installed at
+#
+#     %(prefix)s
+#
+# The PyPI repository http://pypi.python.org/pypi is currently implicitly
+# always present even though not listed here.  This should be fixed.\n
+""" % DATA)
         cp.write(fp)
         fp.close()
         os.chmod(path, stat.S_IRUSR|stat.S_IWUSR)
@@ -102,13 +116,13 @@ def get_configured_repos(unstable=False):
     cp = get_config()
     for name, value in cp.items('repos'):
         value = value.strip()
-        if '#' != value[0]:
+        if not value.startswith('#'):
             results.append(value)
 
     # If the user wanted unstable repos, add them too.
     for name, value in cp.items('unstable_repos'):
         value = value.strip()
-        if '#' != value[0]:
+        if not value.startswith('#'):
             results.append(value)
 
     return results
