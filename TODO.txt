@@ -8,6 +8,9 @@ Enhancements:
    egg, the entire egg is currently unzipped, instead of just pulling
    out the single script file.
 
+ * Capture stdout and stderr when running post install (pre uninstall)
+   script.  This makes debuging much easier.
+
  * Explicitly list PyPI repository in .enstallerrc
    - When first created the config file should contain only PyPI
    - The list of repositories should always be retreived from the config
@@ -18,5 +21,11 @@ Enhancements:
    - Do we really need the "unstable_repos" ?
      What are they good for ?
 
+ * Add upload repository section to .enstallerrc, could default to
+   repository "1".
+
+
 Bugs:
+
+ * When .enstallerrc can not be opened for reading, easy_install crashes.
 
