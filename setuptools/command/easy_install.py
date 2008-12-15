@@ -26,7 +26,8 @@ from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError
-from setuptools.utils import rm_rf, chmod, execute_script, samefile
+from setuptools.utils import rm_rf, chmod, execute_script, samefile, \
+    store_file_from_zip
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex, parse_bdist_wininst
 from setuptools.package_index import URL_SCHEME
@@ -532,90 +533,36 @@ Please make the appropriate changes for your system and try again.
             else:
                 choice = raw_input("Remove %s? [Y/N] " % current_dep)
 
-    def _run_post_install(self, installed_egg_path):
-        """
-        run any post-install scripts in the newly-installed egg defined by the
-        package passed in (the package is either a string defining a package
-        name or package requirement spec, or a package object containing info
-        about the package downloaded (not just installed)).
-        """
-        tmp_unpack_dir = None
 
-        #
+    def _run_egg_info_script(self, installed_egg_path, name):
+        """
+        run a script (name) in the EGG-INFO subdir of an installed egg.
+        If the script is present, a log message is created, and the script
+        is run in a subprocess.  Otherwise, if the script is not present,
+        nothing is done, i.e. no exception is raised or anything like that.
+        """
+        tmp_dir = None
+
         # if the egg installed is a dir, simply check the EGG-INFO subdir
-        # for a post_install.py script and run it, otherwise, unzip it to
-        # a temp location and do the same thing
-        #
-        if(path.isdir(installed_egg_path)):
-            egg_dir = installed_egg_path
-        else:
-            # FIXME:
-            #     If the installed egg is a zipfile, open the zipfile
-            #     (using the zipfile module) and only store the
-            #     post install script to a tempfile (instead of unpacking
-            #     the whole archive).
-            tmp_unpack_dir = tempfile.mkdtemp(prefix="easy_install-")
-            egg_dir = path.join(tmp_unpack_dir,
-                                path.basename(installed_egg_path))
-            unpack_archive(installed_egg_path, egg_dir)
-        #
-        # check for post_install.py and run if present
-        #
-        pi_script = path.join(egg_dir, "EGG-INFO", "post_install.py")
-        if path.exists(pi_script):
-            log.info("Found EGG-INFO/post_install.py, executing it")
-            try:
-                execute_script(pi_script)
-            except Exception, err:
-                log.error("Error: problem running post-install script "
-                          "%s: %s\n", pi_script, err)
-
-        #
-        # cleanup if a temp extraction was done
-        #
-        if tmp_unpack_dir:
-            rm_rf(tmp_unpack_dir)
-
-
-    def _run_pre_uninstall(self, installed_egg_path):
-        """
-        run any pre-uninstall scripts in the installed egg defined by the
-        package passed in (the package is either a string defining a package
-        name or package requirement spec, or a package object containing info
-        about the package.
-        """
-        tmp_unpack_dir = None
-
-        #
-        # if the egg installed is a dir, simply check the EGG-INFO subdir
-        # for a pre_uninstall.py script and run it, otherwise, unzip it to
-        # a temp location and do the same thing
-        #
+        # for the a script and run it, otherwise, store the script to a temp
+        # location and do the same thing
         if path.isdir(installed_egg_path):
-            egg_dir = installed_egg_path
-
+            script_path = path.join(installed_egg_path, "EGG-INFO", name)
         else:
-            tmp_unpack_dir = tempfile.mkdtemp(prefix="easy_install-")
-            egg_dir = path.join(tmp_unpack_dir,
-                                path.basename(installed_egg_path))
-            unpack_archive(installed_egg_path, egg_dir)
-        #
-        # check for uninstall.py and run if present
-        #
-        uninstall_script = path.join(egg_dir, "EGG-INFO", "pre_uninstall.py")
-        if path.exists(uninstall_script):
-            log.info("Found EGG-INFO/pre_uninstall.py, executing it")
-            try:
-                execute_script(uninstall_script)
-            except Exception, err:
-                log.error("Error: problem running uninstall script %s: %s\n",
-                          uninstall_script, err)
+            tmp_dir = tempfile.mkdtemp(prefix="easy_install-")
+            script_path = path.join(tmp_dir, name)
+            store_file_from_zip(installed_egg_path,
+                                "EGG-INFO/" + name,
+                                script_path):
 
-        #
-        # cleanup if a temp extraction was done
-        #
-        if tmp_unpack_dir:
-            rm_rf(tmp_unpack_dir)
+        if path.exists(script_path):
+            # we have a script, now run it
+            log.info("Found EGG-INFO/%s, executing it", name)
+            execute_script(script_path)
+
+        # cleanup, if a temp extraction was done
+        if tmp_dir:
+            rm_rf(tmp_dir)
 
 
     def uninstall(self, specs):
@@ -668,7 +615,7 @@ Please make the appropriate changes for your system and try again.
         """
         pkg_path = dist.location
         log.info("Removing %s..." % pkg_path)
-        self._run_pre_uninstall(pkg_path)
+        self._run_egg_info_script(pkg_path, "pre_uninstall.py")
         self._remove_package_file(pkg_path)
 
 
@@ -925,7 +872,7 @@ Please make the appropriate changes for your system and try again.
         log.info("Finished processing dependencies for %s", requirement)
 
         # Run post-install scripts
-        self._run_post_install(dist.location)
+        self._run_egg_info_script(dist.location, "post_install.py")
 
 
     def should_unzip(self, dist):

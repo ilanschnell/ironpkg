@@ -4,13 +4,6 @@ Enhancements:
  * ability to use .egg_info files located alongside the .egg file for
    getting dependency information (not complete)
 
- * when a post install (pre uninstall) script is executed for a zip-safe
-   egg, the entire egg is currently unzipped, instead of just pulling
-   out the single script file.
-
- * Capture stdout and stderr when running post install (pre uninstall)
-   script.  This makes debuging much easier.
-
  * Explicitly list PyPI repository in .enstallerrc
    - When first created the config file should contain only PyPI
    - The list of repositories should always be retreived from the config

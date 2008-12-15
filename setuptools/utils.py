@@ -10,6 +10,7 @@ import os
 import sys
 import subprocess
 import shutil
+import zipfile
 from os import path
 from distutils import log
 
@@ -62,6 +63,21 @@ def execute_script(py_path):
     if retcode != 0:
         log.warn("WARNING: executing Python script %r returned %i",
                  py_path, retcode)
+
+
+def store_file_from_zip(zipfile_path, name, path):
+    """
+    Given the path to a zipfile and the name of a file within the zipfile,
+    store the content of the file, into location path.
+    If the name does not exist within the zipfile, and don't create a file,
+    obviously, but don't throw an exceoption.
+    """
+    z = zipfile.ZipFile(zipfile_path)
+    if name in z.namelist():
+        fo = open(path, 'wb')
+        fo.write(z.read(name))
+        fo.close()
+    z.close()
 
 
 def samefile(p1, p2):
