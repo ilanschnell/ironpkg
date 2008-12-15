@@ -183,9 +183,13 @@ class easy_install(Command):
         else:
             self.find_links = []
 
-        # Add any additional configured repos.
-        from enstaller.config import get_configured_repos
-        self.find_links.extend(get_configured_repos())
+        try:
+            # Add any additional configured repos.
+            from enstaller.config import get_configured_repos
+            self.find_links.extend(get_configured_repos())
+        except:
+            log.error("Error: Could not read additional repos from "
+                      "config file.")
 
         if self.local_snapshots_ok:
             self.package_index.scan_egg_links(self.shadow_path+sys.path)
@@ -549,11 +553,12 @@ Please make the appropriate changes for your system and try again.
         if path.isdir(installed_egg_path):
             script_path = path.join(installed_egg_path, "EGG-INFO", name)
         else:
+            # a zipped egg is installed
             tmp_dir = tempfile.mkdtemp(prefix="easy_install-")
             script_path = path.join(tmp_dir, name)
             store_file_from_zip(installed_egg_path,
                                 "EGG-INFO/" + name,
-                                script_path):
+                                script_path)
 
         if path.exists(script_path):
             # we have a script, now run it
@@ -615,6 +620,7 @@ Please make the appropriate changes for your system and try again.
         """
         pkg_path = dist.location
         log.info("Removing %s..." % pkg_path)
+        # Run pre-uninstall script in EGG-INFO subdir (if present)
         self._run_egg_info_script(pkg_path, "pre_uninstall.py")
         self._remove_package_file(pkg_path)
 
@@ -871,7 +877,7 @@ Please make the appropriate changes for your system and try again.
                     self.easy_install(dist.as_requirement())
         log.info("Finished processing dependencies for %s", requirement)
 
-        # Run post-install scripts
+        # Run post-install script in EGG-INFO subdir (if present)
         self._run_egg_info_script(dist.location, "post_install.py")
 
 
