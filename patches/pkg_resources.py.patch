@@ -1,5 +1,5 @@
 *** ../../setuptools-0.6c9/pkg_resources.py	2008-09-24 12:10:45.000000000 -0500
---- ../pkg_resources.py	2008-11-25 17:34:17.000000000 -0600
+--- ../pkg_resources.py	2008-12-15 00:49:00.000000000 -0600
 ***************
 *** 24,44 ****
   from os import open as os_open
@@ -129,6 +129,28 @@
               dist = best.get(req.key)
               if dist is None:
 ***************
+*** 521,527 ****
+                          env = Environment(self.entries)
+                      dist = best[req.key] = env.best_match(req, self, installer)
+                      if dist is None:
+!                         raise DistributionNotFound(req)  # XXX put more info here
+                  to_activate.append(dist)
+              if dist not in req:
+                  # Oops, the "best" so far conflicts with a dependency
+--- 459,470 ----
+                          env = Environment(self.entries)
+                      dist = best[req.key] = env.best_match(req, self, installer)
+                      if dist is None:
+!                         raise DistributionNotFound("""
+! Could not find installed package matching %r
+! 
+! To resolve this problem you may want to try the command: enpkg list
+! This will list all installed packages.""" % req)
+! 
+                  to_activate.append(dist)
+              if dist not in req:
+                  # Oops, the "best" so far conflicts with a dependency
+***************
 *** 610,618 ****
           return distributions, error_info
   
@@ -139,9 +161,9 @@
       def require(self, *requirements):
           """Ensure that distributions matching `requirements` are activated
   
---- 548,553 ----
+--- 553,558 ----
 ***************
-*** 646,659 ****
+*** 646,663 ****
   
   
   
@@ -156,7 +178,22 @@
   class Environment(object):
       """Searchable snapshot of distributions on a search path"""
   
---- 581,586 ----
+!     def __init__(self, search_path=None, platform=get_supported_platform(), python=PY_MAJOR):
+          """Snapshot distributions available on a search path
+  
+          Any distributions found on `search_path` are added to the environment.
+--- 586,596 ----
+  
+  
+  
+  class Environment(object):
+      """Searchable snapshot of distributions on a search path"""
+  
+!     def __init__(self, search_path=None, platform=get_supported_platform(),
+!                  python=PY_MAJOR):
+          """Snapshot distributions available on a search path
+  
+          Any distributions found on `search_path` are added to the environment.
 ***************
 *** 817,823 ****
   
@@ -166,7 +203,7 @@
   class ResourceManager:
       """Manage resource extraction and packages"""
       extraction_path = None
---- 744,749 ----
+--- 750,755 ----
 ***************
 *** 889,905 ****
   
@@ -186,7 +223,7 @@
       def get_cache_path(self, archive_name, names=()):
           """Return absolute location in cache for `archive_name` and `names`
   
---- 815,820 ----
+--- 821,826 ----
 ***************
 *** 925,946 ****
   
@@ -211,7 +248,7 @@
       def postprocess(self, tempname, filename):
           """Perform any platform-specific postprocessing of `tempname`
   
---- 840,845 ----
+--- 846,851 ----
 ***************
 *** 963,987 ****
   
@@ -239,7 +276,7 @@
       def set_extraction_path(self, path):
           """Set the base path where resources will be extracted to, if needed.
   
---- 862,867 ----
+--- 868,873 ----
 ***************
 *** 1099,1110 ****
       return name.replace('-','_')
@@ -254,7 +291,7 @@
   class NullProvider:
       """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
   
---- 979,984 ----
+--- 985,990 ----
 ***************
 *** 1224,1233 ****
               path, base = os.path.split(path)
@@ -267,7 +304,7 @@
   class DefaultProvider(EggProvider):
       """Provides access to package resources in the filesystem"""
   
---- 1098,1103 ----
+--- 1104,1109 ----
 ***************
 *** 1267,1274 ****
   empty_provider = EmptyProvider()
@@ -278,7 +315,7 @@
   class ZipProvider(EggProvider):
       """Resource support for zips and eggs"""
   
---- 1137,1142 ----
+--- 1143,1148 ----
 ***************
 *** 1412,1438 ****
   
@@ -308,7 +345,7 @@
   class FileMetadata(EmptyProvider):
       """Metadata handler for standalone PKG-INFO files
   
---- 1280,1285 ----
+--- 1286,1291 ----
 ***************
 *** 1461,1479 ****
   
@@ -330,7 +367,37 @@
   class PathMetadata(DefaultProvider):
       """Metadata provider for egg directories
   
---- 1308,1313 ----
+--- 1314,1319 ----
+***************
+*** 1669,1680 ****
+                          path_item,entry,metadata,precedence=DEVELOP_DIST
+                      )
+                  elif not only and lower.endswith('.egg'):
+!                     for dist in find_distributions(os.path.join(path_item, entry)):
+                          yield dist
+                  elif not only and lower.endswith('.egg-link'):
+                      for line in file(os.path.join(path_item, entry)):
+                          if not line.strip(): continue
+!                         for item in find_distributions(os.path.join(path_item,line.rstrip())):
+                              yield item
+                          break
+  register_finder(ImpWrapper,find_on_path)
+--- 1509,1523 ----
+                          path_item,entry,metadata,precedence=DEVELOP_DIST
+                      )
+                  elif not only and lower.endswith('.egg'):
+!                     for dist in find_distributions(os.path.join(path_item,
+!                                                                 entry)):
+                          yield dist
+                  elif not only and lower.endswith('.egg-link'):
+                      for line in file(os.path.join(path_item, entry)):
+                          if not line.strip(): continue
+!                         for item in find_distributions(
+!                             os.path.join(path_item, line.rstrip())
+!                             ):
+                              yield item
+                          break
+  register_finder(ImpWrapper,find_on_path)
 ***************
 *** 2005,2013 ****
   
@@ -342,7 +409,7 @@
   class Distribution(object):
       """Wrap an actual or potential sys.path entry w/metadata"""
       def __init__(self,
---- 1839,1844 ----
+--- 1848,1853 ----
 ***************
 *** 2087,2095 ****
                   )
@@ -354,7 +421,7 @@
       #@property
       def _dep_map(self):
           try:
---- 1918,1923 ----
+--- 1927,1932 ----
 ***************
 *** 2195,2217 ****
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
@@ -380,7 +447,7 @@
   
       def insert_on(self, path, loc = None):
           """Insert self.location in path before its nearest parent directory"""
---- 2023,2051 ----
+--- 2032,2060 ----
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
           return self.get_entry_map(group).get(name)
   
@@ -420,7 +487,7 @@
   
           nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
           loc = normalize_path(self.location)
---- 2089,2096 ----
+--- 2098,2105 ----
   
   
       def check_version_conflict(self):
@@ -458,7 +525,7 @@
   def parse_requirements(strs):
       """Yield ``Requirement`` objects for each specification in `strs`
   
---- 2149,2154 ----
+--- 2158,2163 ----
 ***************
 *** 2404,2423 ****
   
@@ -481,4 +548,4 @@
   class Requirement:
       def __init__(self, project_name, specs, extras):
           """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
---- 2217,2222 ----
+--- 2226,2231 ----
