@@ -845,19 +845,21 @@ Please make the appropriate changes for your system and try again.
         self.add_installed_files_list()
         self.outputs_this_package = []
 
-        # Run post-install script in EGG-INFO subdir (if present)
-        self._run_egg_info_script(dist.location, "post_install.py")
-
         log.info(self.installation_report(requirement, dist, *info))
         if dist.has_metadata('dependency_links.txt'):
             self.package_index.add_find_links(
                 dist.get_metadata_lines('dependency_links.txt')
             )
+
         if not deps and not self.always_copy:
+            self._run_egg_info_script(dist.location, "post_install.py")
             return
+
         elif requirement is not None and dist.key != requirement.key:
             log.warn("Skipping dependencies for %s", dist)
+            self._run_egg_info_script(dist.location, "post_install.py")
             return  # XXX this is not the distribution we were looking for
+
         elif requirement is None or dist not in requirement:
             # if we wound up with a different version, resolve what we've got
             distreq = dist.as_requirement()
@@ -887,7 +889,7 @@ Please make the appropriate changes for your system and try again.
                     self.easy_install(dist.as_requirement())
         log.info("Finished processing dependencies for %s", requirement)
 
-        # Run post-install script in EGG-INFO subdir (if present)
+        # Finally, run post-install script in EGG-INFO subdir (if present)
         self._run_egg_info_script(dist.location, "post_install.py")
 
 

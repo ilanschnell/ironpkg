@@ -24,3 +24,6 @@ Enhancements:
 
 
 Bugs:
+
+ * Post install script may get run multiple during the install process.
+
