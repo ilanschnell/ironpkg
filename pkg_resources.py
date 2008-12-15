@@ -459,7 +459,12 @@ class WorkingSet(object):
                         env = Environment(self.entries)
                     dist = best[req.key] = env.best_match(req, self, installer)
                     if dist is None:
-                        raise DistributionNotFound(req)  # XXX put more info here
+                        raise DistributionNotFound("""
+Could not find installed package matching %r
+
+To resolve this problem you may want to try the command: enpkg list
+This will list all installed packages.""" % req)
+
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency

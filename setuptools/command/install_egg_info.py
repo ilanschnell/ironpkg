@@ -45,11 +45,11 @@ class install_egg_info(Command):
 
     def copytree(self):
         # Copy the .egg-info tree to site-packages
-        def skimmer(src,dst):
+        def skimmer(src, dst):
             # filter out source-control directories; note that 'src' is always
             # a '/'-separated path, regardless of platform.  'dst' is a
             # platform-specific path.
-            for skip in '.svn/','CVS/':
+            for skip in ('.svn/', 'CVS/'):
                 if src.startswith(skip) or '/'+skip in src:
                     return None
             self.outputs.append(dst)

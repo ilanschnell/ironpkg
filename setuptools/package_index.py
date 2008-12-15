@@ -441,7 +441,7 @@ class PackageIndex(Environment):
                 # get release versions by default
                 if dist.is_non_release() and get_release:
                     continue
-                
+
                 if dist.precedence==DEVELOP_DIST and not develop_ok:
                     if dist not in skipped:
                         self.warn("Skipping development or system egg: %s",dist)

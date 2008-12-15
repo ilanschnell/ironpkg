@@ -3,6 +3,11 @@ Enhancements:
 
  * ability to use .egg_info files located alongside the .egg file for
    getting dependency information (not complete)
+   What is the standard file extension?
+   - in setuptools I see '.egg-info'
+   - in the buildsystem '.egg.info'
+   - I've also seen '.egg_info'
+   I think we should settle on some standard here.
 
  * Explicitly list PyPI repository in .enstallerrc
    - When first created the config file should contain only PyPI
@@ -19,6 +24,3 @@ Enhancements:
 
 
 Bugs:
-
- * When .enstallerrc can not be opened for reading, easy_install crashes.
-
