@@ -552,13 +552,16 @@ Please make the appropriate changes for your system and try again.
         # location and do the same thing
         if path.isdir(installed_egg_path):
             script_path = path.join(installed_egg_path, "EGG-INFO", name)
-        else:
+
+        elif path.isfile(installed_egg_path):
             # a zipped egg is installed
             tmp_dir = tempfile.mkdtemp(prefix="easy_install-")
             script_path = path.join(tmp_dir, name)
             store_file_from_zip(installed_egg_path,
                                 "EGG-INFO/" + name,
                                 script_path)
+        else:
+            log.error("Error: installed_egg_path = %r", installed_egg_path)
 
         if path.exists(script_path):
             # we have a script, now run it
@@ -692,10 +695,11 @@ Please make the appropriate changes for your system and try again.
     def easy_install(self, spec, deps=False):
         tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         download = None
-        if not self.editable: self.install_site_py()
+        if not self.editable:
+            self.install_site_py()
 
         try:
-            if not isinstance(spec,Requirement):
+            if not isinstance(spec, Requirement):
                 if URL_SCHEME(spec):
                     # It's a url, download it to tmpdir and process
                     self.not_editable(spec)
@@ -720,15 +724,18 @@ Please make the appropriate changes for your system and try again.
                 if self.always_copy:
                     msg+=" (--always-copy skips system and development eggs)"
                 raise DistutilsError(msg)
-            elif dist.precedence==DEVELOP_DIST:
+
+            elif dist.precedence == DEVELOP_DIST:
                 # .egg-info dists don't need installing, just process deps
                 self.process_distribution(spec, dist, deps, "Using")
                 return dist
+
             else:
                 return self.install_item(spec, dist.location, tmpdir, deps)
 
         finally:
             rm_rf(tmpdir)
+
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
 
@@ -746,7 +753,7 @@ Please make the appropriate changes for your system and try again.
             # at this point, we know it's a local .egg, we just don't know if
             # it's already installed.
             for dist in self.local_index[spec.project_name]:
-                if dist.location==download:
+                if dist.location == download:
                     break
             else:
                 install_needed = True   # it's not in the local index
@@ -837,6 +844,9 @@ Please make the appropriate changes for your system and try again.
         # Add the log of all the installed files to EGG-INFO
         self.add_installed_files_list()
         self.outputs_this_package = []
+
+        # Run post-install script in EGG-INFO subdir (if present)
+        self._run_egg_info_script(dist.location, "post_install.py")
 
         log.info(self.installation_report(requirement, dist, *info))
         if dist.has_metadata('dependency_links.txt'):
