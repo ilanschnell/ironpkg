@@ -1,4 +1,10 @@
 
+3.0.6
+-----
+
+
+
+
 3.0.5
 -----
 * Added .enstallerrc (enstaller.ini on Windows) which contains default
