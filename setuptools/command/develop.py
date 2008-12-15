@@ -23,10 +23,12 @@ class develop(easy_install):
     def run(self):
         if self.uninstall:
             self.multi_version = True
-            self._run_pre_uninstall(self.distribution.location)
+            self._run_egg_info_script(self.distribution.location,
+                                      "pre_uninstall.py")
             self.uninstall_link()
         else:
             self.install_for_development()
+            # Shouldn't the post_install.py be run here?
         self.warn_deprecated_options()
 
     def initialize_options(self):
