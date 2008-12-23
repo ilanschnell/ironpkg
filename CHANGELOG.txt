@@ -1,4 +1,9 @@
 
+3.0.7
+-----
+
+
+
 3.0.6
 -----
 * Allowing pre-uninstall scripts to be named EGG-INFO/uninstall.py,
