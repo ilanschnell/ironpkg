@@ -110,6 +110,15 @@ def upgrade_project(keys, local_repos=None, remote_repos=None, interactive=True,
         local_repos = get_local_repos()
     local = RepositoryUnion(get_local_repos())
     requirements = []
+
+    # If no explicit project(s) were specified to upgrade, try to upgrade
+    # all of the local projects installed.
+    if len(keys) == 0:
+        for project in local.projects:
+            pkg = local.projects[project].active_package
+            if pkg:
+                keys.append(project)
+    
     for key in keys:
         active_local_projects = [project
             for project in local.projects[key].projects
