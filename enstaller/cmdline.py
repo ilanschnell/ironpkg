@@ -323,7 +323,7 @@ Utility for managing packages in the site-packages directory.
 The command needs to be on of the following: install, upgrade, remove, list
 """
 
-    parser = OptionParser(usage="usage: enpgk command [options]",
+    parser = OptionParser(usage="usage: enpkg command [options]",
                           description=description,
                           version="Enstaller version %s" % __version__)
 
