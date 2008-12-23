@@ -1,8 +1,12 @@
 
 3.0.6
 -----
-
-
+* Allowing pre-uninstall scripts to be named EGG-INFO/uninstall.py,
+  this change was made for purely historic reasons.  This change does not
+  interfere with the standard convention that pre-uninstall scripts are
+  named EGG-INFO/pre_uninstall.py, just as post-install scripts are named
+  EGG-INFO/post_install.py.  Naming pre-uninstall scripts uninstall.py,
+  is not recommended, but still possible.
 
 
 3.0.5

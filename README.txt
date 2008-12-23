@@ -44,3 +44,8 @@ Remarks:
    setuptools code old setuptools features may still work with Python 2.3,
    but added features may not.  No attempts are being made to maintain
    compatibility with Python 2.3.
+ * post-install and pre-uninstall scripts are located in the EGG-INFO
+   folder.  If a file named ``post_install.py`` is present in this folder,
+   it is executed after the install of the actual package.
+   Likewise, if a file named ``pre_uninstall.py`` is present in this folder,
+   it is executed before the package is removed.

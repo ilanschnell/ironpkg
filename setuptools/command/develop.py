@@ -25,6 +25,8 @@ class develop(easy_install):
             self.multi_version = True
             self._run_egg_info_script(self.distribution.location,
                                       "pre_uninstall.py")
+            self._run_egg_info_script(self.distribution.location,
+                                      "uninstall.py")
             self.uninstall_link()
         else:
             self.install_for_development()

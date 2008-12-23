@@ -625,6 +625,8 @@ Please make the appropriate changes for your system and try again.
         log.info("Removing %s..." % pkg_path)
         # Run pre-uninstall script in EGG-INFO subdir (if present)
         self._run_egg_info_script(pkg_path, "pre_uninstall.py")
+        self._run_egg_info_script(pkg_path, "uninstall.py")
+
         self._remove_package_file(pkg_path)
 
 
