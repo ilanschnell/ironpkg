@@ -324,7 +324,7 @@ class RemotePackage(PkgResourcesPackage):
     @property
     def tmpdir(self):
         return os.path.join(self.repository.tmpdir, self.project.name,
-            "-".join(self.parsed_version))
+            self.version)
     
     @property
     def local_distribution(self):
