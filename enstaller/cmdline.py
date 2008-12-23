@@ -156,9 +156,13 @@ def install_requirement(requirements, target_repo=None, local_repos=None,
                      if project.active_package != None)
     to_install = []
     for requirement in requirements:
-        packages = [package
-            for package in available.projects[requirement.key].packages
-                if package.distribution in requirement]
+        try:
+            packages = [package
+                for package in available.projects[requirement.key].packages
+                    if package.distribution in requirement]
+        except KeyError:
+            print "Could not find suitable distribution for %s" % requirement
+            return
         if not packages:
             warning("Could not find a package which matches requirement %s" %
                     requirement)
