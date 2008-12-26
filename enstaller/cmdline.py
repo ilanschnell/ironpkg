@@ -58,7 +58,7 @@ def get_site_packages():
     """
     site_packages = sysconfig.get_python_lib()
     if site_packages:
-        return EasyInstallRepository(location=site_packages[0])
+        return EasyInstallRepository(location=site_packages)
     else:
         error("Can't locate site-packages directory in path.")
 
