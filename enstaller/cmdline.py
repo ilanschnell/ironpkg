@@ -102,8 +102,8 @@ def user_select(header, data, prompt, default="1", max_width=0):
         return None
 
 
-def upgrade_project(keys, local_repos=None, remote_repos=None, interactive=True,
-    dry_run=False, term_width=0):
+def upgrade_project(keys, local_repos=None, remote_repos=None,
+    interactive=True, dry_run=False, term_width=0):
     """ Upgrade a project, if possible.
     """
     if local_repos == None:
@@ -120,12 +120,87 @@ def upgrade_project(keys, local_repos=None, remote_repos=None, interactive=True,
                 keys.append(project)
     
     for key in keys:
+        # All of the keys in the local.projects dictionary are lowercase, so
+        # convert all of the user-specified keys to lowercase.
+        key = key.lower()
+        
         active_local_projects = [project
             for project in local.projects[key].projects
                 if project.active]
         if active_local_projects:
             pkg = active_local_projects[0].active_package
-            requirement = Requirement.parse("%s>%s" % (key, pkg.version))
+
+            # Split up the version string into a list so we can determine
+            # upgrades in the major/minor version parts.  Also check to see
+            # if the package has our build number tag.
+            version = pkg.version
+            if version[-2:] == "_s":
+                version = version[-2:]
+            version_parts = version.split('.')
+
+            # This upgrade could be done on packages the user installed that
+            # we(Enthought) didn't build (i.e. no build number tag), so we
+            # need to account for this.  So, if the last part of the version
+            # string is 4 digits long, we will assume that is our build number
+            # tag.
+            try:
+                major = int(version_parts[0])
+            except ValueError:
+                # FIXME:  Currently, if we fail to convert part of the version
+                # string to an integer, we just skip trying to upgrade the
+                # package.  This occurs when packages have characters in their
+                # versions, such as pytz-2008c.
+                continue
+            if len(version_parts[-1]) == 4:
+                # Installed package:  foo-1.0001 or foo-1.0.0001
+                # Upgrade needs:  foo>=2.0001 or foo>=2.0.0001
+                if len(version_parts) < 4:
+                    req_ver = str(major+1)
+                    for a in range(len(version_parts)-2):
+                        req_ver += '.0'
+                # Installed package:  foo-1.0.0.0001, or more parts
+                # Upgrade needs:  foo>=1.1.0.0001, etc...
+                else:
+                    try:
+                        minor = int(version_parts[1])
+                    except ValueError:
+                        # FIXME:  Currently, if we fail to convert part of the
+                        # version string to an integer, we just skip trying to
+                        # upgrade the package.  This occurs when packages have
+                        # characters in their versions, such as pytz-2008c.
+                        continue
+                    req_ver = str(major) + '.' + str(minor+1)
+                    for a in range(len(version_parts)-3):
+                        req_ver += '.0'
+                req_ver += '.0001'
+                req_str = "%s>=%s" % (key, req_ver)
+            else:
+                # Installed package:  foo-1
+                # Upgrade needs:  foo>1
+                if len(version_parts) == 1:
+                    req_str = "%s>%s" % (key, version)
+                # Installed package:  foo-1.0
+                # Upgrade needs:  foo>=2.0
+                elif len(version_parts) == 2:
+                    req_ver = str(major+1) + '.0'
+                # Installed package:  foo-1.0.0, or more parts
+                # Upgrade needs:  foo>=1.1.0, etc...
+                else:
+                    try:
+                        minor = int(version_parts[1])
+                    except ValueError:
+                        # FIXME:  Currently, if we fail to convert part of the
+                        # version string to an integer, we just skip trying to
+                        # upgrade the package.  This occurs when packages have
+                        # characters in their versions, such as pytz-2008c.
+                        continue
+                    req_ver = str(major) + '.' + str(minor+1)
+                    for a in range(len(version_parts)-2):
+                        req_ver += '.0'
+                req_str = "%s>=%s" % (key, req_ver)
+
+            # Create a requirement object from our requirement string.
+            requirement = Requirement.parse(req_str)
         else:
             max_pkg = None
             for pkg in local.projects[key].packages:
@@ -143,6 +218,126 @@ def upgrade_project(keys, local_repos=None, remote_repos=None, interactive=True,
     install_requirement(requirements, local_repos=local_repos,
         remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
         term_width=term_width)
+
+    
+def update_project(keys, local_repos=None, remote_repos=None,
+    interactive=True, dry_run=False, term_width=0):
+    """ Update a project, if possible.
+    """
+    if local_repos == None:
+        local_repos = get_local_repos()
+    local = RepositoryUnion(get_local_repos())
+    requirements = []
+
+    # If no explicit project(s) were specified to update, try to update
+    # all of the local projects installed.
+    if len(keys) == 0:
+        for project in local.projects:
+            pkg = local.projects[project].active_package
+            if pkg:
+                keys.append(project)
+    
+    for key in keys:
+        # All of the keys in the local.projects dictionary are lowercase, so
+        # convert all of the user-specified keys to lowercase.
+        key = key.lower()
+        
+        active_local_projects = [project
+            for project in local.projects[key].projects
+                if project.active]
+        if active_local_projects:
+            pkg = active_local_projects[0].active_package
+
+            # Split up the version string into a list so we can determine
+            # updates in the patch/build version parts.  Also check to see
+            # if the package has our build number tag.
+            version = pkg.version
+            if version[-2:] == "_s":
+                version = version[-2:]
+            version_parts = version.split('.')
+
+            # This update could be done on packages the user installed that
+            # we(Enthought) didn't build (i.e. no build number tag), so we
+            # need to account for this.  So, if the last part of the version
+            # string is 4 digits long, we will assume that is our build number
+            # tag.
+            try:
+                major = int(version_parts[0])
+            except ValueError:
+                # FIXME:  Currently, if we fail to convert part of the version
+                # string to an integer, we just skip trying to upgrade the
+                # package.  This occurs when packages have characters in their
+                # versions, such as pytz-2008c.
+                continue
+            if len(version_parts[-1]) == 4:
+                # Installed package:  foo-1.0001 or foo-1.0.0001
+                # Update needs:  foo>1.0001, <2.0001 or foo>1.0.0001, <2.0.0001
+                if len(version_parts) < 4:
+                    max_req_ver = str(major+1)
+                    for a in range(len(version_parts)-2):
+                        max_req_ver += '.0'
+                # Installed package:  foo-1.0.0.0001, or more parts
+                # Update needs:  foo>1.0.0.0001, <1.1.0.0001, etc...
+                else:
+                    try:
+                        minor = int(version_parts[1])
+                    except ValueError:
+                        # FIXME:  Currently, if we fail to convert part of the
+                        # version string to an integer, we just skip trying to
+                        # upgrade the package.  This occurs when packages have
+                        # characters in their versions, such as pytz-2008c.
+                        continue
+                    max_req_ver = str(major) + '.' + str(minor+1)
+                    for a in range(len(version_parts)-3):
+                        max_req_ver += '.0'
+                max_req_ver += '.0001'
+                req_str = "%s>%s, <%s" % (key, version, max_req_ver)
+            else:
+                # Installed package:  foo-1
+                # Unable to update because only possible change is a major
+                # version bump.
+                if len(version_parts) == 1:
+                    continue
+                # Installed package:  foo-1.0
+                # Update needs:  foo>1.0, <2.0
+                elif len(version_parts) == 2:
+                    req_ver = str(major+1) + '.0'
+                # Installed package:  foo-1.0.0, or more parts
+                # Update needs:  foo>1.0.0, <1.1.0, etc...
+                else:
+                    try:
+                        minor = int(version_parts[1])
+                    except ValueError:
+                        # FIXME:  Currently, if we fail to convert part of the
+                        # version string to an integer, we just skip trying to
+                        # upgrade the package.  This occurs when packages have
+                        # characters in their versions, such as pytz-2008c.
+                        continue
+                    max_req_ver = str(major) + '.' + str(minor+1)
+                    for a in range(len(version_parts)-2):
+                        max_req_ver += '.0'
+                req_str = "%s>%s, <%s" % (key, version, max_req_ver)
+
+            # Create a requirement object from our requirement string.
+            requirement = Requirement.parse(req_str)
+        else:
+            max_pkg = None
+            for pkg in local.projects[key].packages:
+                if max_pkg is None or pkg > max_pkg:
+                    max_pkg = pkg
+            if max_pkg is not None:
+                requirement = Requirement.parse("%s>%s" % (key,
+                    max_pkg.version))
+            else:
+                requirement = Requirement.parse(project)
+        requirements.append(requirement)
+
+    print requirements
+
+    install_requirement(requirements, local_repos=local_repos,
+        remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
+        term_width=term_width)
+
 
 def install_requirement(requirements, target_repo=None, local_repos=None,
         remote_repos=None, interactive=True, dry_run=False, verbose=False,
@@ -383,7 +578,7 @@ def main():
     options, args = parser.parse_args()
     if len(args) < 1:
         parser.error("Must call enpkg with one of 'install', 'upgrade', "
-            "'remove', or 'list', see -h for more details")
+            "'update', 'remove', or 'list', see -h for more details")
 
     # Set up logging
     basicConfig(level=options.logging, format="%(message)s")
@@ -415,6 +610,11 @@ def main():
             term_width=options.term_width)
     elif command == "upgrade":
         upgrade_project(args,
+            remote_repos=remote_repos,
+            interactive=options.interactive, dry_run=options.dry_run,
+            term_width=options.term_width)
+    elif command == "update":
+        update_project(args,
             remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width)
