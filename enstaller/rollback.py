@@ -137,4 +137,21 @@ def rollback_state(project_list):
             if pkg.version == project_version:
                 pkg.activate(verbose=False)
                 break
-                
+            
+    # We also need to deactivate any packages that the user has installed since
+    # the rollback point.
+    active_local_packages = []
+    for project in local.projects:
+        pkg = local.projects[project].active_package
+        if pkg:
+            active_local_packages.append(pkg.project.name)
+    for package in active_local_packages:
+        new_package = True
+        for project in project_list:
+            if package in project:
+                new_package = False
+                break
+        if new_package:
+            pkg = local.projects[package].active_package
+            pkg.deactivate(dry_run=False)
+            
