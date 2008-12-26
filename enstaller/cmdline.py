@@ -12,6 +12,7 @@
 
 
 # standard library imports
+from distutils import sysconfig
 import sys
 import os
 from optparse import OptionParser
@@ -55,9 +56,7 @@ def get_local_repos():
 def get_site_packages():
     """Find the site-packages directory
     """
-    # is there a better way than this?
-    site_packages = [path for path in sys.path
-                     if path.endswith('site-packages')]
+    site_packages = sysconfig.get_python_lib()
     if site_packages:
         return EasyInstallRepository(location=site_packages[0])
     else:
