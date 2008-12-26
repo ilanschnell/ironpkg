@@ -18,6 +18,7 @@ import os
 from optparse import OptionParser
 from logging import basicConfig, error, warning, info, debug, DEBUG, INFO, \
     WARNING, ERROR
+import time
 
 # third party module imports
 from pkg_resources import Requirement
@@ -27,6 +28,7 @@ from config import get_configured_repos
 from package import EasyInstallPackage, RemotePackage
 from proxy.api import setup_proxy
 from repository import EasyInstallRepository, HTMLRepository, RepositoryUnion
+from rollback import retrieve_states, rollback_state, save_state
 from upgrade import upgrade
 from utilities import remove_eggs_from_path, rst_table, get_platform
 
@@ -77,11 +79,14 @@ def query_user(msg, default=""):
     return response[0] == "y"
 
 
-def user_select(header, data, prompt, default="1", max_width=0):
+def user_select(header, data, prompt, default="1", extra_char=None,
+    max_width=0):
     """Present a collection of options to the user and return a response
     """
 
     valid_responses = [str(i+1) for i in range(len(data))]
+    if extra_char:
+        valid_responses += [(str(i+1)+extra_char) for i in range(len(data))]
     for i, row in enumerate(data):
         row["option"] = str(i+1).rjust(5)
     header = ["option"] + header
@@ -96,7 +101,10 @@ def user_select(header, data, prompt, default="1", max_width=0):
         if response == "" and default:
             response = default
     if response != "none":
-        return int(response)-1
+        if extra_char:
+            return response
+        else:
+            return int(response)-1
     else:
         return None
 
@@ -336,6 +344,70 @@ def update_project(keys, local_repos=None, remote_repos=None,
     install_requirement(requirements, local_repos=local_repos,
         remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
         term_width=term_width)
+        
+
+def rollback_menu(term_width=0):
+    """
+    Show a menu with possible rollback options and perform the appropriate
+    action based on the user's input.
+    """
+    # Create a list of metadata for the possible rollback dates so that we can create an
+    # auto-generated user selection layout.
+    cached_states = retrieve_states()
+    metadata = []
+    for state in cached_states:
+        timestamp = state[0]
+        time_tuple = time.strptime(timestamp, "%Y%m%d%H%M%S")
+        date_display = time.strftime("%Y/%m/%d %H:%M:%S", time_tuple)
+        metadata.append({"date": date_display})
+        
+    # If a user selects to view more information about a specific rollback point, keep
+    # prompting the user to choose a rollback point after displaying that information.
+    while True:
+        selection = user_select(["date"],
+            metadata, ("Select a restore point to rollback your "
+            "environment to.\nFor more information about a "
+            "specific rollback point,\ntype the option number "
+            "followed by a question mark:  "), extra_char="?",
+            max_width=term_width)
+        if not selection.endswith("?"):
+            break
+        else:
+            option = int(selection.split('?')[0])-1
+            state = cached_states[option]
+            timestamp = state[0]
+            time_tuple = time.strptime(timestamp, "%Y%m%d%H%M%S")
+            date_display = time.strftime("%Y/%m/%d %H:%M:%S", time_tuple)
+            print "Active Project State on %s:" % date_display
+            state_data=[]
+            project_list = state[1]
+            for project in project_list:
+                post_install_flag = False
+                if project.endswith('-s'):
+                    project = project[:-2]
+                    post_install_flag = True
+                project_split = project.split('-')
+                project_name = '-'.join(project_split[:-1])
+                project_version = project_split[-1]
+                if post_install_flag:
+                    project_version += '-s'
+                state_data.append({"project_name": project_name,
+                    "version": project_version})
+            msg = rst_table(["project_name", "version"],
+                state_data, sorted=False, max_width=term_width)
+            msg += "\n\n"
+            print msg
+            
+    # Now that the user has selected a rollback point, perform the action to rollback
+    # to that state.  Once the rollback has been completed successfully, let the user
+    # know.
+    state_index = int(selection)-1
+    project_list = cached_states[state_index][1]
+    rollback_state(project_list)
+    timestamp = cached_states[state_index][0]
+    time_tuple = time.strptime(timestamp, "%Y%m%d%H%M%S")
+    date_display = time.strftime("%Y/%m/%d %H:%M:%S", time_tuple)
+    print "\nSystem successfully rolled back to state on: %s" % date_display
 
 
 def install_requirement(requirements, target_repo=None, local_repos=None,
@@ -577,7 +649,7 @@ def main():
     options, args = parser.parse_args()
     if len(args) < 1:
         parser.error("Must call enpkg with one of 'install', 'upgrade', "
-            "'update', 'remove', or 'list', see -h for more details")
+            "'update', 'rollback', 'remove', or 'list', see -h for more details")
 
     # Set up logging
     basicConfig(level=options.logging, format="%(message)s")
@@ -617,6 +689,8 @@ def main():
             remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width)
+    elif command == "rollback":
+        rollback_menu(term_width=options.term_width)
     elif sys.argv[1] == "activate":
         install_requirement([Requirement.parse(arg) for arg in args],
             remote_repos=[], interactive=options.interactive,

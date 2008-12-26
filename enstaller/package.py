@@ -185,7 +185,8 @@ class EasyInstallPackage(PkgResourcesPackage):
     #            projects[key] = dependencies
     #    return projects
     
-    def activate(self, save=True, dependencies=True, dry_run=False):
+    def activate(self, save=True, dependencies=True, dry_run=False,
+        verbose=True):
         """Activate the package, adding it to the Python import path.
 
         Parameters
@@ -194,6 +195,9 @@ class EasyInstallPackage(PkgResourcesPackage):
             Should changes to the repository be saved now?
         dependencies : boolean
             Should we ensure a consistent state after activation?
+        verbose : boolean
+            Should all of the output be shown or just if something was
+            changed(i.e. activated when it was deactivated)?
         """
         if not self.active:
             if self.project.active:
@@ -211,7 +215,8 @@ class EasyInstallPackage(PkgResourcesPackage):
                     print "Save .pth file."
             run_scripts(self.distribution, "post-activate", dry_run=dry_run)
         else:
-            warning("Package %s is already active." % (self.name))
+            if verbose:
+                warning("Package %s is already active." % (self.name))
     
     def deactivate(self, save=True, dependencies=False, dry_run=True):
         """Deactivate the package, removing it from the Python import path.

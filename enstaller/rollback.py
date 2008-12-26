@@ -113,12 +113,28 @@ def rollback_state(project_list):
     """
     # Iterate through the list of package_name-versions and for each project,
     # ensure that the appropriate version for that project is activated.
+    # Note: We have to take into account that some of the projects have names like
+    # foo-bar-1.2.3.  We also need to account for the post-install script flag.
+    site_packages = sysconfig.get_python_lib()
+    local = EasyInstallRepository(location=site_packages)
     for project in project_list:
-        project_name = project.split('-')[0]
-        project_version = project.split('-')[1]
-        pkgs = local.projects[project_name].packages
+        post_install_flag = False
+        if project.endswith('-s'):
+            project = project[:-2]
+            post_install_flag = True
+        project_split = project.split('-')
+        project_name = '-'.join(project_split[:-1])
+        project_version = project_split[-1]
+        if post_install_flag:
+            project_version += '-s'
+        try:
+            pkgs = local.projects[project_name].packages
+        except KeyError:
+            # FIXME:  If we can't find a project key in the local.projects, we should
+            # probably re-download it if possible.  For now, just skip the project.
+            continue
         for pkg in pkgs:
             if pkg.version == project_version:
-                pkg.activate()
+                pkg.activate(verbose=False)
                 break
                 
