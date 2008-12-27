@@ -113,6 +113,10 @@ def upgrade_project(keys, local_repos=None, remote_repos=None,
     interactive=True, dry_run=False, term_width=0):
     """ Upgrade a project, if possible.
     """
+    # Before we do anything, save the current working state of the environment to a rollback point.
+    # TODO:  If the upgrade fails, we need to rollback to this save point.
+    save_state()
+    
     if local_repos == None:
         local_repos = get_local_repos()
     local = RepositoryUnion(get_local_repos())
@@ -231,6 +235,10 @@ def update_project(keys, local_repos=None, remote_repos=None,
     interactive=True, dry_run=False, term_width=0):
     """ Update a project, if possible.
     """
+    # Before we do anything, save the current working state of the environment to a rollback point.
+    # TODO:  If the upgrade fails, we need to rollback to this save point.
+    save_state()
+    
     if local_repos == None:
         local_repos = get_local_repos()
     local = RepositoryUnion(get_local_repos())
