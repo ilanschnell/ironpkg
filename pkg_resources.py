@@ -102,8 +102,8 @@ class UnknownExtra(ResolutionError):
 _provider_factories = {}
 PY_MAJOR = sys.version[:3]
 EGG_DIST    = 3
-BINARY_DIST = 2
-SOURCE_DIST = 1
+SOURCE_DIST = 2
+BINARY_DIST = 1
 CHECKOUT_DIST = 0
 DEVELOP_DIST = -1
 
