@@ -20,6 +20,25 @@ from time import strftime
 from repository import EasyInstallRepository
 
 
+def parse_project_str(project_str):
+    """
+    Pass in a project string(i.e. foo-1.0) and return a tuple of the
+    (project_name, project_version).  This can be messy depending
+    on the presence of a post-install script flag, so this helper function
+    relieves some redudancy when needing to parse these strings.
+    """
+    post_install_flag = False
+    if project_str.endswith('-s'):
+        project_str = project_str[:-2]
+        post_install_flag = True
+    project_split = project_str.split('-')
+    project_name = '-'.join(project_split[:-1])
+    project_version = project_split[-1]
+    if post_install_flag:
+        project_version += '-s'
+    return (project_name, project_version)
+
+
 def retrieve_states():
     """
     Read the enstaller.cache file to retrieve all of the state entries.
@@ -118,15 +137,7 @@ def rollback_state(project_list):
     site_packages = sysconfig.get_python_lib()
     local = EasyInstallRepository(location=site_packages)
     for project in project_list:
-        post_install_flag = False
-        if project.endswith('-s'):
-            project = project[:-2]
-            post_install_flag = True
-        project_split = project.split('-')
-        project_name = '-'.join(project_split[:-1])
-        project_version = project_split[-1]
-        if post_install_flag:
-            project_version += '-s'
+        (project_name, project_version) = parse_project_str(project)
         try:
             pkgs = local.projects[project_name].packages
         except KeyError:

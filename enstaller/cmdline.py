@@ -28,7 +28,7 @@ from config import get_configured_repos
 from package import EasyInstallPackage, RemotePackage
 from proxy.api import setup_proxy
 from repository import EasyInstallRepository, HTMLRepository, RepositoryUnion
-from rollback import retrieve_states, rollback_state, save_state
+from rollback import parse_project_str, retrieve_states, rollback_state, save_state
 from upgrade import upgrade
 from utilities import remove_eggs_from_path, rst_table, get_platform
 
@@ -316,7 +316,7 @@ def update_project(keys, local_repos=None, remote_repos=None,
                 # Installed package:  foo-1.0
                 # Update needs:  foo>1.0, <2.0
                 elif len(version_parts) == 2:
-                    req_ver = str(major+1) + '.0'
+                    max_req_ver = str(major+1) + '.0'
                 # Installed package:  foo-1.0.0, or more parts
                 # Update needs:  foo>1.0.0, <1.1.0, etc...
                 else:
@@ -363,11 +363,68 @@ def rollback_menu(term_width=0):
     # auto-generated user selection layout.
     cached_states = retrieve_states()
     metadata = []
-    for state in cached_states:
+    for i, state in enumerate(cached_states):
+        # Create a date display from the timestamp of the rollback point.
         timestamp = state[0]
         time_tuple = time.strptime(timestamp, "%Y%m%d%H%M%S")
         date_display = time.strftime("%Y/%m/%d %H:%M:%S", time_tuple)
-        metadata.append({"date": date_display})
+        
+        # Find the differences between two rollback points(i.e. packages added, removed,
+        # or modified) and calculate a nice diff that can be displayed in the table.
+        # We need to stop calculating these diffs once we reach the last item though
+        # because there are no entries after it.
+        option_diff = ""
+        if i < len(cached_states)-1:
+            project_list_1 = cached_states[i][1]
+            project_list_2 = cached_states[i+1][1]
+            diff_list_1 = [project for project in project_list_1 if not project in project_list_2]
+            diff_list_2 = [project for project in project_list_2 if not project in project_list_1]
+            if len(diff_list_1) == 0 and len(diff_list_2) == 0:
+                option_diff = "  There are no changes between these points."
+            else:
+                added = []
+                modified = []
+                deactivated = []
+                for project in diff_list_1:
+                    (project_name_1, project_version_1) = parse_project_str(project)
+                    found = False
+                    for project2 in diff_list_2:
+                        (project_name_2, project_version_2) = parse_project_str(project2)
+                        if project_name_1 == project_name_2:
+                            found = True
+                            modified.append("%s-%s to %s" % (project_name_1, project_version_2,
+                                project_version_1))
+                            break
+                    if not found:
+                        added.append("%s-%s" % (project_name_1, project_version_1))
+                for project2 in diff_list_2:
+                    (project_name_2, project_version_2) = parse_project_str(project2)
+                    found = False
+                    for project in diff_list_1:
+                        (project_name_1, project_version_1) = parse_project_str(project)
+                        if project_name_2 == project_name_1:
+                            found = True
+                            break
+                    if not found:
+                        deactivated.append("%s-%s" % (project_name_2, project_version_2))
+                if len(added) > 0:
+                    option_diff += "  [A] %s" % added[0]
+                    for add_str in added[1:]:
+                        option_diff += "\n\t      %s" % add_str
+                    option_diff += "\n\t"
+                if len(modified) > 0:
+                    option_diff += "  [M] %s" % modified[0]
+                    for mod_str in modified[1:]:
+                        option_diff += "\n\t      %s" % mod_str
+                    option_diff += "\n\t"
+                if len(deactivated) > 0:
+                    option_diff += "  [D] %s" % deactivated[0]
+                    for deac_str in deactivated[1:]:
+                        option_diff += "\n\t      %s" % deac_str
+                    
+        # Set the 'date' metadata according to the date display and the differene between
+        # rollback points.
+        metadata.append({"date": date_display + "\n\t" + option_diff})
         
     # If a user selects to view more information about a specific rollback point, keep
     # prompting the user to choose a rollback point after displaying that information.
@@ -390,15 +447,7 @@ def rollback_menu(term_width=0):
             state_data=[]
             project_list = state[1]
             for project in project_list:
-                post_install_flag = False
-                if project.endswith('-s'):
-                    project = project[:-2]
-                    post_install_flag = True
-                project_split = project.split('-')
-                project_name = '-'.join(project_split[:-1])
-                project_version = project_split[-1]
-                if post_install_flag:
-                    project_version += '-s'
+                (project_name, project_version) = parse_project_str(project)
                 state_data.append({"project_name": project_name,
                     "version": project_version})
             msg = rst_table(["project_name", "version"],
