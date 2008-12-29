@@ -22,7 +22,7 @@ from glob import glob
 # imports from 3rd party packages
 from pkg_resources import Requirement, Distribution
 from setuptools.package_index import distros_for_url, find_distributions, \
-    ensure_directory
+    ensure_directory, open_with_auth
 from setuptools.archive_util import unpack_archive
 
 # local imports
@@ -447,7 +447,7 @@ class HTMLPackage(RemotePackage):
         else:
             egg_info_url = self.location +".egg.info"
         try:
-            url = urllib2.urlopen(egg_info_url)
+            url = open_with_auth(egg_info_url)
             egg_info = get_egg_specs_from_info(url.read())
             metadata.update(egg_info)
         except urllib2.URLError:
@@ -473,7 +473,7 @@ class XMLRPCPackage(RemotePackage):
         else:
             egg_info_url = self.location +".egg.info"
         try:
-            url = urllib2.urlopen(egg_info_url)
+            url = open_with_auth(egg_info_url)
             egg_info = get_egg_specs_from_info(url.read())
             metadata.update(egg_info)
         except urllib2.URLError:
