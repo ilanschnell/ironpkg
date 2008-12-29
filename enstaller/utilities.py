@@ -233,4 +233,48 @@ def rmtree_error(operation, filename, exception):
         error("Could not remove directory %s: %s" % (filename, exception))
     elif operation == os.listdir:
         error("Could not list files in directory %s: %s" % (filename, exception))
+        
+
+def query_user(msg, default=""):
+    """Present a yes/no question to the user and return a response
+    """
+
+    if default:
+        msg += "[%s] " % default
+    response = ""
+    while len(response) == 0 or response[0] not in "yn":
+        response = raw_input(msg).strip().lower()
+        if response == "" and default:
+            response = default
+    return response[0] == "y"
+    
+
+def user_select(header, data, prompt, default="1", extra_char=None,
+    max_width=0):
+    """Present a collection of options to the user and return a response
+    """
+
+    valid_responses = [str(i+1) for i in range(len(data))]
+    if extra_char:
+        valid_responses += [(str(i+1)+extra_char) for i in range(len(data))]
+    for i, row in enumerate(data):
+        row["option"] = str(i+1).rjust(5)
+    header = ["option"] + header
+    msg = rst_table(header, data, sorted=False, max_width=max_width)
+    #msg = "\n".join("%4s. %s" % (i+1, option)
+    #                for i, option in enumerate(option_list))
+    msg += "\n\n"
+    msg += prompt + "[%s] " % default
+    response = ""
+    while len(response) == 0 or response not in valid_responses:
+        response = raw_input(msg).strip().lower()
+        if response == "" and default:
+            response = default
+    if response != "none":
+        if extra_char:
+            return response
+        else:
+            return int(response)-1
+    else:
+        return None
     

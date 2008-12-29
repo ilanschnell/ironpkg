@@ -17,7 +17,8 @@ import os
 from time import strftime
 
 # Enstaller imports.
-from repository import EasyInstallRepository
+from pkg_resources import Requirement
+from requirements import get_site_packages, install_requirement
 
 
 def parse_project_str(project_str):
@@ -98,7 +99,7 @@ def save_state():
     # Determine the current local repository and from that build a list of the current
     # active packages.
     site_packages = sysconfig.get_python_lib()
-    local = EasyInstallRepository(location=site_packages)
+    local = get_site_packages()
     active_local_packages = []
     for project in local.projects:
         pkg = local.projects[project].active_package
@@ -126,24 +127,33 @@ def save_state():
         print "Error trying to write to the enstaller.cache."
     
     
-def rollback_state(project_list):
+def rollback_state(project_list, remote_repos=None, interactive=True,
+    dry_run=False, term_width=0):
     """
-    Input is a list of package_name-versions that are to be activated.
+    Input is a list of package_name-versions that are to be activated
+    and some of the options that can be passed on the command-line.
     """
     # Iterate through the list of package_name-versions and for each project,
     # ensure that the appropriate version for that project is activated.
-    # Note: We have to take into account that some of the projects have names like
-    # foo-bar-1.2.3.  We also need to account for the post-install script flag.
-    site_packages = sysconfig.get_python_lib()
-    local = EasyInstallRepository(location=site_packages)
+    local = get_site_packages()
     for project in project_list:
         (project_name, project_version) = parse_project_str(project)
         try:
             pkgs = local.projects[project_name].packages
         except KeyError:
-            # FIXME:  If we can't find a project key in the local.projects, we should
-            # probably re-download it if possible.  For now, just skip the project.
-            continue
+            # If we can't find a project key in the local.projects, that means that it was removed
+            # from the system(not just deactivated), so we try to re-install it.
+            req_str = "%s==%s" % (project_name, project_version)
+            requirement = Requirement.parse(req_str)
+            try:
+                install_requirement([requirement], remote_repos=remote_repos,
+                    interactive=interactive, dry_run=dry_run,
+                    term_width=term_width)
+            except:
+                # TODO: The re-install of the requirement might fail if that package
+                # was installed by a 'setup.py develop', so for now we skip it if it fails,
+                # but should probably handle this differently.
+                continue
         for pkg in pkgs:
             if pkg.version == project_version:
                 pkg.activate(verbose=False)
