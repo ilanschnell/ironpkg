@@ -53,8 +53,7 @@ def retrieve_states():
     site_packages = sysconfig.get_python_lib()
     enstaller_cache = os.path.join(site_packages, 'enstaller.cache')
     if not os.path.exists(enstaller_cache):
-        print ("The enstaller.cache does not exist so a rollback "
-            "can not be done.")
+        print "The enstaller.cache does not exist."
         return None
         
     # Read in all of the lines from the enstaller.cache.  If the enstaller.cache can not be

@@ -316,8 +316,13 @@ def rollback_menu(remote_repos=None, interactive=True,
     """
     # Create a list of metadata for the possible rollback dates so that we can create an
     # auto-generated user selection layout.  Based on the command-line options, we can limit
-    # the list of rollback points that are shown.
+    # the list of rollback points that are shown.  If the enstaller.cache doesn't exist,
+    # let the user know why they can not do a rollback.
     cached_states = retrieve_states()
+    if not cached_states:
+        print ("A rollback can not be performed because there are "
+            "no cached rollback points.")
+        return
     if not show_all:
         cached_states = cached_states[:num_entries]
     metadata = []
