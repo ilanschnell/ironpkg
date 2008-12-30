@@ -311,14 +311,17 @@ def update_project(keys, local_repos=None, remote_repos=None,
         
 
 def rollback_menu(remote_repos=None, interactive=True,
-    dry_run=False, term_width=0):
+    dry_run=False, term_width=0, show_all=False, num_entries=5):
     """
     Show a menu with possible rollback options and perform the appropriate
     action based on the user's input.
     """
     # Create a list of metadata for the possible rollback dates so that we can create an
-    # auto-generated user selection layout.
+    # auto-generated user selection layout.  Based on the command-line options, we can limit
+    # the list of rollback points that are shown.
     cached_states = retrieve_states()
+    if not show_all:
+        cached_states = cached_states[:num_entries]
     metadata = []
     for i, state in enumerate(cached_states):
         # Create a date display from the timestamp of the rollback point.
@@ -465,7 +468,7 @@ The command needs to be on of the following: install, upgrade, remove, list
 
     parser.set_defaults(interactive=False, logging=INFO, dry_run=False,
         term_width=term_width, remote_html=[PYPI_REPO], remote_xmlrpc=[],
-        allow_unstable=False, proxy="", find_links=[])
+        allow_unstable=False, proxy="", find_links=[], show_all=False, num_entries=5)
 
     parser.add_option("-i", "--interactive", action="store_true",
         dest="interactive", help="prompt user for choices")
@@ -487,6 +490,10 @@ The command needs to be on of the following: install, upgrade, remove, list
         dest="allow_unstable", help="search unstable repositories")
     parser.add_option("--proxy", action="store", type="string",
         dest="proxy", help="use a proxy for downloads")
+    parser.add_option("-a", "--show-all", action="store_true",
+        dest="show_all", help="show all rollback point entries")
+    parser.add_option("-n", "--num-entries", action="store", type="int",
+        dest="num_entries", help="number of rollback point entries to show")
     return parser
 
 
@@ -547,7 +554,8 @@ def main():
     elif command == "rollback":
         rollback_menu(remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
-            term_width=options.term_width)
+            term_width=options.term_width, show_all=options.show_all,
+            num_entries=options.num_entries)
     elif sys.argv[1] == "activate":
         install_requirement([Requirement.parse(arg) for arg in args],
             remote_repos=[], interactive=options.interactive,
