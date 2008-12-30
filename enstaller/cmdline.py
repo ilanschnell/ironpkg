@@ -39,7 +39,6 @@ except ImportError:
 
 
 # set up global variables
-PLAT, PLAT_VER = get_platform()
 PYPI_REPO = "http://pypi.python.org/simple"
 
 
