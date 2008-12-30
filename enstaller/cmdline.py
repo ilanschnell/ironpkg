@@ -180,8 +180,7 @@ def upgrade_project(keys, local_repos=None, remote_repos=None,
                 requirement = Requirement.parse(project)
         requirements.append(requirement)
 
-    print requirements
-
+    # Try to install all of the generated requirements.
     install_requirement(requirements, local_repos=local_repos,
         remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
         term_width=term_width)
@@ -303,8 +302,7 @@ def update_project(keys, local_repos=None, remote_repos=None,
                 requirement = Requirement.parse(project)
         requirements.append(requirement)
 
-    print requirements
-
+    # Try to install all of the generated requirements.
     install_requirement(requirements, local_repos=local_repos,
         remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
         term_width=term_width)
