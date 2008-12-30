@@ -69,6 +69,7 @@ def get_platform():
     
     return (PLAT, PLAT_VER)
 
+
 def remove_eggs_from_path(search_path, fix_names=False):
     """
     Returns a copy of search_path with all eggs (directories or zip files)
@@ -84,6 +85,7 @@ def remove_eggs_from_path(search_path, fix_names=False):
                 or glob.glob(os.path.join(name, "*.egg-info"))):
             new_path.append(name)
     return new_path
+
 
 def rst_table(fields, data, sorted=True, key=None, indent=0, max_width=0):
     """Print a restructured text simple table
@@ -121,6 +123,7 @@ HREF = re.compile("""href\\s*=\\s*['"']?([^'"'> ]+)""", re.I)
 
 cache = {}
 
+
 def find_eggs_in_url(url):
     """Read a URL and find any links to egg files
     
@@ -151,6 +154,7 @@ def find_eggs_in_url(url):
             dists += distros_for_url(ref)
     cache[url] = dists
     return dists
+
 
 def get_egg_specs_from_info(pkg_info) :
     """

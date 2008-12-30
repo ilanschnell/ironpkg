@@ -43,6 +43,28 @@ PLAT, PLAT_VER = get_platform()
 PYPI_REPO = "http://pypi.python.org/simple"
 
 
+def get_epd_repo():
+    """
+    Return a link to the EPD egg repository based on the current platform.  This link will contain the
+    authentication information for the current user.
+    """
+    # TODO:  Retrieve the username and password from a config file.  Also, this
+    # egg repo is temporary for now and may/may not be the actual repo which
+    # we will later require authentication to access.
+    user = "user"
+    password = "password"
+    (plat, plat_ver) = get_platform()
+    repo_url = "http://%s:%s@code.enthought.com/epd/eggs/" % (user, password)
+    if plat == 'windows':
+        repo_url += "%s/%s" % (plat, plat_ver)
+    elif plat == 'redhat':
+        repo_url += "rhel/%s" % plat_ver
+    elif plat == 'macosx':
+        repo_url += "mac/osx%s" % plat_ver
+
+    return repo_url
+    
+    
 def upgrade_project(keys, local_repos=None, remote_repos=None,
     interactive=True, dry_run=False, term_width=0):
     """ Upgrade a project, if possible.
@@ -485,7 +507,14 @@ def main():
     # that list depends on whether the user requested "unstable" repos or not.
     remote_repos=[HTMLRepository(arg) for arg in options.remote_html]
     # XXX hack!  Should make the find_packages part of the Repository object
-    remote_repos[0].environment.add_find_links(options.find_links)
+    # Add the find_links specified by the user on the command-line, as well as the appropriate EPD repo
+    # depending on the current platform.
+    epd_egg_repo = get_epd_repo()
+    if options.find_links:
+        find_links = options.find_links.append(epd_egg_repo)
+    else:
+        find_links = [epd_egg_repo]
+    remote_repos[0].environment.add_find_links(find_links)
     remote_repos.extend([HTMLRepository(arg) for arg in
         get_configured_repos(unstable=options.allow_unstable)])
 
