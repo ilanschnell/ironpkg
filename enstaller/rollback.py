@@ -145,19 +145,24 @@ def rollback_state(project_list, remote_repos=None, interactive=True,
             # from the system(not just deactivated), so we try to re-install it.
             req_str = "%s==%s" % (project_name, project_version)
             requirement = Requirement.parse(req_str)
-            try:
+            if project_name.endswith('.dev') and project_version.startswith('r'):
+                # If we found a package that was installed by a 'setup.py develop', try to activate
+                # it by finding it's location ignoring the specific revision number, since we can't
+                # control if someone has done an 'svn up' on their checkouts.
+                name = project_name.split('-')[0]
+                pkgs = local.projects[name].packages
+            else:
                 install_requirement([requirement], remote_repos=remote_repos,
                     interactive=interactive, dry_run=dry_run,
                     term_width=term_width)
-            except:
-                # TODO: The re-install of the requirement might fail if that package
-                # was installed by a 'setup.py develop', so for now we skip it if it fails,
-                # but should probably handle this differently.
-                continue
         for pkg in pkgs:
             if pkg.version == project_version:
                 pkg.activate(verbose=False)
                 break
+            if project_name.endswith('.dev') and project_version.startswith('r'):
+                if '.dev-r' in pkg.version:
+                    pkg.activate(verbose=False)
+                    break
             
     # We also need to deactivate any packages that the user has installed since
     # the rollback point.
