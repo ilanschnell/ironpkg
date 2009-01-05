@@ -11,6 +11,7 @@
 #------------------------------------------------------------------------------
 
 # imports from standard library
+from distutils import sysconfig
 import os, sys, glob, re, platform
 from os import path
 from urlparse import urlsplit, urljoin
@@ -84,6 +85,13 @@ def remove_eggs_from_path(search_path, fix_names=False):
         if not (os.path.splitext(name)[-1].lower() in [".egg", ".zip"]
                 or glob.glob(os.path.join(name, "*.egg-info"))):
             new_path.append(name)
+            
+    # If for some reason the main site-packages has .egg-info files in it, be sure to add it
+    # to our path, because otherwise it would not be added.
+    site_packages = sysconfig.get_python_lib()
+    if site_packages not in new_path:
+        new_path.append(site_packages)
+    
     return new_path
 
 
