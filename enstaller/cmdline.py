@@ -452,7 +452,7 @@ def list_installed(interactive=True, term_width=0):
 def setup_parser():
     description = """\
 Utility for managing packages in the site-packages directory.
-The command needs to be one of the following: install, upgrade, remove, list
+The command needs to be one of the following: install, upgrade, update, rollback, remove, list
 """
 
     parser = OptionParser(usage="usage: enpkg command [options]",
