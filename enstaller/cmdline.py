@@ -90,9 +90,15 @@ def upgrade_project(keys, local_repos=None, remote_repos=None,
         # convert all of the user-specified keys to lowercase.
         key = key.lower()
         
-        active_local_projects = [project
-            for project in local.projects[key].projects
-                if project.active]
+        # If the user specified a project which isn't installed, just skip it.
+        try:
+            active_local_projects = [project
+                for project in local.projects[key].projects
+                    if project.active]
+        except KeyError:
+            print "Skipping %s because it is not installed on your system." % key
+            continue
+        
         if active_local_projects:
             pkg = active_local_projects[0].active_package
 
@@ -183,6 +189,10 @@ def upgrade_project(keys, local_repos=None, remote_repos=None,
     install_requirement(requirements, local_repos=local_repos,
         remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
         term_width=term_width)
+        
+    # After we have finished the upgrade, we save the new state.
+    # TODO:  If the upgrade failed, we should instead revert to the previous state.
+    save_state()
 
     
 def update_project(keys, local_repos=None, remote_repos=None,
@@ -211,9 +221,15 @@ def update_project(keys, local_repos=None, remote_repos=None,
         # convert all of the user-specified keys to lowercase.
         key = key.lower()
         
-        active_local_projects = [project
-            for project in local.projects[key].projects
-                if project.active]
+        # If the user specified a project which isn't installed, just skip it.
+        try:
+            active_local_projects = [project
+                for project in local.projects[key].projects
+                    if project.active]
+        except KeyError:
+            print "Skipping %s because it is not installed on your system." % key
+            continue
+        
         if active_local_projects:
             pkg = active_local_projects[0].active_package
 
@@ -305,6 +321,10 @@ def update_project(keys, local_repos=None, remote_repos=None,
     install_requirement(requirements, local_repos=local_repos,
         remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
         term_width=term_width)
+        
+    # After we have finished the update, we save the new state.
+    # TODO:  If the update failed, we should instead revert to the previous state.
+    save_state()
         
 
 def rollback_menu(remote_repos=None, interactive=True,
@@ -561,15 +581,27 @@ def main():
     elif command == "save_state":
         save_state()
     elif sys.argv[1] == "activate":
+        # Before we do anything, save the current working state of the environment to a rollback point.
+        save_state()
         install_requirement([Requirement.parse(arg) for arg in args],
             remote_repos=[], interactive=options.interactive,
             dry_run=options.dry_run, term_width=options.term_width)
+        # After we have finished the activate, we save the new state.
+        save_state()
     elif sys.argv[1] == "deactivate":
+        # Before we do anything, save the current working state of the environment to a rollback point.
+        save_state()
         deactivate_requirement([Requirement.parse(arg) for arg in args],
             interactive=options.interactive, dry_run=options.dry_run)
+        # After we have finished the deactivate, we save the new state.
+        save_state()
     elif command == "remove":
+        # Before we do anything, save the current working state of the environment to a rollback point.
+        save_state()
         remove_requirement([Requirement.parse(arg) for arg in args],
             interactive=options.interactive, dry_run=options.dry_run)
+        # After we have finished the remove, we save the new state.
+        save_state()
     elif command == "list":
         list_installed(interactive=options.interactive,
             term_width=options.term_width)
