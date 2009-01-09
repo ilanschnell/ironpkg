@@ -106,10 +106,25 @@ def save_state():
             active_local_packages.append(pkg)
             
     # Retrieve a list of project_name-version for the currently active packages.
+    # Sort them by name so that we can display them easier.
     project_list = []
     for pkg in active_local_packages:
         project_list.append("%s-%s" % (pkg.project.name, pkg.version))
+    project_list.sort()
         
+    # Retrieve the most recently saved state and compare it to the current
+    # state of the system.  If there have been no changes, then don't bother saving
+    # a entry to the enstaller.cache.
+    stored_states = retrieve_states()
+    if stored_states:
+        recent_state = stored_states[0]
+        recent_project_list = recent_state[1]
+        if project_list == recent_project_list:
+            print ('There is no difference between the current state and the '
+                'most recent saved state in the enstaller.cache, so the current '
+                'state does not need to be saved.')
+            return
+    
     # Save the current state to an entry in the enstaller.cache file.  Each entry begins
     # with a timestamp, followed by a colon, and then a comma separated list of the
     # project_name-versions for the currently active packages.
@@ -117,11 +132,13 @@ def save_state():
     timestamp = strftime("%Y%m%d%H%M%S")
     pkg_list = ','.join(project_list)
     try:
+        print 'Saving current state...'
         f = open(enstaller_cache, 'a')
         f.write(timestamp + ':')
         f.write(pkg_list)
         f.write('\n')
         f.close()
+        print 'Successfully saved the current state.'
     except:
         print "Error trying to write to the enstaller.cache."
     

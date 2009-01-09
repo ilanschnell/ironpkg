@@ -452,7 +452,7 @@ def list_installed(interactive=True, term_width=0):
 def setup_parser():
     description = """\
 Utility for managing packages in the site-packages directory.
-The command needs to be one of the following: install, upgrade, update, rollback, remove, list
+The command needs to be one of the following: install, upgrade, update, rollback, remove, list, save_state
 """
 
     parser = OptionParser(usage="usage: enpkg command [options]",
@@ -506,7 +506,7 @@ def main():
     options, args = parser.parse_args()
     if len(args) < 1:
         parser.error("Must call enpkg with one of 'install', 'upgrade', "
-            "'update', 'rollback', 'remove', or 'list', see -h for more details")
+            "'update', 'rollback', 'remove', 'save_state', or 'list', see -h for more details")
 
     # Set up logging
     basicConfig(level=options.logging, format="%(message)s")
@@ -558,6 +558,8 @@ def main():
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width, show_all=options.show_all,
             num_entries=options.num_entries)
+    elif command == "save_state":
+        save_state()
     elif sys.argv[1] == "activate":
         install_requirement([Requirement.parse(arg) for arg in args],
             remote_repos=[], interactive=options.interactive,
