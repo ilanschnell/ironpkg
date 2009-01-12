@@ -12,6 +12,7 @@
 
 
 # standard library imports
+import datetime
 from distutils import sysconfig
 import sys
 import os
@@ -327,8 +328,55 @@ def update_project(keys, local_repos=None, remote_repos=None,
     save_state()
         
 
+def date_display_diff(recent, old):
+    """
+    The two inputs are time tuples for dates and this function will return a simple date
+    display difference between the two time tuples.
+    """
+    # Construct simple datetime.date objects which only contain year/month/day and from this we can
+    # subtact these objects, which yields a datetime.timedelta object.  The datetime.timedelta object
+    # only keeps track of days in difference so we need to calculate the years, months, weeks and days
+    # difference.
+    # Note: This makes an assumption based on the average number of days in a month being 30.  We don't
+    # need to be exactly precise since this display date is just meant to offer a simple display.
+    date_diff = datetime.date(recent[0], recent[1], recent[2]) - datetime.date(old[0], old[1], old[2])
+    years, days = divmod(date_diff.days, 365)
+    months, days = divmod(days, 30)
+    weeks, days = divmod(days, 7)
+    
+    # Determine the simple display date based on the years, months, weeks, and days difference that
+    # was calculated.
+    date_display = ""
+    if years:
+        if years == 1:
+            date_display = "Last year"
+        else:
+            date_display = "%s years ago" % years
+    elif months:
+        if months == 1:
+            date_display = "Last month"
+        else:
+            date_display = "%s months ago" % months
+    elif weeks:
+        if weeks == 1:
+            date_display = "Last week"
+        else:
+            date_display = "%s weeks ago" % weeks
+    elif days:
+        if days == 1:
+            date_display = "Yesterday"
+        else:
+            date_display = "%s days ago" % days
+    else:
+        date_display = "Today"
+        
+    # Finally, return the calculated display date.
+    return date_display
+    
+    
 def rollback_menu(remote_repos=None, interactive=True,
-    dry_run=False, term_width=0, show_all=False, num_entries=5):
+    dry_run=False, term_width=0, show_all=False, num_entries=5,
+    show_dates=False):
     """
     Show a menu with possible rollback options and perform the appropriate
     action based on the user's input.
@@ -345,11 +393,19 @@ def rollback_menu(remote_repos=None, interactive=True,
     if not show_all:
         cached_states = cached_states[:num_entries]
     metadata = []
+    local_time = time.localtime()
     for i, state in enumerate(cached_states):
-        # Create a date display from the timestamp of the rollback point.
+        # Create a date display from the difference between the timestamp of the rollback point
+        # and the current time.  The difference we retrieve is the time sine the epoch
+        # (i.e. January 1, 1970), so we make our calculations from that.
         timestamp = state[0]
         time_tuple = time.strptime(timestamp, "%Y%m%d%H%M%S")
-        date_display = time.strftime("%Y/%m/%d %H:%M:%S", time_tuple)
+        date_display = date_display_diff(local_time, time_tuple)
+        
+        # If the user specified to display the full date/timestamp with the rollback points,
+        # then tack it onto the simple display.
+        if show_dates:
+            date_display = "%s (%s)" % (date_display, time.strftime("%Y/%m/%d %H:%M:%S", time_tuple))
         
         # Find the differences between two rollback points(i.e. packages added, removed,
         # or modified) and calculate a nice diff that can be displayed in the table.
@@ -393,12 +449,14 @@ def rollback_menu(remote_repos=None, interactive=True,
                     option_diff += "  [A] %s" % added[0]
                     for add_str in added[1:]:
                         option_diff += "\n\t      %s" % add_str
-                    option_diff += "\n\t"
+                    if len(modified) > 0 or len(deactivated) > 0:
+                        option_diff += "\n\t"
                 if len(modified) > 0:
                     option_diff += "  [M] %s" % modified[0]
                     for mod_str in modified[1:]:
                         option_diff += "\n\t      %s" % mod_str
-                    option_diff += "\n\t"
+                    if len(deactivated) > 0:
+                        option_diff += "\n\t"
                 if len(deactivated) > 0:
                     option_diff += "  [D] %s" % deactivated[0]
                     for deac_str in deactivated[1:]:
@@ -490,7 +548,8 @@ The command needs to be one of the following: install, upgrade, update, rollback
 
     parser.set_defaults(interactive=False, logging=INFO, dry_run=False,
         term_width=term_width, remote_html=[PYPI_REPO], remote_xmlrpc=[],
-        allow_unstable=False, proxy="", find_links=[], show_all=False, num_entries=5)
+        allow_unstable=False, proxy="", find_links=[], show_all=False, num_entries=5,
+        show_dates=False)
 
     parser.add_option("-i", "--interactive", action="store_true",
         dest="interactive", help="prompt user for choices")
@@ -516,6 +575,8 @@ The command needs to be one of the following: install, upgrade, update, rollback
         dest="show_all", help="show all rollback point entries")
     parser.add_option("-n", "--num-entries", action="store", type="int",
         dest="num_entries", help="number of rollback point entries to show")
+    parser.add_option("--show-dates", action="store_true",
+        dest="show_dates", help="show the dates and timestamps for rollback entries")
     return parser
 
 
@@ -577,7 +638,7 @@ def main():
         rollback_menu(remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width, show_all=options.show_all,
-            num_entries=options.num_entries)
+            num_entries=options.num_entries, show_dates=options.show_dates)
     elif command == "save_state":
         save_state()
     elif sys.argv[1] == "activate":
