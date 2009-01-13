@@ -15,7 +15,7 @@ This is a patched version for Enstaller.
 # Patched with easy_install.patch and prefer_released.patch from Enthought
 # starting with setuptools 0.6c9
 
-import sys, os, os.path, shutil, zipimport, tempfile, re, stat, random
+import sys, os, os.path, shutil, zipimport, tempfile, re, stat, subprocess, random
 import zipfile
 from os import path
 from glob import glob
@@ -229,6 +229,13 @@ class easy_install(Command):
     def run(self):
         if self.verbose != self.distribution.verbose:
             log.set_verbosity(self.verbose)
+            
+        # FIXME: Currently using a subprocess to run the save_state
+        # command from enstaller because running enstaller.rollback.save_state
+        # from here causes some weird circular imports between the
+        # setuptools and enstaller packages, so this will do for now.
+        subprocess.call(['enpkg', 'save_state'])
+        
         try:
             if self.remove:
                 self.uninstall(self.args)
@@ -254,6 +261,12 @@ class easy_install(Command):
                 self.warn_deprecated_options()
         finally:
             log.set_verbosity(self.distribution.verbose)
+            
+            # FIXME: Currently using a subprocess to run the save_state
+            # command from enstaller because running enstaller.rollback.save_state
+            # from here causes some weird circular imports between the
+            # setuptools and enstaller packages, so this will do for now.
+            subprocess.call(['enpkg', 'save_state'])
 
     def pseudo_tempname(self):
         """Return a pseudo-tempname base in the install directory.
