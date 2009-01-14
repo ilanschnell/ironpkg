@@ -69,7 +69,7 @@ __all__ = [
     # Parsing functions and string utilities
     'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
     'get_platform', 'compatible_platforms', 'yield_lines', 'split_sections',
-    'safe_extra', 'to_filename',
+    'safe_extra', 'to_filename', 'compose_version_string',
 
     # filesystem utilities
     'ensure_directory', 'normalize_path',
@@ -1727,6 +1727,48 @@ def parse_version(s):
                 parts.pop()
         parts.append(part)
     return tuple(parts)
+    
+def compose_version_string(version_tuple):
+    """
+    Convert a tuple of strings that represents a version(output of 'parse_version')
+    back to a single version string.
+    """
+    # Iterate through the parts of the input version tuple.
+    version_parts = []
+    for part in version_tuple:
+        
+        # Try to do a string->integer conversion on the current part of the tuple.
+        try:
+            digit = int(part)
+            # If we were able to convert the part of the tuple to an integer,
+            # which removes the padded 0's, check if the last digit we extracted
+            # as part of the version was also an integer.  If it was, then we need
+            # to separate them with a '.', otherwise just add this new digit to our
+            # version_parts list.
+            try:
+                int(version_parts[-1])
+                version_parts.append('.')
+            except:
+                pass
+            version_parts.append(str(digit))
+        except:
+            # If the current part of the tuple isn't a digit, then it is some kind of
+            # character tag and will be prefixed by a '*' character.  If the current
+            # part of the tuple is '*final', just skip it because this is not part of the
+            # version string itself.
+            if part != '*final':
+                # If we can't convert the last digit that we extracted as part of the
+                # version string to an integer, this means it is a character, so we need to
+                # separate the current character we are dealing with from it by a '.'.
+                # Otherwise, just add the current character to our version_parts list.
+                try:
+                    int(version_parts[-1])
+                except:
+                    version_parts.append('.')
+                version_parts.append(part[1:])
+                
+    # Convert our version_parts list to a single string and return it.
+    return ''.join(version_parts)
 
 class EntryPoint(object):
     """Object representing an advertised importable object"""
