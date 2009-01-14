@@ -12,6 +12,7 @@
 
 
 import ConfigParser
+from distutils import sysconfig
 import os
 import stat
 import sys
@@ -36,9 +37,14 @@ def default_config():
     """
 
     cp = ConfigParser.SafeConfigParser()
-    for section in ['repos', 'unstable_repos']:
-        cp.add_section(section)
-        cp.set(section, '1', "# these should be repo URLs")
+    
+    # By default, set the index url to the pypi index in the 'repos' section.
+    cp.add_section('repos')
+    cp.set('repos', '1', "http://pypi.python.org/simple,index")
+    
+    # Also set the 'unstable_repos' section to its previous default.
+    cp.add_section('unstable_repos')
+    cp.set('unstable_repos', '1', "# these should be repo URLs")
 
     return cp
 
@@ -54,11 +60,12 @@ def get_config():
     # try and give user's a template to fill out rather than having to guess at
     # the format of our config file.
     path = _get_config_path()
-    if os.path.isfile(path):
+    if path:
         cp = ConfigParser.SafeConfigParser()
         cp.read(path)
         print 'Retrieved config from: %s' % path
     else:
+        path = _get_default_config_path()
         cp = init_config(path)
 
     return cp
@@ -87,8 +94,9 @@ def init_config(path):
 #
 #     %(prefix)s
 #
-# The PyPI repository http://pypi.python.org/pypi is currently implicitly
-# always present even though not listed here.  This should be fixed.\n
+# The index url is specified by appending a ',index' to the end of a URL.
+# There can only be one index listed here and when this file is created
+# by default the index is set to the PyPI index.\n
 """ % DATA)
         cp.write(fp)
         fp.close()
@@ -116,30 +124,87 @@ def get_configured_repos(unstable=False):
     cp = get_config()
     for name, value in cp.items('repos'):
         value = value.strip()
-        if not value.startswith('#'):
+        if not value.startswith('#') and not value.endswith(',index'):
             results.append(value)
 
     # If the user wanted unstable repos, add them too.
     if unstable:
         for name, value in cp.items('unstable_repos'):
             value = value.strip()
-            if not value.startswith('#'):
+            if not value.startswith('#') and not value.endswith(',index'):
                 results.append(value)
 
     return results
+    
+
+def get_configured_index():
+    """
+    Return the index that is set in our config file.
+    """
+    
+    # Find all of the index urls specified in the stable repos list.
+    results = []
+    cp = get_config()
+    for name, value in cp.items('repos'):
+        value = value.strip()
+        if value.endswith(',index'):
+            results.append(value[:-6])
+    
+    # If there was only one index url found, then just return it.
+    # If the user specified more than one index url in the config file,
+    # then we print a warning.  And if no index url was found, then
+    # just return 'dummy'.
+    if len(results) == 1:
+        return results[0]
+    elif len(results) > 1:
+        print ("Warning:  You specified more than one index URL in the config "
+            "file.  Only the first one found will be used.")
+        return results[0]
+    else:
+        # FIXME:  For now we just return 'dummy' if no index URL is specified, but eventually
+        # we would like to modify the setuptools code base to not have to use an index URL.
+        return 'dummy'
 
 
+def _get_default_config_path():
+    """
+    Return the path to the default config file in a user's HOME directory.
+    """
+    
+    if sys.platform == 'win32':
+        name = "enstaller.ini"
+    else:
+        name = ".enstallerrc"
+    return os.path.abspath(os.path.join(os.path.expanduser("~"), name))
+    
+    
 def _get_config_path():
     """
     Return the absolute path to our config file.
 
     """
 
-    if 'win32' == sys.platform:
+    # First, look for the config file in the user's HOME directory.
+    # If the config file can be found here, then return its path.
+    file_path = _get_default_config_path()
+    if os.path.exists(file_path):
+        return file_path
+        
+    # If a config file can't be found in the user's HOME directory,
+    # then look for one in the system site-packages.  Also, the name of
+    # the config file in site-packages is different on non-Windows platforms
+    # so that it will sort next to the Enstaller egg.
+    if sys.platform == 'win32':
         name = "enstaller.ini"
     else:
-        name = ".enstallerrc"
-
-    return os.path.abspath(os.path.join(os.path.expanduser("~"), name))
-
+        name = "enstaller.rc"
+    site_packages = sysconfig.get_python_lib()
+    file_path = os.path.abspath(os.path.join(site_packages, name))
+    if os.path.exists(file_path):
+        return file_path
+    
+    # If we reach this point, it means that we couldn't locate a config
+    # file in the user's HOME directory or the system site-packages,
+    # so just return None.
+    return None
 

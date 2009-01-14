@@ -26,6 +26,7 @@ from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError
+from enstaller.config import get_configured_index, get_configured_repos
 from setuptools.utils import rm_rf, chmod, execute_script, samefile, \
     store_file_from_zip
 from setuptools.archive_util import unpack_archive
@@ -161,7 +162,7 @@ class easy_install(Command):
                 else:
                     self.all_site_dirs.append(normalize_path(d))
         if not self.editable: self.check_site_dir()
-        self.index_url = self.index_url or "http://pypi.python.org/simple"
+        self.index_url = self.index_url or get_configured_index()
         self.shadow_path = self.all_site_dirs[:]
         for path_item in self.install_dir, normalize_path(self.script_dir):
             if path_item not in self.shadow_path:
@@ -185,7 +186,6 @@ class easy_install(Command):
 
         try:
             # Add any additional configured repos.
-            from enstaller.config import get_configured_repos
             self.find_links.extend(get_configured_repos())
         except:
             log.error("Error: Could not read additional repos from "

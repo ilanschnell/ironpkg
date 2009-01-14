@@ -3,6 +3,7 @@ import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
+from enstaller.config import get_configured_index
 try:
     from hashlib import md5
 except ImportError:
@@ -150,11 +151,13 @@ user_agent = "Python-urllib/%s enstaller/%s" % (
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
-    def __init__(self, index_url="http://pypi.python.org/simple",
+    def __init__(self, index_url=None,
                  hosts=('*',), *args, **kw):
 
         Environment.__init__(self, *args, **kw)
         # Make sure URL has single trailing slash
+        if index_url is None:
+            index_url = get_configured_index()
         self.index_url = index_url.rstrip("/") + "/"
         self.scanned_urls = {}
         self.fetched_urls = {}
