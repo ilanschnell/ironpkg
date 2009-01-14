@@ -11,6 +11,94 @@
 #------------------------------------------------------------------------------
 
 
+def get_upgrade_str(name, version, upgrade=True):
+    """
+    Given a package name and version, return a requirement string in
+    pkg_resources.Requirement format that can be used to retrieve
+    an upgrade to that particular package version.  By default,
+    the string returned would be an upgrade(i.e. change in major/minor
+    version number), but if 'upgrade' is set to False, it will return a string
+    that would constitute an update(i.e. change in patch/build level version
+    number).
+    """
+    
+    # Split up the version string into a list so we can determine
+    # upgrades in the major/minor version parts.  Also check to see
+    # if the package has our build number tag.
+    if version[-2:] == "_s":
+        version = version[-2:]
+    version_parts = version.split('.')
+
+    # This upgrade could be done on packages the user installed that
+    # we(Enthought) didn't build (i.e. no build number tag), so we
+    # need to account for this.  So, if the last part of the version
+    # string is 4 digits long, we will assume that is our build number
+    # tag.
+    try:
+        major = int(version_parts[0])
+    except ValueError:
+        # FIXME:  Currently, if we fail to convert part of the version
+        # string to an integer, we just skip trying to upgrade the
+        # package.  This occurs when packages have characters in their
+        # versions, such as pytz-2008c.
+        pass
+    if len(version_parts[-1]) == 4:
+        # Installed package:  foo-1.0001 or foo-1.0.0001
+        # Upgrade needs:  foo>=2.0001 or foo>=2.0.0001
+        if len(version_parts) < 4:
+            req_ver = str(major+1)
+            for a in range(len(version_parts)-2):
+                req_ver += '.0'
+        # Installed package:  foo-1.0.0.0001, or more parts
+        # Upgrade needs:  foo>=1.1.0.0001, etc...
+        else:
+            try:
+                minor = int(version_parts[1])
+            except ValueError:
+                # FIXME:  Currently, if we fail to convert part of the
+                # version string to an integer, we just skip trying to
+                # upgrade the package.  This occurs when packages have
+                # characters in their versions, such as pytz-2008c.
+                pass
+            req_ver = str(major) + '.' + str(minor+1)
+            for a in range(len(version_parts)-3):
+                req_ver += '.0'
+            req_ver += '.0001'
+        if upgrade:
+            req_str = "%s>=%s" % (name, req_ver)
+        else:
+            req_str = "%s>%s, <%s" % (name, version, req_ver)
+    else:
+        # Installed package:  foo-1
+        # Upgrade needs:  foo>1
+        if len(version_parts) == 1:
+            req_str = "%s>%s" % (key, version)
+        # Installed package:  foo-1.0
+        # Upgrade needs:  foo>=2.0
+        elif len(version_parts) == 2:
+            req_ver = str(major+1) + '.0'
+        # Installed package:  foo-1.0.0, or more parts
+        # Upgrade needs:  foo>=1.1.0, etc...
+        else:
+            try:
+                minor = int(version_parts[1])
+            except ValueError:
+                # FIXME:  Currently, if we fail to convert part of the
+                # version string to an integer, we just skip trying to
+                # upgrade the package.  This occurs when packages have
+                # characters in their versions, such as pytz-2008c.
+                pass
+            req_ver = str(major) + '.' + str(minor+1)
+            for a in range(len(version_parts)-2):
+                req_ver += '.0'
+        if upgrade:
+            req_str = "%s>=%s" % (name, req_ver)
+        else:
+            req_str = "%s>%s, <%s" % (name, version, req_ver)
+        
+    return req_str
+    
+    
 def reason(reasons, project, message):
     reasons[project] = reasons.get(project, []) + [message]
 
