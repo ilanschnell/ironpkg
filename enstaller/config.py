@@ -120,10 +120,11 @@ def get_configured_repos(unstable=False):
             results.append(value)
 
     # If the user wanted unstable repos, add them too.
-    for name, value in cp.items('unstable_repos'):
-        value = value.strip()
-        if not value.startswith('#'):
-            results.append(value)
+    if unstable:
+        for name, value in cp.items('unstable_repos'):
+            value = value.strip()
+            if not value.startswith('#'):
+                results.append(value)
 
     return results
 
