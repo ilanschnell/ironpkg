@@ -40,15 +40,34 @@ def get_upgrade_str(name, version, upgrade=True):
     # Retrieve the version_parts from pkg_resources.parse_version.
     # Separate the major part from the version_parts, which signifies
     # the difference between the parts of the version that represent major/minor level upgrades
-    # and patch/build level updates.  Also retrieve the last entry of the major part
-    # so that we can increment it to determine our upgrade version number.
+    # and patch/build level updates.
     version_parts = parse_version(version)
     major_part = version_parts[:major_len]
-    end_part = major_part[-1]
     
-    # Convert the end of the major part to an integer or it's ASCII code and then
-    # increment it and convert it back to a string to be placed back in the major part
-    # of the version.
+    # Handle the end-case where there is only a single version for the package.
+    # In this case, only an upgrade can be performed because each version must
+    # have at least 1 major version number.  However, if this single version is a
+    # mix of integers and characters, then we can determine an upgrade/update
+    # based on that.
+    if version_len == 1:
+        if len(version_parts) == 2:
+            if upgrade:
+                req_str = "%s>%s" % (name, orig_version)
+            else:
+                req_str = "%s==%s" % (name, orig_version)
+        else:
+            upgrade_version = str(int(version_parts[0])+1)
+            if upgrade:
+                req_str = "%s>=%s" % (name, upgrade_version)
+            else:
+                req_str = "%s>%s, <%s" % (name, orig_version, upgrade_version)
+        return req_str
+    
+    # Retrieve the last entry of the major part so that we can increment it to
+    # determine our upgrade version number.  Convert the end of the major part to an
+    # integer or it's ASCII code and then increment it and convert it back to a string
+    # to be placed back in the major part of the version.
+    end_part = major_part[-1]
     try:
         end_part = int(end_part)
     except:
