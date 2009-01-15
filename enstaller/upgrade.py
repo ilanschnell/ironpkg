@@ -28,7 +28,8 @@ def get_upgrade_str(name, version, upgrade=True):
     # Split up the version string into a list so we can determine
     # upgrades in the major/minor version parts.  Also check to see
     # if the package has our build number tag.
-    if version[-2:] == "_s" or version[-2:] == "-s":
+    orig_version = version
+    if version[-2:] == "-s":
         version = version[:-2]
 
     # Find out the length of the version string as split by '.' and the length of what we consider
@@ -71,7 +72,7 @@ def get_upgrade_str(name, version, upgrade=True):
     if upgrade:
         req_str = "%s>=%s" % (name, upgrade_version)
     else:
-        req_str = "%s>%s, <%s" % (name, version, upgrade_version)
+        req_str = "%s>%s, <%s" % (name, orig_version, upgrade_version)
     
     # Return our requirement string.
     return req_str
