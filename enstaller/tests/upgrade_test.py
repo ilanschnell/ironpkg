@@ -10,9 +10,9 @@
 # Corran Webster
 #------------------------------------------------------------------------------
 
-from enthought.enstaller.utilities import remove_eggs_from_path
-from enthought.enstaller.repository import EasyInstallRepository, HTMLRepository, RepositoryUnion
-from enthought.enstaller.upgrade import upgrade
+from enstaller.utilities import remove_eggs_from_path
+from enstaller.repository import EasyInstallRepository, HTMLRepository, RepositoryUnion
+from enstaller.upgrade import upgrade
 import unittest
 import os, sys
 
