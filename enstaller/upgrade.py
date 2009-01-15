@@ -10,6 +10,9 @@
 # Corran Webster
 #------------------------------------------------------------------------------
 
+# Enstaller imports.
+from pkg_resources import compose_version_string, parse_version
+
 
 def get_upgrade_str(name, version, upgrade=True):
     """
@@ -25,77 +28,52 @@ def get_upgrade_str(name, version, upgrade=True):
     # Split up the version string into a list so we can determine
     # upgrades in the major/minor version parts.  Also check to see
     # if the package has our build number tag.
-    if version[-2:] == "_s":
-        version = version[-2:]
-    version_parts = version.split('.')
+    if version[-2:] == "_s" or version[-2:] == "-s":
+        version = version[:-2]
 
-    # This upgrade could be done on packages the user installed that
-    # we(Enthought) didn't build (i.e. no build number tag), so we
-    # need to account for this.  So, if the last part of the version
-    # string is 4 digits long, we will assume that is our build number
-    # tag.
+    # Find out the length of the version string as split by '.' and the length of what we consider
+    # the major part of the version.
+    version_len = len(version.split('.'))
+    major_len = len(version.split('.')) // 2
+    
+    # Retrieve the version_parts from pkg_resources.parse_version.
+    # Separate the major part from the version_parts, which signifies
+    # the difference between the parts of the version that represent major/minor level upgrades
+    # and patch/build level updates.  Also retrieve the last entry of the major part
+    # so that we can increment it to determine our upgrade version number.
+    version_parts = parse_version(version)
+    major_part = version_parts[:major_len]
+    end_part = major_part[-1]
+    
+    # Convert the end of the major part to an integer or it's ASCII code and then
+    # increment it and convert it back to a string to be placed back in the major part
+    # of the version.
     try:
-        major = int(version_parts[0])
-    except ValueError:
-        # FIXME:  Currently, if we fail to convert part of the version
-        # string to an integer, we just skip trying to upgrade the
-        # package.  This occurs when packages have characters in their
-        # versions, such as pytz-2008c.
-        pass
-    if len(version_parts[-1]) == 4:
-        # Installed package:  foo-1.0001 or foo-1.0.0001
-        # Upgrade needs:  foo>=2.0001 or foo>=2.0.0001
-        if len(version_parts) < 4:
-            req_ver = str(major+1)
-            for a in range(len(version_parts)-2):
-                req_ver += '.0'
-        # Installed package:  foo-1.0.0.0001, or more parts
-        # Upgrade needs:  foo>=1.1.0.0001, etc...
-        else:
-            try:
-                minor = int(version_parts[1])
-            except ValueError:
-                # FIXME:  Currently, if we fail to convert part of the
-                # version string to an integer, we just skip trying to
-                # upgrade the package.  This occurs when packages have
-                # characters in their versions, such as pytz-2008c.
-                pass
-            req_ver = str(major) + '.' + str(minor+1)
-            for a in range(len(version_parts)-3):
-                req_ver += '.0'
-            req_ver += '.0001'
-        if upgrade:
-            req_str = "%s>=%s" % (name, req_ver)
-        else:
-            req_str = "%s>%s, <%s" % (name, version, req_ver)
+        end_part = int(end_part)
+    except:
+        end_part = ord(end_part[-1])
+    end_part = str(end_part+1)
+    
+    # If there is only one item in the major_part tuple, then the upgrade version is just
+    # the end_part, which is the major_part incremented.  Otherwise, we need to convert the
+    # major_part tuple into a list so that we can remove its last entry and then append our
+    # incremented end_part and retrieve an upgrade version from that.
+    if len(major_part) == 1:
+        upgrade_version = end_part
     else:
-        # Installed package:  foo-1
-        # Upgrade needs:  foo>1
-        if len(version_parts) == 1:
-            req_str = "%s>%s" % (key, version)
-        # Installed package:  foo-1.0
-        # Upgrade needs:  foo>=2.0
-        elif len(version_parts) == 2:
-            req_ver = str(major+1) + '.0'
-        # Installed package:  foo-1.0.0, or more parts
-        # Upgrade needs:  foo>=1.1.0, etc...
-        else:
-            try:
-                minor = int(version_parts[1])
-            except ValueError:
-                # FIXME:  Currently, if we fail to convert part of the
-                # version string to an integer, we just skip trying to
-                # upgrade the package.  This occurs when packages have
-                # characters in their versions, such as pytz-2008c.
-                pass
-            req_ver = str(major) + '.' + str(minor+1)
-            for a in range(len(version_parts)-2):
-                req_ver += '.0'
-        if upgrade:
-            req_str = "%s>=%s" % (name, req_ver)
-        else:
-            req_str = "%s>%s, <%s" % (name, version, req_ver)
+        major_parts = list(major_part[:-1])
+        major_parts.append(end_part)
+        major_parts = tuple(major_parts)
+        upgrade_version = compose_version_string(major_parts)
         
+    # Calculate the requirement string based on whether we are doing an upgrade
+    # or an update.
+    if upgrade:
+        req_str = "%s>=%s" % (name, upgrade_version)
+    else:
+        req_str = "%s>%s, <%s" % (name, version, upgrade_version)
+    
+    # Return our requirement string.
     return req_str
     
     
