@@ -1371,7 +1371,6 @@ See the setuptools documentation for the "develop" command for more info.
         def pf(src,dst):
             if dst.endswith('.py') and not src.startswith('EGG-INFO/'):
                 to_compile.append(dst)
-                to_chmod.append(dst)
             elif dst.endswith('.dll') or dst.endswith('.so'):
                 to_chmod.append(dst)
             self.unpack_progress(src,dst)
