@@ -1,7 +1,7 @@
 
 3.0.7
 -----
-
+* Added upgrade/update and rollback to enpkg.
 
 
 3.0.6
