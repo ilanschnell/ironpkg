@@ -1,5 +1,5 @@
 *** ../../setuptools-0.6c9/pkg_resources.py	2008-09-24 12:10:45.000000000 -0500
---- ../pkg_resources.py	2008-12-15 14:14:32.000000000 -0600
+--- ../pkg_resources.py	2009-01-15 17:53:34.000000000 -0600
 ***************
 *** 24,44 ****
   from os import open as os_open
@@ -52,6 +52,42 @@
       # Basic resource access and distribution/entry point discovery
       'require', 'run_script', 'get_provider',  'get_distribution',
 --- 46,51 ----
+***************
+*** 103,109 ****
+      # Parsing functions and string utilities
+      'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
+      'get_platform', 'compatible_platforms', 'yield_lines', 'split_sections',
+!     'safe_extra', 'to_filename',
+  
+      # filesystem utilities
+      'ensure_directory', 'normalize_path',
+--- 69,75 ----
+      # Parsing functions and string utilities
+      'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
+      'get_platform', 'compatible_platforms', 'yield_lines', 'split_sections',
+!     'safe_extra', 'to_filename', 'compose_version_string',
+  
+      # filesystem utilities
+      'ensure_directory', 'normalize_path',
+***************
+*** 136,143 ****
+  _provider_factories = {}
+  PY_MAJOR = sys.version[:3]
+  EGG_DIST    = 3
+! BINARY_DIST = 2
+! SOURCE_DIST = 1
+  CHECKOUT_DIST = 0
+  DEVELOP_DIST = -1
+  
+--- 102,109 ----
+  _provider_factories = {}
+  PY_MAJOR = sys.version[:3]
+  EGG_DIST    = 3
+! SOURCE_DIST = 2
+! BINARY_DIST = 1
+  CHECKOUT_DIST = 0
+  DEVELOP_DIST = -1
+  
 ***************
 *** 311,331 ****
   
@@ -399,6 +435,57 @@
                           break
   register_finder(ImpWrapper,find_on_path)
 ***************
+*** 1884,1889 ****
+--- 1727,1774 ----
+                  parts.pop()
+          parts.append(part)
+      return tuple(parts)
++     
++ def compose_version_string(version_tuple):
++     """
++     Convert a tuple of strings that represents a version(output of 'parse_version')
++     back to a single version string.
++     """
++     # Iterate through the parts of the input version tuple.
++     version_parts = []
++     for part in version_tuple:
++         
++         # Try to do a string->integer conversion on the current part of the tuple.
++         try:
++             digit = int(part)
++             # If we were able to convert the part of the tuple to an integer,
++             # which removes the padded 0's, check if the last digit we extracted
++             # as part of the version was also an integer.  If it was, then we need
++             # to separate them with a '.', otherwise just add this new digit to our
++             # version_parts list.
++             try:
++                 int(version_parts[-1])
++                 version_parts.append('.')
++             except:
++                 pass
++             version_parts.append(str(digit))
++         except:
++             # If the current part of the tuple isn't a digit, then it is some kind of
++             # character tag and will be prefixed by a '*' character.  If the current
++             # part of the tuple is '*final', just skip it because this is not part of the
++             # version string itself.
++             if part != '*final':
++                 # If we can't convert the last digit that we extracted as part of the
++                 # version string to an integer, this means it is a character, so we need to
++                 # separate the current character we are dealing with from it by a '.'.
++                 # Otherwise, just add the current character to our version_parts list.
++                 try:
++                     int(version_parts[-1])
++                 except:
++                     version_parts.append('.')
++                 version_parts.append(part[1:])
++                 
++     # Convert our version_parts list to a single string and return it.
++     return ''.join(version_parts)
+  
+  class EntryPoint(object):
+      """Object representing an advertised importable object"""
+***************
 *** 2005,2013 ****
   
   
@@ -409,7 +496,7 @@
   class Distribution(object):
       """Wrap an actual or potential sys.path entry w/metadata"""
       def __init__(self,
---- 1848,1853 ----
+--- 1890,1895 ----
 ***************
 *** 2087,2095 ****
                   )
@@ -421,7 +508,7 @@
       #@property
       def _dep_map(self):
           try:
---- 1927,1932 ----
+--- 1969,1974 ----
 ***************
 *** 2195,2217 ****
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
@@ -447,7 +534,7 @@
   
       def insert_on(self, path, loc = None):
           """Insert self.location in path before its nearest parent directory"""
---- 2032,2060 ----
+--- 2074,2102 ----
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
           return self.get_entry_map(group).get(name)
   
@@ -487,7 +574,7 @@
   
           nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
           loc = normalize_path(self.location)
---- 2098,2105 ----
+--- 2140,2147 ----
   
   
       def check_version_conflict(self):
@@ -525,7 +612,7 @@
   def parse_requirements(strs):
       """Yield ``Requirement`` objects for each specification in `strs`
   
---- 2158,2163 ----
+--- 2200,2205 ----
 ***************
 *** 2404,2423 ****
   
@@ -548,4 +635,4 @@
   class Requirement:
       def __init__(self, project_name, specs, extras):
           """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
---- 2226,2231 ----
+--- 2268,2273 ----
