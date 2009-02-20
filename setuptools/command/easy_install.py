@@ -229,12 +229,11 @@ class easy_install(Command):
     def run(self):
         if self.verbose != self.distribution.verbose:
             log.set_verbosity(self.verbose)
-            
-        # FIXME: Currently using a subprocess to run the save_state
-        # command from enstaller because running enstaller.rollback.save_state
-        # from here causes some weird circular imports between the
-        # setuptools and enstaller packages, so this will do for now.
-        subprocess.call(['enpkg', 'save_state'])
+
+        # Note that we import from enstaller right here to avoid circular
+        # imports.
+        from enstaller.rollback import save_state
+        save_state()
         
         try:
             if self.remove:
@@ -261,12 +260,12 @@ class easy_install(Command):
                 self.warn_deprecated_options()
         finally:
             log.set_verbosity(self.distribution.verbose)
-            
-            # FIXME: Currently using a subprocess to run the save_state
-            # command from enstaller because running enstaller.rollback.save_state
-            # from here causes some weird circular imports between the
-            # setuptools and enstaller packages, so this will do for now.
-            subprocess.call(['enpkg', 'save_state'])
+
+            # Note that we import from enstaller right here to avoid circular
+            # imports.
+            from enstaller.rollback import save_state
+            save_state()
+
 
     def pseudo_tempname(self):
         """Return a pseudo-tempname base in the install directory.

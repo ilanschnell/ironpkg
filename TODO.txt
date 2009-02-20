@@ -25,9 +25,4 @@ Enhancements:
 
 Bugs:
 
- * The subprocess calls to 'enpkg' should not assume that 'enpkg' is
-   on the path, but instead specify the full path to the desired enpkg.
-   Just calling 'enpkg' is in fact problematic on susytems which already
-   have 'enpkg' installed.
-
  * Post install script may get run multiple during the install process.
