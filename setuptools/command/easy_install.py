@@ -231,7 +231,8 @@ class easy_install(Command):
             log.set_verbosity(self.verbose)
 
         # Note that we import from enstaller right here to avoid circular
-        # imports.
+        # imports.  Also note that setuptools should usually not import
+        # from enstaller, but for certain reasons this import is required.
         from enstaller.rollback import save_state
         save_state()
         
@@ -262,7 +263,8 @@ class easy_install(Command):
             log.set_verbosity(self.distribution.verbose)
 
             # Note that we import from enstaller right here to avoid circular
-            # imports.
+            # imports.  Also note that setuptools should usually not import
+            # from enstaller, but for certain reasons this import is required.
             from enstaller.rollback import save_state
             save_state()
 
