@@ -23,7 +23,7 @@ Installation:
 
  * Remove setuptools from your system.
  * If your are not on a Windows platform, execute the egg:
-   ``./Enstaller-3.0.7-py2.5.egg``
+   ``./Enstaller-3.0.9-py2.5.egg``
  * If you are on Windows, download the installation script for Enstaller:
    `ez_enstaller.py <http://code.enthought.com/src/ez_enstaller.py>`_
    and then un the script at a command prompt: ``python ez_enstaller.py``

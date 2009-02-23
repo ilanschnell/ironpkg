@@ -23,7 +23,7 @@ except ImportError: from md5 import md5
 
 
 # Setup some global vars
-DEFAULT_VERSION = "3.0.7"
+DEFAULT_VERSION = "3.0.8"
 DEFAULT_URL = "http://pypi.python.org/packages/%s/E/Enstaller/" % sys.version[:3]
 md5_data = {
     'Enstaller-3.0.4-py2.4.egg': '6110e9daf82a72b990cf22cacd63db7c',
@@ -38,6 +38,9 @@ md5_data = {
     'Enstaller-3.0.7-py2.4.egg': '9ef719fc8ff3f66776dd134998eab923',
     'Enstaller-3.0.7-py2.5.egg': '7e50280fed345f8608f4b7e496ac619c',
     'Enstaller-3.0.7-py2.6.egg': '7f9c82bf8bc8b3ade5ff61c9d8fde9a7',
+    'Enstaller-3.0.8-py2.4.egg': 'daf87ca3d5da76f42c422134558e9b84',
+    'Enstaller-3.0.8-py2.5.egg': '469bfec4ba78d09df5ea9877f3631760',
+    'Enstaller-3.0.8-py2.6.egg': '5bbe907981fbb30a892ecc3766dbdbf3',
 }
 
 
