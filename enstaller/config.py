@@ -65,7 +65,12 @@ def get_config():
         cp.read(path)
         print 'Retrieved config from: %s' % path
     else:
-        path = _get_default_config_path()
+        # If user is 'root', then create the config file in the system
+        # site-packages.  Otherwise, create it in the user's HOME directory.
+        if os.getuid() == 0:
+            path = _get_system_config_path()
+        else:
+            path = _get_default_config_path()
         cp = init_config(path)
 
     return cp
@@ -100,7 +105,12 @@ def init_config(path):
 """ % DATA)
         cp.write(fp)
         fp.close()
-        os.chmod(path, stat.S_IRUSR|stat.S_IWUSR)
+        # If creating the file in the system site-packages, also make it
+        # readable by all.
+        if os.getuid() == 0:
+            os.chmod(path, 0444|stat.S_IWUSR)
+        else:
+            os.chmod(path, stat.S_IRUSR|stat.S_IWUSR)
         print 'Created config file: %s' % path
     except IOError:
         pass
@@ -140,6 +150,7 @@ def get_configured_repos(unstable=False):
 def get_configured_index():
     """
     Return the index that is set in our config file.
+
     """
     
     # Find all of the index urls specified in the stable repos list.
@@ -166,17 +177,39 @@ def get_configured_index():
         return 'dummy'
 
 
-def _get_default_config_path():
+def _get_config_name():
     """
-    Return the path to the default config file in a user's HOME directory.
+    Return the name of the configuration file based on what platform we are on.
+
     """
-    
+
     if sys.platform == 'win32':
         name = "enstaller.ini"
     else:
         name = ".enstallerrc"
-    return os.path.abspath(os.path.join(os.path.expanduser("~"), name))
+    return name
+
     
+def _get_default_config_path():
+    """
+    Return the path to the default config file in a user's HOME directory.
+
+    """
+    
+    name = _get_config_name()
+    return os.path.abspath(os.path.join(os.path.expanduser("~"), name))
+
+
+def _get_system_config_path():
+    """
+    Return the path to the config file in the system site-packages.
+    
+    """
+
+    name = _get_config_name()
+    site_packages = sysconfig.get_python_lib()
+    return os.path.abspath(os.path.join(site_packages, name))
+
     
 def _get_config_path():
     """
@@ -194,12 +227,7 @@ def _get_config_path():
     # then look for one in the system site-packages.  Also, the name of
     # the config file in site-packages is different on non-Windows platforms
     # so that it will sort next to the Enstaller egg.
-    if sys.platform == 'win32':
-        name = "enstaller.ini"
-    else:
-        name = "enstaller.rc"
-    site_packages = sysconfig.get_python_lib()
-    file_path = os.path.abspath(os.path.join(site_packages, name))
+    file_path = _get_system_config_path()
     if os.path.exists(file_path):
         return file_path
     
