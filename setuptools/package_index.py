@@ -9,6 +9,7 @@ try:
 except ImportError:
     from md5 import md5
 from fnmatch import translate
+import getpass
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
@@ -707,8 +708,29 @@ def open_with_auth(url):
     else:
         request = urllib2.Request(url)
 
+    # If retrieving the URL throws an authorization required error, give the
+    # user a chance to supply a valid user name/password.
     request.add_header('User-Agent', user_agent)
-    fp = urllib2.urlopen(request)
+    tries_left = 3
+    while tries_left >= 0:
+        try:
+            fp = urllib2.urlopen(request)
+            break
+        except urllib2.HTTPError, e:
+            if e.code == 401:
+                print "Please enter credentials to access this repository:"
+                user = raw_input("User Name: ")
+                passwd = getpass.getpass("Password: ")
+                auth_split = "%s:%s" % (user, passwd)
+                auth = "Basic " + urllib2.unquote(auth_split).encode('base64').strip()
+                new_url = urlparse.urlunparse((scheme,host,path,params,query,frag))
+                request = urllib2.Request(new_url)
+                request.add_header("Authorization", auth)
+                tries_left -=  1
+            else:
+                raise e
+    if tries_left < 0:
+        raise e
 
     if auth:
         # Put authentication info back into request URL if same host,
