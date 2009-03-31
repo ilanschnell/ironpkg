@@ -148,6 +148,12 @@ def get_build_platform():
 
     XXX Currently this is the same as ``distutils.util.get_platform()``, but it
     needs some hacks for Linux and Mac OS X.
+
+    On platforms where the host OS may have a different architecture than the
+    python executable, i.e when a 64-bit OS is running a 32-bit executable, we
+    need to clarify things further.  We try to detect these cases and change
+    the platform string appropriately.
+
     """
     from distutils.util import get_platform
     plat = get_platform()
@@ -161,12 +167,76 @@ def get_build_platform():
             # if someone is running a non-Mac darwin system, this will fall
             # through to the default implementation
             pass
-    return plat
+
+    # If we can determine the architecture of the python executable itself,
+    # then use it instead of what distutils returns about the host OS's
+    # architecture.
+    return _get_python_platform(plat)
 
 macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
 get_platform = get_build_platform   # XXX backward compat
 
+
+_python_arch = None
+def _get_python_platform(plat):
+    """ Return the platform spec of python executable.
+
+    This massages an existing host-based platform spec IFF we can tell whether
+    the Python executable is different. i.e. a 32-bit executable on a 64-bit
+    host OS.
+
+    For performance, this method is designed to cache the Python architecture
+    once it is computed.
+
+    """
+    global _python_arch
+    if _python_arch is None:
+        
+        # On Solaris, we can use elfdump to determine the arch of the python
+        # executable.
+        if sys.platform.startswith('sunos'):
+            import subprocess as sp
+            proc = sp.Popen(['/usr/ccs/bin/elfdump', '-e', sys.executable],
+                stdout=sp.PIPE)
+            for line in proc.communicate()[0].splitlines():
+                line = line.strip()
+                if line.startswith('e_machine:'):
+                    elf_machine = line.split()[1]
+                    _python_arch = _get_arch_from_elf_machine(elf_machine)
+                    break
+
+        # On all other systems, we don't yet know how to find the architecture
+        # of the Python executable so a non-True value tells our callers to
+        # ignore our value.
+        else:
+            _python_arch = ''
+
+    # Massage the platform to replace the machine spec if we found a Python
+    # machine spec.
+    if _python_arch:
+        parts = plat.split('-')
+        parts[-1] = _python_arch
+        plat = '-'.join(parts)
+
+    return plat
+
+
+def _get_arch_from_elf_machine(machine):
+    """ Return a usable arch spec from an elf machine spec.
+
+    The values we know of for e_machine come from the listing on the webpage:
+        http://www.sco.com/developers/gabi/latest/ch4.eheader.html
+    It is assumed that these are the same across different OS platforms and
+    releases.  If they are found not to be, we should refactor this into
+    methods per OS.
+    """
+    return {
+        # This dictionary handles where the value we want isn't the suffix.
+        'EM_386': 'x86',
+        'EM_SPARC32PLUS': 'sparc32',
+        'EM_IA_64': 'ia64',
+        }.get(machine, machine[3:].lower())
 
 
 def compatible_platforms(provided,required):
