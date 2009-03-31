@@ -31,7 +31,7 @@ from repository import HTMLRepository, RepositoryUnion
 from requirements import deactivate_requirement, get_local_repos, get_site_packages, install_requirement, remove_requirement
 from rollback import parse_project_str, retrieve_states, rollback_state, save_state
 from upgrade import get_upgrade_str
-from utilities import rst_table, get_platform, query_user, user_select
+from utilities import rst_table, query_user, user_select
 
 
 try:
