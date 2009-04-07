@@ -172,8 +172,9 @@ def get_configured_index():
             "file.  Only the first one found will be used.")
         return results[0]
     else:
-        # FIXME:  For now we just return 'dummy' if no index URL is specified, but eventually
-        # we would like to modify the setuptools code base to not have to use an index URL.
+        # FIXME:  For now we just return 'dummy' if no index URL is specified,
+        # but eventually we would like to modify the setuptools code base to
+        # not have to use an index URL.
         return 'dummy'
 
 

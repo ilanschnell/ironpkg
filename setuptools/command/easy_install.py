@@ -15,7 +15,8 @@ This is a patched version for Enstaller.
 # Patched with easy_install.patch and prefer_released.patch from Enthought
 # starting with setuptools 0.6c9
 
-import sys, os, os.path, shutil, zipimport, tempfile, re, stat, subprocess, random
+import sys, os, os.path, shutil, zipimport
+import tempfile, re, stat, subprocess, random
 import zipfile
 from os import path
 from glob import glob
@@ -26,7 +27,7 @@ from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError
-from enstaller.config import get_configured_index, get_configured_repos
+
 from setuptools.utils import rm_rf, chmod, execute_script, samefile, \
     store_file_from_zip
 from setuptools.archive_util import unpack_archive
@@ -35,6 +36,22 @@ from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
 from pkg_resources import *
 sys_executable = os.path.normpath(sys.executable)
+
+
+if '--ignore-pydistutils-cfg' in sys.argv:
+    # Monkey patch find_config_files in distutils.dist
+    pass
+
+
+if '--ignore-enstallerrc' in sys.argv:
+    def get_configured_repos():
+        return []
+
+    def get_configured_index():
+        return 'dummy'
+else:
+    from enstaller.config import get_configured_index, get_configured_repos
+
 
 __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
@@ -62,6 +79,8 @@ class easy_install(Command):
         ("delete-conflicting", "D", "no longer needed; don't use this"),
         ("ignore-conflicts-at-my-risk", None,
             "no longer needed; don't use this"),
+        ("ignore-enstallerrc", None, "ignore the .enstallerrc file"),
+        ("ignore-pydistutils-cfg", None, "ignore distuils config files"),
         ("build-directory=", "b",
             "download/extract/build in DIR; keep the results"),
         ('optimize=', 'O',
@@ -81,7 +100,8 @@ class easy_install(Command):
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
         'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
-        'no-deps', 'local-snapshots-ok', 'allow-dev'
+        'no-deps', 'local-snapshots-ok', 'allow-dev',
+        'ignore-enstallerrc', 'ignore-pydistutils-cfg',
     ]
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
@@ -106,6 +126,8 @@ class easy_install(Command):
         self.pth_file = self.always_copy_from = None
         self.delete_conflicting = None
         self.ignore_conflicts_at_my_risk = None
+        self.ignore_enstallerrc = None
+        self.ignore_pydistutils_cfg = None
         self.site_dirs = None
         self.installed_projects = {}
         self.sitepy_installed = False
