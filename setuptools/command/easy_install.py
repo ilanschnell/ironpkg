@@ -38,10 +38,6 @@ from pkg_resources import *
 sys_executable = os.path.normpath(sys.executable)
 
 
-if '--ignore-pydistutils-cfg' in sys.argv:
-    # Monkey patch find_config_files in distutils.dist
-    pass
-
 
 if '--ignore-enstallerrc' in sys.argv:
     def get_configured_repos():

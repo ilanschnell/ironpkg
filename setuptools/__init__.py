@@ -1,4 +1,5 @@
 """Extensions to the 'distutils' for large or complex distributions"""
+import sys
 from setuptools.extension import Extension, Library
 from setuptools.dist import Distribution, Feature, _get_unpatched
 import distutils.core, setuptools.command
@@ -14,6 +15,16 @@ __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'find_packages'
 ]
+
+
+if '--ignore-pydistutils-cfg' in sys.argv:
+    # Monkey patch find_config_files in distutils.dist
+    def my_find_config_files(self):
+        return []
+
+    Distribution.find_config_files = my_find_config_files
+
+
 
 bootstrap_install_from = None
 
