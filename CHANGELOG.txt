@@ -1,4 +1,10 @@
 
+3.0.9
+-----
+* added --ignore-enstallerrc and --ignore-pydistutils-cfg option to
+  easy_install
+
+
 3.0.8
 -----
 * Removed subprocess call which assumed that enpkg was on the path, which
