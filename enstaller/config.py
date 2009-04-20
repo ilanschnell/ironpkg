@@ -67,7 +67,7 @@ def get_config():
     else:
         # If user is 'root', then create the config file in the system
         # site-packages.  Otherwise, create it in the user's HOME directory.
-        if os.getuid() == 0:
+        if sys.platform != 'win32' and os.getuid() == 0:
             path = _get_system_config_path()
         else:
             path = _get_default_config_path()
@@ -107,7 +107,7 @@ def init_config(path):
         fp.close()
         # If creating the file in the system site-packages, also make it
         # readable by all.
-        if os.getuid() == 0:
+        if sys.platform != 'win32' and os.getuid() == 0:
             os.chmod(path, 0444|stat.S_IWUSR)
         else:
             os.chmod(path, stat.S_IRUSR|stat.S_IWUSR)

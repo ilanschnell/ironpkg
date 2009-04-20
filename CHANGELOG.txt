@@ -1,6 +1,8 @@
 
 3.0.9
 -----
+* Fixed os.getuid(), in enstaller/config.py not being called on Windows
+
 * added --ignore-enstallerrc and --ignore-pydistutils-cfg option to
   easy_install
 
