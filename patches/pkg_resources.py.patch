@@ -1,5 +1,5 @@
 *** ../../setuptools-0.6c9/pkg_resources.py	2008-09-24 12:10:45.000000000 -0500
---- ../pkg_resources.py	2009-01-15 17:53:34.000000000 -0600
+--- ../pkg_resources.py	2009-04-07 16:36:38.000000000 -0500
 ***************
 *** 24,44 ****
   from os import open as os_open
@@ -89,6 +89,114 @@
   DEVELOP_DIST = -1
   
 ***************
+*** 182,187 ****
+--- 148,159 ----
+  
+      XXX Currently this is the same as ``distutils.util.get_platform()``, but it
+      needs some hacks for Linux and Mac OS X.
++ 
++     On platforms where the host OS may have a different architecture than the
++     python executable, i.e when a 64-bit OS is running a 32-bit executable, we
++     need to clarify things further.  We try to detect these cases and change
++     the platform string appropriately.
++ 
+      """
+      from distutils.util import get_platform
+      plat = get_platform()
+***************
+*** 195,207 ****
+              # if someone is running a non-Mac darwin system, this will fall
+              # through to the default implementation
+              pass
+!     return plat
+  
+  macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
+  darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
+  get_platform = get_build_platform   # XXX backward compat
+  
+  
+  
+  def compatible_platforms(provided,required):
+      """Can code for the `provided` platform run on the `required` platform?
+--- 167,243 ----
+              # if someone is running a non-Mac darwin system, this will fall
+              # through to the default implementation
+              pass
+! 
+!     # If we can determine the architecture of the python executable itself,
+!     # then use it instead of what distutils returns about the host OS's
+!     # architecture.
+!     return _get_python_platform(plat)
+  
+  macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
+  darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
+  get_platform = get_build_platform   # XXX backward compat
+  
+  
++ _python_arch = None
++ def _get_python_platform(plat):
++     """ Return the platform spec of python executable.
++ 
++     This massages an existing host-based platform spec IFF we can tell whether
++     the Python executable is different. i.e. a 32-bit executable on a 64-bit
++     host OS.
++ 
++     For performance, this method is designed to cache the Python architecture
++     once it is computed.
++ 
++     """
++     global _python_arch
++     if _python_arch is None:
++         
++         # On Solaris, we can use elfdump to determine the arch of the python
++         # executable.
++         if sys.platform.startswith('sunos'):
++             import subprocess as sp
++             proc = sp.Popen(['/usr/ccs/bin/elfdump', '-e', sys.executable],
++                 stdout=sp.PIPE)
++             for line in proc.communicate()[0].splitlines():
++                 line = line.strip()
++                 if line.startswith('e_machine:'):
++                     elf_machine = line.split()[1]
++                     _python_arch = _get_arch_from_elf_machine(elf_machine)
++                     break
++ 
++         # On all other systems, we don't yet know how to find the architecture
++         # of the Python executable so a non-True value tells our callers to
++         # ignore our value.
++         else:
++             _python_arch = ''
++ 
++     # Massage the platform to replace the machine spec if we found a Python
++     # machine spec.
++     if _python_arch:
++         parts = plat.split('-')
++         parts[-1] = _python_arch
++         plat = '-'.join(parts)
++ 
++     return plat
++ 
++ 
++ def _get_arch_from_elf_machine(machine):
++     """ Return a usable arch spec from an elf machine spec.
++ 
++     The values we know of for e_machine come from the listing on the webpage:
++         http://www.sco.com/developers/gabi/latest/ch4.eheader.html
++     It is assumed that these are the same across different OS platforms and
++     releases.  If they are found not to be, we should refactor this into
++     methods per OS.
++     """
++     return {
++         # This dictionary handles where the value we want isn't the suffix.
++         'EM_386': 'x86',
++         'EM_SPARC32PLUS': 'sparc32',
++         'EM_IA_64': 'ia64',
++         }.get(machine, machine[3:].lower())
++ 
+  
+  def compatible_platforms(provided,required):
+      """Can code for the `provided` platform run on the `required` platform?
+***************
 *** 311,331 ****
   
   
@@ -111,7 +219,7 @@
   class IResourceProvider(IMetadataProvider):
       """An object that provides access to package resources"""
   
---- 277,282 ----
+--- 347,352 ----
 ***************
 *** 356,372 ****
   
@@ -131,7 +239,7 @@
   class WorkingSet(object):
       """A collection of active distributions on sys.path (or a similar list)"""
   
---- 307,312 ----
+--- 377,382 ----
 ***************
 *** 405,413 ****
           return self.by_key.get(dist.key) == dist
@@ -143,7 +251,7 @@
       def find(self, req):
           """Find a distribution matching requirement `req`
   
---- 345,350 ----
+--- 415,420 ----
 ***************
 *** 509,516 ****
   
@@ -154,7 +262,7 @@
                   continue
               dist = best.get(req.key)
               if dist is None:
---- 446,454 ----
+--- 516,524 ----
   
           while requirements:
               req = requirements.pop(0)   # process dependencies breadth-first
@@ -173,7 +281,7 @@
                   to_activate.append(dist)
               if dist not in req:
                   # Oops, the "best" so far conflicts with a dependency
---- 459,470 ----
+--- 529,540 ----
                           env = Environment(self.entries)
                       dist = best[req.key] = env.best_match(req, self, installer)
                       if dist is None:
@@ -197,7 +305,7 @@
       def require(self, *requirements):
           """Ensure that distributions matching `requirements` are activated
   
---- 553,558 ----
+--- 623,628 ----
 ***************
 *** 646,663 ****
   
@@ -218,7 +326,7 @@
           """Snapshot distributions available on a search path
   
           Any distributions found on `search_path` are added to the environment.
---- 586,596 ----
+--- 656,666 ----
   
   
   
@@ -239,7 +347,7 @@
   class ResourceManager:
       """Manage resource extraction and packages"""
       extraction_path = None
---- 750,755 ----
+--- 820,825 ----
 ***************
 *** 889,905 ****
   
@@ -259,7 +367,7 @@
       def get_cache_path(self, archive_name, names=()):
           """Return absolute location in cache for `archive_name` and `names`
   
---- 821,826 ----
+--- 891,896 ----
 ***************
 *** 925,946 ****
   
@@ -284,7 +392,7 @@
       def postprocess(self, tempname, filename):
           """Perform any platform-specific postprocessing of `tempname`
   
---- 846,851 ----
+--- 916,921 ----
 ***************
 *** 963,987 ****
   
@@ -312,7 +420,7 @@
       def set_extraction_path(self, path):
           """Set the base path where resources will be extracted to, if needed.
   
---- 868,873 ----
+--- 938,943 ----
 ***************
 *** 1099,1110 ****
       return name.replace('-','_')
@@ -327,7 +435,7 @@
   class NullProvider:
       """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
   
---- 985,990 ----
+--- 1055,1060 ----
 ***************
 *** 1224,1233 ****
               path, base = os.path.split(path)
@@ -340,7 +448,7 @@
   class DefaultProvider(EggProvider):
       """Provides access to package resources in the filesystem"""
   
---- 1104,1109 ----
+--- 1174,1179 ----
 ***************
 *** 1267,1274 ****
   empty_provider = EmptyProvider()
@@ -351,7 +459,7 @@
   class ZipProvider(EggProvider):
       """Resource support for zips and eggs"""
   
---- 1143,1148 ----
+--- 1213,1218 ----
 ***************
 *** 1412,1438 ****
   
@@ -381,7 +489,7 @@
   class FileMetadata(EmptyProvider):
       """Metadata handler for standalone PKG-INFO files
   
---- 1286,1291 ----
+--- 1356,1361 ----
 ***************
 *** 1461,1479 ****
   
@@ -403,7 +511,7 @@
   class PathMetadata(DefaultProvider):
       """Metadata provider for egg directories
   
---- 1314,1319 ----
+--- 1384,1389 ----
 ***************
 *** 1669,1680 ****
                           path_item,entry,metadata,precedence=DEVELOP_DIST
@@ -418,7 +526,7 @@
                               yield item
                           break
   register_finder(ImpWrapper,find_on_path)
---- 1509,1523 ----
+--- 1579,1593 ----
                           path_item,entry,metadata,precedence=DEVELOP_DIST
                       )
                   elif not only and lower.endswith('.egg'):
@@ -436,7 +544,7 @@
   register_finder(ImpWrapper,find_on_path)
 ***************
 *** 1884,1889 ****
---- 1727,1774 ----
+--- 1797,1844 ----
                   parts.pop()
           parts.append(part)
       return tuple(parts)
@@ -496,7 +604,7 @@
   class Distribution(object):
       """Wrap an actual or potential sys.path entry w/metadata"""
       def __init__(self,
---- 1890,1895 ----
+--- 1960,1965 ----
 ***************
 *** 2087,2095 ****
                   )
@@ -508,7 +616,7 @@
       #@property
       def _dep_map(self):
           try:
---- 1969,1974 ----
+--- 2039,2044 ----
 ***************
 *** 2195,2217 ****
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
@@ -534,7 +642,7 @@
   
       def insert_on(self, path, loc = None):
           """Insert self.location in path before its nearest parent directory"""
---- 2074,2102 ----
+--- 2144,2172 ----
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
           return self.get_entry_map(group).get(name)
   
@@ -574,7 +682,7 @@
   
           nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
           loc = normalize_path(self.location)
---- 2140,2147 ----
+--- 2210,2217 ----
   
   
       def check_version_conflict(self):
@@ -612,7 +720,7 @@
   def parse_requirements(strs):
       """Yield ``Requirement`` objects for each specification in `strs`
   
---- 2200,2205 ----
+--- 2270,2275 ----
 ***************
 *** 2404,2423 ****
   
@@ -635,4 +743,4 @@
   class Requirement:
       def __init__(self, project_name, specs, extras):
           """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
---- 2268,2273 ----
+--- 2338,2343 ----
