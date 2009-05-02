@@ -3,6 +3,9 @@ import os
 from os.path import abspath, basename, dirname, exists, isdir, join
 
 
+on_win = sys.platform.startswith('win')
+
+
 _lsp = len(sys.prefix) + 1
 def rel_prefix(path):
     return path[_lsp:]

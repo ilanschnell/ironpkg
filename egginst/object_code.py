@@ -74,7 +74,7 @@ def fix_object_code(fpath):
 
         padding = len(m.group(0)) - len(r)
         if padding < 1: # we need at least one nul-character
-            raise Exception("placeholder %r too short" % m.group(0)) 
+            raise Exception("placeholder %r too short" % m.group(0))
         r += padding * '\0'
         assert m.start() + len(r) == m.end()
 

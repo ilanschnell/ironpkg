@@ -22,31 +22,20 @@ def create_link(arcname, link):
 
     print "Creating: %s (link to %s)" % (rel_prefix(dst), link)
     os.symlink(link, dst)
+    return dst
 
 
-def remove_link(arcname):
-    dst_dir, dst =  dest_arc(arcname)
-    if not islink(dst):
-        print 'Warning: ignoring missing link %r' % rel_prefix(dst)
-        return
-    os.unlink(dst)
-
-
-def from_data(content, remove=False):
+def create(egg):
     """
     Given the content of the EGG-INFO/inst/files_to_install.txt file,
     create/remove the links listed therein.
     """
-    for line in content.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
+    for line in egg.lines_from_arcname('EGG-INFO/inst/files_to_install.txt'):
+        if line.startswith("#"):
             continue
 
         arcname, link = line.split()
         if link == 'False':
             continue
 
-        if remove:
-            remove_link(arcname)
-        else:
-            create_link(arcname, link)
+        egg.files.append(create_link(arcname, link))

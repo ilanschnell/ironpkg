@@ -5,17 +5,10 @@ import sys
 import shutil
 import zipfile
 import ConfigParser
-from os.path import abspath, basename, dirname, join, isdir, isfile
+from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from utils import rmdir_er, dest_arc
-
-on_Win = sys.platform.startswith('win')
-
-if not on_Win:
-    import links
-
-
-DEBUG = 0
+from utils import rmdir_er, dest_arc, on_win
+import scripts
 
 
 class EggInst(object):
@@ -36,8 +29,11 @@ class EggInst(object):
         self.z = zipfile.ZipFile(self.fpath)
         self.arcnames = self.z.namelist()
         self.unpack()
-        if not on_Win:
-            self.mk_links()
+        if on_win:
+            scripts.create_proxies(self)
+        else:
+            import links
+            links.create(self)
             self.fix_object_files()
         self.z.close()
         self.entry_points()
@@ -46,9 +42,8 @@ class EggInst(object):
 
     def entry_points(self):
         conf = ConfigParser.ConfigParser()
-        conf.read(join(self.meta_dir, 'EGG-INFO/entry_points.txt'))
+        conf.read(join(self.meta_dir, 'EGG-INFO', 'entry_points.txt'))
         if 'console_scripts' in conf.sections():
-            import scripts
             scripts.create(self, conf)
 
     def write_files(self):
@@ -64,28 +59,16 @@ class EggInst(object):
             if line:
                 yield line
 
-    def mk_links(self):
-        arcname = 'EGG-INFO/inst/files_to_install.txt'
-        if arcname not in self.arcnames:
-            return
-        links.from_data(self.z.read(arcname))
-
-    def rm_links(self):
-        path = join(self.meta_dir, 'EGG-INFO', 'inst', 'files_to_install.txt')
-        if not isfile(path):
-            return
-        links.from_data(open(path).read(), remove=True)
-
     def fix_object_files(self):
         from object_code import fix_files
 
         targets = [join(sys.prefix, 'lib')]
         for line in self.lines_from_arcname('EGG-INFO/inst/targets.dat'):
             targets.append(join(sys.prefix, line))
-        if DEBUG:
-            print 'Target directories:'
-            for tgt in targets:
-                print '    %s' % tgt
+        print 'Target directories:'
+        for tgt in targets:
+            print '    %s' % tgt
+
         fix_files(self.files, targets)
 
     def get_dst(self, name):
@@ -117,7 +100,7 @@ class EggInst(object):
                 os.chmod(p, 0755)
 
     def install_app(self, remove=False):
-        fpath = join(self.meta_dir, 'EGG-INFO', 'inst', 'appinst.dat') 
+        fpath = join(self.meta_dir, 'EGG-INFO', 'inst', 'appinst.dat')
         if not isfile(fpath):
             return
 
@@ -140,9 +123,6 @@ class EggInst(object):
 
         self.install_app(remove=True)
 
-        if not on_Win:
-            self.rm_links()
-
         # Read 'files.txt' from the meta_dir
         for line in open(self.files_txt):
             self.files.append(line.strip())
@@ -159,7 +139,7 @@ class EggInst(object):
                     dirs.add(join(self.site_packages, ps[spi + 1]))
             elif not 'EGG-INFO' in ps:
                 dirs.add(dirname(p))
-            if isfile(p):
+            if islink(p) or isfile(p):
                 os.unlink(p)
 
         # Remove empty directories recursively
