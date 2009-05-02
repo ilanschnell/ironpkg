@@ -16,9 +16,9 @@ def get_python():
 
 
 def unlink(fpath):
-    if exists(dst):
-        print "Warning: %r already exists, unlinking" % dst
-        os.unlink(dst)
+    if exists(fpath):
+        print "Warning: %r already exists, unlinking" % fpath
+        os.unlink(fpath)
 
 
 def create_proxy(src):
