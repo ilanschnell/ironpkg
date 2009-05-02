@@ -14,7 +14,6 @@ on_Win = sys.platform.startswith('win')
 if not on_Win:
     import links
 
-BIN_DIR = join(sys.prefix, 'Scripts' if on_Win else 'bin')
 
 DEBUG = 0
 
@@ -46,15 +45,11 @@ class EggInst(object):
         self.write_files()
 
     def entry_points(self):
-        c = ConfigParser.ConfigParser()
-        c.read(join(self.meta_dir, 'EGG-INFO/entry_points.txt'))
-        if not 'console_scripts' in c.sections():
-            return
-        import scripts
-        for fn, entry_pt in c.items("console_scripts"):
-            path = join(BIN_DIR, fn)
-            scripts.create(path, entry_pt, self)
-            self.files.append(path)
+        conf = ConfigParser.ConfigParser()
+        conf.read(join(self.meta_dir, 'EGG-INFO/entry_points.txt'))
+        if 'console_scripts' in conf.sections():
+            import scripts
+            scripts.create(self, conf)
 
     def write_files(self):
         fo = open(self.files_txt, 'wb')

@@ -1,15 +1,26 @@
 import os
 import sys
-from os.path import basename
+import shutil
+from os.path import basename, join
+
+on_Win = sys.platform.startswith('win')
+BIN_DIR = join(sys.prefix, 'Scripts' if on_Win else 'bin')
 
 
-def create(path, entry_pt, egg=None):
-    print 'Creating script', path
+def get_python():
+    if on_Win:
+        return '"%s"' % sys.executable
+    else:
+        return sys.executable
+
+
+def write_script(fpath, entry_pt, egg_name):
+    print 'Creating script', fpath
 
     assert entry_pt.count(':') == 1
     module, func = entry_pt.strip().split(':')
 
-    fo = open(path, 'w')
+    fo = open(fpath, 'w')
     fo.write('''\
 #!%(python)s
 #
@@ -18,7 +29,21 @@ def create(path, entry_pt, egg=None):
 from %(module)s import %(func)s
 
 %(func)s()
-''' % dict(module=module, func=func, python=sys.executable,
-           egg_name=(basename(egg.fpath) if egg is not None else egg)))
+''' % dict(module=module, func=func, python=get_python(), egg_name=egg_name))
     fo.close()
-    os.chmod(path, 0755)
+    os.chmod(fpath, 0755)
+
+
+def create(egg, conf):
+    for name, entry_pt in conf.items("console_scripts"):
+        fname = name
+        if on_Win:
+            exe = join(BIN_DIR, name + '.exe')
+            shutil.copyfile(join(BIN_DIR, 'egginst.exe'), exe)
+            egg.files.append(exe)
+
+            fname += '-script.py'
+
+        fpath = join(BIN_DIR, fname)
+        write_script(fpath, entry_pt, egg_name=basename(egg.fpath))
+        egg.files.append(fpath)
