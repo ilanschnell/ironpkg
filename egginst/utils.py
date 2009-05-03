@@ -5,22 +5,13 @@ from os.path import abspath, basename, dirname, exists, isdir, join
 
 on_win = sys.platform.startswith('win')
 
+bin_dir = join(sys.prefix, 'Scripts' if on_win else 'bin')
 
-_lsp = len(sys.prefix) + 1
+
 def rel_prefix(path):
-    return path[_lsp:]
-
-
-_usr = 'EGG-INFO/usr/'
-def dest_arc(arcname):
-    """
-    Given an archive name, which has to start with 'EGG-INFO/usr/', returns
-    a tuple of destination directory and the absolute path to the destination
-    itself.
-    """
-    assert arcname.startswith(_usr), arcname
-    dst_dir = join(sys.prefix, dirname(arcname[len(_usr):]))
-    return dst_dir, join(dst_dir, basename(arcname))
+    if path.startswith(sys.prefix + '/'):
+        return path[len(sys.prefix) + 1:]
+    return path
 
 
 def rmdir_er(dn):

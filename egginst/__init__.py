@@ -1,4 +1,7 @@
 # Author: Ilan Schnell <ischnell@enthought.com>
+"""\
+egginst is a simple tool for installing eggs into a Python environment.
+"""
 
 import os
 import sys
@@ -7,7 +10,7 @@ import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from utils import rmdir_er, dest_arc, on_win
+from utils import rmdir_er, on_win, bin_dir
 import scripts
 
 
@@ -19,7 +22,7 @@ class EggInst(object):
         self.fpath = fpath
         self.project = basename(fpath).split('-')[0]
         self.meta_dir = join(sys.prefix, 'eggmeta', self.project)
-        self.files_txt = join(self.meta_dir, 'files.txt')
+        self.files_txt = join(self.meta_dir, '__files__.txt')
         self.files = []
 
     def install(self):
@@ -29,58 +32,75 @@ class EggInst(object):
         self.z = zipfile.ZipFile(self.fpath)
         self.arcnames = self.z.namelist()
         self.unpack()
+
         if on_win:
             scripts.create_proxies(self)
+
         else:
             import links
             links.create(self)
-            self.fix_object_files()
-        self.z.close()
+
+            import object_code
+            object_code.fix_files(self)
+
         self.entry_points()
+        self.z.close()
+        scripts.fix_scripts(self)
         self.install_app()
         self.write_files()
 
+        self.run('post_install.py')
+
     def entry_points(self):
+        lines = list(self.lines_from_arcname('EGG-INFO/entry_points.txt',
+                                             ignore_empty=False))
+        if lines == []:
+            return
+
+        path = join(self.meta_dir, '__entry_points__.txt')
+        fo = open(path, 'w')
+        fo.write('\n'.join(lines) + '\n')
+        fo.close()
+
         conf = ConfigParser.ConfigParser()
-        conf.read(join(self.meta_dir, 'EGG-INFO', 'entry_points.txt'))
+        conf.read(path)
         if 'console_scripts' in conf.sections():
+            print 'creating console scripts'
             scripts.create(self, conf)
 
     def write_files(self):
-        fo = open(self.files_txt, 'wb')
+        fo = open(self.files_txt, 'w')
         fo.write('\n'.join(self.files) + '\n')
         fo.close()
 
-    def lines_from_arcname(self, arcname):
+    def read_files(self):
+        for line in open(self.files_txt):
+            self.files.append(line.strip())
+
+    def lines_from_arcname(self, arcname,
+                           ignore_empty=True,
+                           ignore_comments=True):
         if not arcname in self.arcnames:
             return
         for line in self.z.read(arcname).splitlines():
             line = line.strip()
-            if line:
-                yield line
+            if ignore_empty and line == '':
+                continue
+            if ignore_comments and line.startswith('#'):
+                continue
+            yield line
 
-    def fix_object_files(self):
-        from object_code import fix_files
+    def get_dst(self, arcname):
+        disp = [
+            ('EGG-INFO/prefix/',  True,       sys.prefix),
+            ('EGG-INFO/usr/',     not on_win, sys.prefix),
+            ('EGG-INFO/scripts/', True,       bin_dir),
+            ('EGG-INFO/',         True,       self.meta_dir),
+            ('',                  True,       self.site_packages)]
 
-        targets = [join(sys.prefix, 'lib')]
-        for line in self.lines_from_arcname('EGG-INFO/inst/targets.dat'):
-            targets.append(join(sys.prefix, line))
-        print 'Target directories:'
-        for tgt in targets:
-            print '    %s' % tgt
-
-        fix_files(self.files, targets)
-
-    def get_dst(self, name):
-        if name.startswith('EGG-INFO/usr/'):
-            return dest_arc(name)[1]
-
-        if name.startswith('EGG-INFO'):
-            dst_dir = self.meta_dir
-        else:
-            dst_dir = self.site_packages
-
-        return join(dst_dir, *name.split('/'))
+        for start, cond, dst_dir in disp:
+            if arcname.startswith(start) and cond:
+                return abspath(join(dst_dir, arcname[len(start):]))
 
     def unpack(self):
         # Write the files
@@ -116,16 +136,21 @@ class EggInst(object):
         else:
             appinst.install_from_dat(fpath)
 
+    def run(self, fn):
+        fpath = join(self.meta_dir, 'inst', fn)
+        if not isfile(fpath):
+            return
+        from subprocess import call
+        call([sys.executable, fpath], cwd=dirname(fpath))
+
     def remove(self):
         if not isdir(self.meta_dir):
             print "Can't find meta data for:", self.project
             return
 
+        self.run('pre_uninstall.py')
         self.install_app(remove=True)
-
-        # Read 'files.txt' from the meta_dir
-        for line in open(self.files_txt):
-            self.files.append(line.strip())
+        self.read_files()
 
         # After the loop, dirs will be a set of directories in which to
         # be removed (if empty, recursively).
@@ -155,8 +180,8 @@ def main():
 
     usage = "usage: %prog [options] EGG [EGG ...]"
 
-    description = """\
-"""
+    description = __doc__
+
     parser = OptionParser(usage = usage,
                           description = description,
                           prog = basename(sys.argv[0]))

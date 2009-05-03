@@ -2,16 +2,18 @@ import os
 import sys
 from os.path import basename, dirname, exists, islink, join
 
-from utils import rel_prefix, dest_arc
+from utils import rel_prefix
 
 
 def create_link(arcname, link):
-    dst_dir, dst = dest_arc(arcname)
+    usr = 'EGG-INFO/usr/'
+    assert arcname.startswith(usr), arcname
+    dst = join(sys.prefix, arcname[len(usr):])
 
     # Create the destination directory if it does not exist.  In most cases
     # it will exist, but you never know.
-    if not exists(dst_dir):
-        os.makedirs(dst_dir)
+    if not exists(dirname(dst)):
+        os.makedirs(dirname(dst))
 
     # Note that we have to check if the destination is a link because
     # exists('/path/to/dead-link') will return False, although
@@ -31,11 +33,7 @@ def create(egg):
     create/remove the links listed therein.
     """
     for line in egg.lines_from_arcname('EGG-INFO/inst/files_to_install.txt'):
-        if line.startswith("#"):
-            continue
-
         arcname, link = line.split()
         if link == 'False':
             continue
-
         egg.files.append(create_link(arcname, link))

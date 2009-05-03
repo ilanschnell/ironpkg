@@ -1,15 +1,14 @@
 import os
 import sys
+import re
 import shutil
-from os.path import basename, exists, join
+from os.path import basename, exists, join, islink, isfile
 
-from utils import on_win
-
-BIN_DIR = join(sys.prefix, 'Scripts' if on_win else 'bin')
+from utils import on_win, bin_dir
 
 
 def cp_exe(dst):
-    shutil.copyfile(join(BIN_DIR, 'easy_install.exe'), dst)
+    shutil.copyfile(join(bin_dir, 'easy_install.exe'), dst)
 
 
 def unlink(fpath):
@@ -26,15 +25,16 @@ def create_proxy(src):
     if dst_name.startswith('epd-'):
         dst_name = dst_name[4:]
 
-    dst = join(BIN_DIR, dst_name)
+    dst = join(bin_dir, dst_name)
     unlink(dst)
     cp_exe(dst)
 
     dst_script = dst[:-4] + '-script.py'
     unlink(dst_script)
-    fo = open(join(BIN_DIR, dst_script), 'w')
+    fo = open(join(bin_dir, dst_script), 'w')
     fo.write('''\
 #!"%(python)s"
+# Proxy created by egginst
 import sys
 import subprocess
 
@@ -57,15 +57,8 @@ def copy_to(src, dst_dir):
 
 
 def create_proxies(egg):
-    arcname = 'EGG-INFO/inst/files_to_install.txt'
-    if arcname not in egg.arcnames:
-        return
-
-    for line in egg.z.read(arcname).splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-
+    for line in egg.lines_from_arcname('EGG-INFO/inst/files_to_install.txt'):
+        rel_name, actions = line.replace('/', '\\').lstrip('\\').split()
         src = join(egg.meta_dir, rel_name)
         if action == 'PROXY':
             egg.files.extend(create_proxy(src))
@@ -102,13 +95,47 @@ def create(egg, conf):
     for name, entry_pt in conf.items("console_scripts"):
         fname = name
         if on_win:
-            exe_path = join(BIN_DIR, name + '.exe')
+            exe_path = join(bin_dir, name + '.exe')
             unlink(exe_path)
             cp_exe(exe_path)
             egg.files.append(exe_path)
 
             fname += '-script.py'
 
-        fpath = join(BIN_DIR, fname)
+        fpath = join(bin_dir, fname)
         write_script(fpath, entry_pt, egg_name=basename(egg.fpath))
         egg.files.append(fpath)
+
+
+_hashbang_pat = re.compile(r'#!.+$', re.M)
+def fix_script(path):
+    if islink(path) or not isfile(path):
+        return
+
+    fi = open(path)
+    data = fi.read()
+    fi.close()
+
+    m = _hashbang_pat.match(data)
+    if not (m and 'python' in m.group().lower()):
+        return
+
+    new_data = _hashbang_pat.sub(
+        ('#!"%s"' if on_win else '#!%s') % sys.executable,
+        data, count=1)
+
+    if new_data == data:
+        return
+
+    print "Updating: %r" % path
+    fo = open(path, 'w')
+    fo.write(new_data)
+    fo.close()
+    os.chmod(path, 0755)
+
+
+def fix_scripts(egg):
+    hashbang_pat = re.compile(r'#!(.+)$', re.M)
+    for fpath in egg.files:
+        if fpath.startswith(bin_dir):
+            fix_script(fpath)

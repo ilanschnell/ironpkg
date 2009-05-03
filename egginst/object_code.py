@@ -1,5 +1,6 @@
 # Changes library path in object code (ELF and Mach-O).
 
+import sys
 import re
 from os.path import abspath, basename, join, islink, isfile, exists
 
@@ -19,7 +20,7 @@ MAGIC = {
 }
 
 # List of target direcories where shared object files are found
-TARGETS = []
+_targets = []
 
 
 def get_object_type(fpath):
@@ -38,15 +39,15 @@ def get_object_type(fpath):
 
 
 def find_lib(fn):
-    for tgt in TARGETS:
-        dst = abspath(join(tgt, fn))
+    for tgt in _targets:
+        dst = join(tgt, fn)
         if exists(dst):
             return dst
     print "Error: library %r not found" % fn
     return join('/ERROR/path/not/found', fn)
 
 
-_PLACEHOLD_PAT = re.compile('/PLACEHOLD' * 5 + '([^\0]*)\0')
+_placehold_pat = re.compile('/PLACEHOLD' * 5 + '([^\0]*)\0')
 def fix_object_code(fpath):
     obj_type = get_object_type(fpath)
     if not obj_type:
@@ -55,7 +56,7 @@ def fix_object_code(fpath):
     f = open(fpath, 'r+b')
     data = f.read()
 
-    matches = list(_PLACEHOLD_PAT.finditer(data))
+    matches = list(_placehold_pat.finditer(data))
     if not matches:
         f.close()
         return
@@ -69,7 +70,7 @@ def fix_object_code(fpath):
         elif obj_type == 'ELF':
             rpaths = [p for p in gr1.split(os.pathsep)
                       if not p.startswith('/PLACEHOLD')]
-            rpaths.extend(TARGETS)
+            rpaths.extend(_targets)
             r = os.pathsep.join(rpaths)
 
         padding = len(m.group(0)) - len(r)
@@ -84,12 +85,18 @@ def fix_object_code(fpath):
     f.close()
 
 
-def fix_files(paths, targets):
+def fix_files(egg):
     """
-    Tries to fix the library path for all object files in the list of files.
+    Tries to fix the library path for all object files installed by the egg.
     """
-    global TARGETS
-    TARGETS = targets
+    global _targets
 
-    for p in paths:
+    _targets = [join(sys.prefix, 'lib')]
+    for line in egg.lines_from_arcname('EGG-INFO/inst/targets.dat'):
+        _targets.append(abspath(join(sys.prefix, line)))
+    #print 'Target directories:'
+    #for tgt in _targets:
+    #    print '    %r' % tgt
+
+    for p in egg.files:
         fix_object_code(p)
