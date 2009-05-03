@@ -31,7 +31,8 @@ class EggInst(object):
 
         self.z = zipfile.ZipFile(self.fpath)
         self.arcnames = self.z.namelist()
-        self.unpack()
+        for arcname in self.arcnames:
+            self.write_arcname(arcname)
 
         if on_win:
             scripts.create_proxies(self)
@@ -91,33 +92,32 @@ class EggInst(object):
             yield line
 
     def get_dst(self, arcname):
-        disp = [
+        dispatch = [
             ('EGG-INFO/prefix/',  True,       sys.prefix),
             ('EGG-INFO/usr/',     not on_win, sys.prefix),
             ('EGG-INFO/scripts/', True,       bin_dir),
             ('EGG-INFO/',         True,       self.meta_dir),
-            ('',                  True,       self.site_packages)]
-
-        for start, cond, dst_dir in disp:
+            ('',                  True,       self.site_packages),
+        ]
+        for start, cond, dst_dir in dispatch:
             if arcname.startswith(start) and cond:
                 return abspath(join(dst_dir, arcname[len(start):]))
+        raise Exception("Hmm, didn't expect to get here")
 
-    def unpack(self):
-        # Write the files
-        for name in self.arcnames:
-            if name.endswith('/'):
-                # Some zip-files list dirs
-                continue
-            p = self.get_dst(name)
-            self.files.append(p)
-            if not isdir(dirname(p)):
-                os.makedirs(dirname(p))
-            fo = open(p, 'wb')
-            fo.write(self.z.read(name))
-            fo.close()
-            if (name.startswith('EGG-INFO/usr/bin/') or
-                name.endswith('.dylib') or '.so' in basename(name)):
-                os.chmod(p, 0755)
+    def write_arcname(self, arcname):
+        if arcname.endswith('/') or arcname.startswith('.unused'):
+            return
+        path = self.get_dst(arcname)
+        dn, fn = os.path.split(path)
+        self.files.append(path)
+        if not isdir(dn):
+            os.makedirs(dn)
+        fo = open(path, 'wb')
+        fo.write(self.z.read(arcname))
+        fo.close()
+        if (arcname.startswith('EGG-INFO/usr/bin/') or
+                fn.endswith(('.dylib', '.pyd')) or '.so' in fn):
+            os.chmod(path, 0755)
 
     def install_app(self, remove=False):
         fpath = join(self.meta_dir, 'EGG-INFO', 'inst', 'appinst.dat')
