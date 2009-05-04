@@ -5,6 +5,7 @@ egginst is a simple tool for installing eggs into a Python environment.
 
 import os
 import sys
+import re
 import shutil
 import zipfile
 import ConfigParser
@@ -104,8 +105,15 @@ class EggInst(object):
                 return abspath(join(dst_dir, arcname[len(start):]))
         raise Exception("Hmm, didn't expect to get here")
 
+    py_pat = re.compile(r'^(.+)\.py(c|o)?$')
+    py_obj = '.pyd' if on_win else '.so'
     def write_arcname(self, arcname):
         if arcname.endswith('/') or arcname.startswith('.unused'):
+            return
+        m = self.py_pat.match(arcname)
+        if m and m.group(1) + self.py_obj in self.arcnames:
+            # .py, .pyc, .pyo next to .so are not written, they contain
+            # useless setuptools code
             return
         path = self.get_dst(arcname)
         dn, fn = os.path.split(path)
