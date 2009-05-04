@@ -47,24 +47,26 @@ sys.exit(subprocess.call([src] + sys.argv[1:]))
     return dst, dst_script
 
 
-def copy_to(src, dst_dir):
-    dst = abspath(join(dst_dir, basename(src)))
-    print "copying: %r" % src
-    print "     to: %r" % dst
-    unlink(dst)
-    shutil.copyfile(src, dst)
-    return dst
-
-
 def create_proxies(egg):
     for line in egg.lines_from_arcname('EGG-INFO/inst/files_to_install.txt'):
-        rel_name, action = line.replace('/', '\\').lstrip('\\').split()
-        src = join(egg.meta_dir, rel_name[len('EGG-INFO/'):])
+        arcname, action = line.split()
+        print "arcname=%r    action=%r" % (arcname, action)
+
         if action == 'PROXY':
+            ei = 'EGG-INFO/'
+            assert arcname.startswith(ei)
+            src = abspath(join(egg.meta_dir, arcname[len(ei):]))
+            print "     src: %r" % src
             egg.files.extend(create_proxy(src))
         else:
-            dst_dir = join(sys.prefix, action)
-            egg.files.append(copy_to(src, dst_dir))
+            data = egg.z.read(arcname)
+            dst = abspath(join(sys.prefix, action, basename(arcname)))
+            print "     dst: %r" % dst
+            unlink(dst)
+            fo = open(dst, 'wb')
+            fo.write(data)
+            fo.close()
+            egg.files.append(dst)
 
 
 def write_script(fpath, entry_pt, egg_name):
