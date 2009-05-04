@@ -1,5 +1,6 @@
 # Changes library path in object code (ELF and Mach-O).
 
+import os
 import sys
 import re
 from os.path import abspath, basename, join, islink, isfile, exists
