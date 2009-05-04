@@ -171,7 +171,8 @@ def get_build_platform():
     # If we can determine the architecture of the python executable itself,
     # then use it instead of what distutils returns about the host OS's
     # architecture.
-    return _get_python_platform(plat)
+    #return _get_python_platform(plat)
+    return plat
 
 macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
