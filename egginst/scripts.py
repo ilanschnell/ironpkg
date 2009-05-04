@@ -2,7 +2,7 @@ import os
 import sys
 import re
 import shutil
-from os.path import basename, exists, join, islink, isfile
+from os.path import abspath, basename, exists, join, islink, isfile
 
 from utils import on_win, bin_dir
 
@@ -58,8 +58,8 @@ def copy_to(src, dst_dir):
 
 def create_proxies(egg):
     for line in egg.lines_from_arcname('EGG-INFO/inst/files_to_install.txt'):
-        rel_name, actions = line.replace('/', '\\').lstrip('\\').split()
-        src = join(egg.meta_dir, rel_name)
+        rel_name, action = line.replace('/', '\\').lstrip('\\').split()
+        src = join(egg.meta_dir, rel_name[len('EGG-INFO/'):])
         if action == 'PROXY':
             egg.files.extend(create_proxy(src))
         else:

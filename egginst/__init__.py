@@ -22,7 +22,7 @@ class EggInst(object):
     def __init__(self, fpath):
         self.fpath = fpath
         self.project = basename(fpath).split('-')[0]
-        self.meta_dir = join(sys.prefix, 'eggmeta', self.project)
+        self.meta_dir = join(sys.prefix, 'EGG-INFO', self.project)
         self.files_txt = join(self.meta_dir, '__files__.txt')
         self.files = []
 
