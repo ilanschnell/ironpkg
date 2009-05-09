@@ -76,7 +76,7 @@ setup(
              "easy_install-%s = setuptools.command.easy_install:main"
                 % sys.version[:3],
              "enpkg = enstaller.cmdline:main",
-             "egginst = egginst:main",
+             "egginst = egginst.egginst:main",
         ],
 
         "setuptools.file_finders":

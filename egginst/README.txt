@@ -18,9 +18,12 @@ to easy_install are:
   * The install is much more direct and kept simple.  This is probably the
     biggest difference to easy_install.
 
-  * egginst does not aim to solve all problems at once.  All it tries to
-    solve is installing and uninstalling eggs from a local file.  Problems
-    such as, where the egg-file comes from, how it's dependencies are resolved,
-    etc., are outside the scope of egginst.  However, this does not mean
-    that other tools which are part of Enstaller won't address these problems
-    (they should), but egginst does not.
+
+egginst
+  - links
+  - utils
+  - object_code
+  - scripts
+
+depends
+  - parsers
