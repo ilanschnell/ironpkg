@@ -3,82 +3,155 @@ from parsers import parse_depend_index
 
 class Req(object):
     def __init__(self, name, versions):
-        assert name == name.strip()
-        self.name = name
+        self.name = self.canonical(name)
+        self.versions = sorted(versions)
 
-        assert all(v == v.strip() for v in versions), versions
-        self.versions = set(versions)
+    def canonical(self, s):
+        """
+        Return a canonical representations of a project name.  This is
+        necessary for finding matches. 
+        """
+        s = s.lower()
+        s = s.replace('-', '_')
+        if s == 'tables':
+            s = 'pytables'
+        return s
+
+    def matches(self, name, version):
+        """
+        Returns True if the name and version of a distribution matches the
+        requirement (self).  That is, the canonical name must match, and
+        the version must be in the list of requirement versions.
+        """
+        if self.canonical(name) != self.name:
+            return False
+        if self.versions == []:
+            return True
+        return version in self.versions
 
     def __repr__(self):
         return "Req(%r, %r)" % (self.name, self.versions)
 
+    def __cmp__(self, other):
+        tmp = cmp(self.name, other.name)
+        if tmp != 0:
+            return tmp 
+        # names are equal compare versions
+        return cmp(self.versions, other.versions)
+
 
 def req_from_string(s):
-    assert isinstance(s, str)
+    """
+    Return a requirement object from a string such as:
+    'numpy', 'numpy 1.3.0', 'numpy 1.2.1, 1.3.0'
+    the optional comma between versions meaning "or".
+    """
     lst = s.replace(',', ' ').split()
     return Req(lst[0], lst[1:])
 
 
-class Index(object):
-    def __init__(self, indexfile):
-        data = open(indexfile, 'rb').read()
-        self.d = parse_depend_index(data)
-        for spec in self.d.itervalues():
-            reqs = set(Req(n, vs.replace(',', ' ').split())
-                       for n, vs in spec['packages'].iteritems())
-            spec['Reqs'] = reqs
+_index = None
+def set_index(indexfile):
+    global _index
 
-    def req_from_filename(self, filename):
-        spec = self.d[filename]
-        return Req(spec['name'], [spec['version']])
+    data = open(indexfile, 'rb').read()
+    _index = parse_depend_index(data)
+    for spec in _index.itervalues():
+        reqs = set(Req(n, vs.replace(',', ' ').split())
+                   for n, vs in spec['packages'].iteritems())
+        spec['Reqs'] = reqs
 
-    def matching_files(self, req):
-        res = {}
-        for fn, spec in self.d.iteritems():
-            if spec['name'] != req.name:
-                continue
-            if (req.versions and not
-                any(spec['version'] == v for v in req.versions)):
-                continue
-            res[fn] = self.d[fn]['Reqs']
-        return res
 
-    def get_match(self, req):
-        matches = self.matching_files(req)
-        assert len(matches) == 1, matches
-        return matches.items()[0]
+def matching_dists(req):
+    """
+    Return a list of distributions matching the requirement.
+    The list is sorted, such that the first element in the list is
+    the most recent.
+    """
+    res = []
+    for fn, spec in _index.iteritems():
+        if req.matches(spec['name'], spec['version']):
+            res.append(fn)
+    res.sort(reverse=True)
+    return res
 
-    def append_deps(self, files, req):
-        print 'xxx', req
-        match = self.get_match(req)
-        print 'yyy', match
-        for req in match[1]:
-            print '---', req
-            fn = self.get_match(req)[0]
-            print '    ==>', fn
-            if fn in files:
-                continue
-            self.append_deps(files, self.req_from_filename(fn))
-            assert fn not in files
-            files.append(fn)
 
-    def install_order(self, req_string):
-        req = req_from_string(req_string)
-        print req
-        files = []
-        self.append_deps(files, req)
-        files.append(self.matching_files(req).keys()[0])
-        return files
+def get_dist(req):
+    """
+    Return the first (most recent) distribution matching the requirement
+    """
+    matches = matching_dists(req)
+    if not matches:
+        print 'ERROR: No matches found for', req
+        sys.exit(1)
+    return matches[0]
+
+
+def append_deps(dists, dist):
+    """
+    Append distributions required by (the distribution) 'dist' to the list
+    recursively.
+    """
+    # first we need to know what the requirements of 'dist' are, we sort them
+    # to because we want the list of distributions to be deterministic. 
+    reqs = sorted(_index[dist]['Reqs'])
+
+    for r in reqs:
+        # This is the distribution we finally want to append
+        d = get_dist(r)
+
+        # if the distribution 'd' is already in the list, we have already
+        # added it (and it's dependencies) eariler.
+        if d in dists:
+            continue
+
+        # Append dependenies of the 'd', before 'd' itself.
+        append_deps(dists, d)
+
+        # Make sure we've only added dependenies and not 'd' itself, which
+        # could happen if there a loop is the dependency tree.
+        assert d not in dists
+
+        # Append the distribution itself.
+        dists.append(d)
+
+
+def install_order(req_string):
+    """
+    Return the list of distributions which need to be installed to meet the
+    the requirement.
+    The returned list is given in dependency order, i.e. the distributions
+    can be installed in this order without any package being installed
+    before its dependencies got installed.
+    """
+    req = req_from_string(req_string)
+
+    # This is the actual distribution we append at the end
+    d = get_dist(req)
+
+    # Start with no distributions and add all dependenies of the required
+    # distribution first.
+    dists = []
+    append_deps(dists, d)
+
+    # dists now has all dependenies, before adding the required distribution
+    # itself, we make sure it is not listed already.
+    assert d not in dists
+    dists.append(d)
+
+    return dists
 
 
 if __name__ == '__main__':
     import sys
-    x = Index(sys.argv[1])
+    set_index('/Users/ilan/repo/10.4_x86/index-depend.bz2')
 
-    r = req_from_string(' numpy    ')
-    print r
-    print '++++', x.matching_files(r)
+#    r = req_from_string(' numpy    ')
+#    print r
+#    print '++++', matching_files(r)
+#    print req_from_filename('pytables-2.0.4n1-py2.5-macosx-10.3-fat.egg')
 
-    print x.req_from_filename('pytables-2.0.4n1-py2.5-macosx-10.3-fat.egg')
-
-    print x.install_order(' lxml 2.1.1 ')
+    a = install_order(sys.argv[1])
+    for c in a:
+        print c
+    print len(a)

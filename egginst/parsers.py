@@ -44,8 +44,8 @@ def parse_index(data):
 
 
 _DEPEND_VARS = [
-    'metadata_version', 'filename', 'md5', 'name', 'version',
-    'disttype', 'arch', 'platform', 'osdist', 'python', 'packages',
+    'metadata_version', 'md5', 'name', 'version', 'disttype',
+    'arch', 'platform', 'osdist', 'python', 'packages',
 ]
 def parse_depend_index(data):
     """
