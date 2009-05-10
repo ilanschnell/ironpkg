@@ -49,7 +49,7 @@ _DEPEND_VARS = [
 ]
 def parse_depend_index(data):
     """
-    Given the data of index-depend.bz2, return a dict mapping each eggnames
+    Given the data of index-depend.bz2, return a dict mapping each eggname
     to a dict mapping variable names to their values.
     """
     d = parse_index(data)
