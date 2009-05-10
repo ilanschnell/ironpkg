@@ -1,3 +1,4 @@
+import sys
 from parsers import parse_depend_index
 
 
@@ -142,16 +143,31 @@ def install_order(req_string):
     return dists
 
 
+def main():
+    from os.path import dirname, join, isfile
+
+    if len(sys.argv) < 3:
+        print "Usage: %s indexpath requirement" % sys.argv[0]
+        return
+
+    indexpath = sys.argv[1]
+    requirement = ' '.join(sys.argv[2:])
+
+    set_index(indexpath)
+
+    dist = get_dist(req_from_string(requirement))
+    reqs = sorted(_index[dist]['Reqs'])
+    for r in reqs:
+        print r
+    print len(reqs)
+
+    filenames = install_order(requirement)
+    index_dir = dirname(indexpath)
+    for fn in filenames:
+        print fn
+        assert isfile(join(index_dir, fn))
+    print len(filenames)
+
+
 if __name__ == '__main__':
-    import sys
-    set_index('/Users/ilan/repo/10.4_x86/index-depend.bz2')
-
-#    r = req_from_string(' numpy    ')
-#    print r
-#    print '++++', matching_files(r)
-#    print req_from_filename('pytables-2.0.4n1-py2.5-macosx-10.3-fat.egg')
-
-    a = install_order(sys.argv[1])
-    for c in a:
-        print c
-    print len(a)
+    main()
