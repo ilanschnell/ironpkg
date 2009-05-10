@@ -143,30 +143,50 @@ def install_order(req_string):
     return dists
 
 
-def main():
+def test_index(indexpath):
     from os.path import dirname, join, isfile
+    import string
 
-    if len(sys.argv) < 3:
-        print "Usage: %s indexpath requirement" % sys.argv[0]
+    set_index(indexpath)
+    index_dir = dirname(indexpath)
+
+    for fn in sorted(_index.keys(), key=string.lower):
+        print fn
+        assert isfile(join(index_dir, fn))
+        spec = _index[fn]
+        for r in spec['Reqs']:
+            d = get_dist(r)
+            print '\t', r, '->', get_dist(r)
+            assert isinstance(r.versions, list) and r.versions
+            assert d in _index
+
+        r = Req(spec['name'], [spec['version']])
+        assert len(matching_dists(r)) >= 1
+        print
+    print 70 * '='
+    print "Index has %i distributions" % len(_index) 
+    print 'OK'
+
+
+def main():
+    if len(sys.argv) < 2:
+        print "Usage: %s indexpath [requirement]" % sys.argv[0]
         return
 
     indexpath = sys.argv[1]
-    requirement = ' '.join(sys.argv[2:])
+    if len(sys.argv) == 2:
+        test_index(indexpath)
+        return
 
     set_index(indexpath)
+    requirement = ' '.join(sys.argv[2:])
 
-    dist = get_dist(req_from_string(requirement))
-    reqs = sorted(_index[dist]['Reqs'])
-    for r in reqs:
-        print r
-    print len(reqs)
+#    dist = get_dist(req_from_string(requirement))
+#    for r in sorted(_index[dist]['Reqs']):
+#        print r
 
-    filenames = install_order(requirement)
-    index_dir = dirname(indexpath)
-    for fn in filenames:
+    for fn in install_order(requirement):
         print fn
-        assert isfile(join(index_dir, fn))
-    print len(filenames)
 
 
 if __name__ == '__main__':
