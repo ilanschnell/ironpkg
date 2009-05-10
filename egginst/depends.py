@@ -1,5 +1,9 @@
 import sys
-from parsers import parse_depend_index
+import string
+import zipfile
+from os.path import basename, dirname, join, isfile
+
+import parsers
 
 
 class Req(object):
@@ -51,16 +55,26 @@ def req_from_string(s):
     return Req(lst[0], lst[1:])
 
 
-_index = None
-def set_index(indexfile):
-    global _index
+def add_Reqs(spec):
+    """
+    add the 'Reqs' key to a spec dictionary.
+    """
+    reqs = set(Req(n, vs.replace(',', ' ').split())
+               for n, vs in spec['packages'].iteritems())
+    spec['Reqs'] = reqs
 
-    data = open(indexfile, 'rb').read()
-    _index = parse_depend_index(data)
+
+_index = None
+_repo_dir = None
+def set_index(repo_dir):
+    global _index, _repo_dir
+
+    _repo_dir = repo_dir
+
+    data = open(join(_repo_dir, 'index-depend.bz2'), 'rb').read()
+    _index = parsers.parse_depend_index(data)
     for spec in _index.itervalues():
-        reqs = set(Req(n, vs.replace(',', ' ').split())
-                   for n, vs in spec['packages'].iteritems())
-        spec['Reqs'] = reqs
+        add_Reqs(spec)
 
 
 def matching_dists(req):
@@ -143,16 +157,37 @@ def install_order(req_string):
     return dists
 
 
-def test_index(indexpath):
-    from os.path import dirname, join, isfile
-    import string
+def add_index(distname):
+    """
+    Add an unindexed distribution (egg), which must already exist in the
+    repository, to the index.
+    """
+    if distname != basename(distname):
+        raise Exception("base filename expected, fot %r" % distname)
 
-    set_index(indexpath)
-    index_dir = dirname(indexpath)
+    print "Added %r to index" % distname
+    if distname in _index:
+        raise Exception("%r already exists in index" % distname)
 
+    arcname = 'EGG-INFO/spec/depend'
+    z = zipfile.ZipFile(join(_repo_dir, distname))
+    if arcname not in z.namelist():
+        z.close()
+        raise Exception("arcname=%r does not exist in %r" %
+                        (arcname, zip_file))
+
+    data = z.read(arcname)
+    z.close()
+
+    _index[distname] = parsers.parse_metadata(data, parsers._DEPEND_VARS)
+    add_Reqs(_index[distname])
+
+
+def test_index():
     for fn in sorted(_index.keys(), key=string.lower):
         print fn
-        assert isfile(join(index_dir, fn))
+        dist_path = join(_repo_dir, fn)
+        assert isfile(dist_path), dist_path
         spec = _index[fn]
         for r in spec['Reqs']:
             d = get_dist(r)
@@ -170,12 +205,13 @@ def test_index(indexpath):
 
 def main():
     if len(sys.argv) < 2:
-        print "Usage: %s indexpath [requirement]" % sys.argv[0]
+        print "Usage: %s repo_dir [requirement]" % sys.argv[0]
         return
 
-    indexpath = sys.argv[1]
+    repo_dir = sys.argv[1]
     if len(sys.argv) == 2:
-        test_index(indexpath)
+        set_index(repo_dir)
+        test_index()
         return
 
     set_index(indexpath)
