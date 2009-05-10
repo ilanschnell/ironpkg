@@ -1,6 +1,7 @@
 import sys
 import string
 import zipfile
+from collections import defaultdict
 from os.path import basename, dirname, join, isfile
 
 import parsers
@@ -28,6 +29,8 @@ class Req(object):
         requirement (self).  That is, the canonical name must match, and
         the version must be in the list of requirement versions.
         """
+        assert isinstance(version, str)
+
         if self.canonical(name) != self.name:
             return False
         if self.versions == []:
@@ -188,23 +191,38 @@ def add_index(distname):
     z.close()
 
 
-def test_index():
+def test_index(test_files=True, verbose=False):
+    allreqs = defaultdict(int)
+
     for fn in sorted(_index.keys(), key=string.lower):
-        print fn
-        dist_path = join(_repo_dir, fn)
-        assert isfile(dist_path), dist_path
+        if verbose:
+            print fn
+
+        if test_files:
+            dist_path = join(_repo_dir, fn)
+            assert isfile(dist_path), dist_path
+
         spec = _index[fn]
         for r in spec['Reqs']:
+            allreqs[r] += 1
             d = get_dist(r)
-            print '\t', r, '->', get_dist(r)
+            if verbose:
+                print '\t', r, '->', get_dist(r)
             assert isinstance(r.versions, list) and r.versions
             assert d in _index
 
         r = Req(spec['name'], [spec['version']])
         assert len(matching_dists(r)) >= 1
-        print
-    print 70 * '='
+        if verbose:
+            print
+
+    if verbose:
+        print 70 * '='
     print "Index has %i distributions" % len(_index)
+    print "The following distributions are not required anywhere:"
+    for fn, spec in _index.iteritems():
+        if not any(r.matches(spec['name'], spec['version']) for r in allreqs):
+            print '\t%s' % fn
     print 'OK'
 
 
