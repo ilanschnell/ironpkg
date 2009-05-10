@@ -14,7 +14,7 @@ class Req(object):
     def canonical(self, s):
         """
         Return a canonical representations of a project name.  This is
-        necessary for finding matches. 
+        necessary for finding matches.
         """
         s = s.lower()
         s = s.replace('-', '_')
@@ -40,7 +40,7 @@ class Req(object):
     def __cmp__(self, other):
         tmp = cmp(self.name, other.name)
         if tmp != 0:
-            return tmp 
+            return tmp
         # names are equal compare versions
         return cmp(self.versions, other.versions)
 
@@ -112,7 +112,7 @@ def append_deps(dists, dist):
     recursively.
     """
     # first we need to know what the requirements of 'dist' are, we sort them
-    # to because we want the list of distributions to be deterministic. 
+    # to because we want the list of distributions to be deterministic.
     reqs = sorted(_index[dist]['Reqs'])
 
     for r in reqs:
@@ -182,11 +182,10 @@ def add_index(distname):
         raise Exception("arcname=%r does not exist in %r" %
                         (arcname, zip_file))
 
-    data = z.read(arcname)
-    z.close()
-
-    _index[distname] = parsers.parse_metadata(data, parsers._DEPEND_VARS)
+    _index[distname] = parsers.parse_metadata(z.read(arcname),
+                                              parsers._DEPEND_VARS)
     add_Reqs(_index[distname])
+    z.close()
 
 
 def test_index():
@@ -205,7 +204,7 @@ def test_index():
         assert len(matching_dists(r)) >= 1
         print
     print 70 * '='
-    print "Index has %i distributions" % len(_index) 
+    print "Index has %i distributions" % len(_index)
     print 'OK'
 
 
