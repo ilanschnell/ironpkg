@@ -66,7 +66,11 @@ def add_Reqs(spec):
 
 _index = None
 _repo_dir = None
-def set_index(repo_dir):
+def init_index(repo_dir):
+    """
+    Initialize the index, i.e. open the index file, parse its data and
+    create an index object, which is a dict mapping distributions to specs.
+    """
     global _index, _repo_dir
 
     _repo_dir = repo_dir
@@ -116,14 +120,14 @@ def append_deps(dists, dist):
         d = get_dist(r)
 
         # if the distribution 'd' is already in the list, we have already
-        # added it (and it's dependencies) eariler.
+        # added it (and it's dependencies) earlier.
         if d in dists:
             continue
 
-        # Append dependenies of the 'd', before 'd' itself.
+        # Append dependencies of the 'd', before 'd' itself.
         append_deps(dists, d)
 
-        # Make sure we've only added dependenies and not 'd' itself, which
+        # Make sure we've only added dependencies and not 'd' itself, which
         # could happen if there a loop is the dependency tree.
         assert d not in dists
 
@@ -144,12 +148,12 @@ def install_order(req_string):
     # This is the actual distribution we append at the end
     d = get_dist(req)
 
-    # Start with no distributions and add all dependenies of the required
+    # Start with no distributions and add all dependencies of the required
     # distribution first.
     dists = []
     append_deps(dists, d)
 
-    # dists now has all dependenies, before adding the required distribution
+    # dists now has all dependencies, before adding the required distribution
     # itself, we make sure it is not listed already.
     assert d not in dists
     dists.append(d)
@@ -160,12 +164,14 @@ def install_order(req_string):
 def add_index(distname):
     """
     Add an unindexed distribution (egg), which must already exist in the
-    repository, to the index.
+    repository, to the index (in memory).  Note that the index file on
+    disk remains untouched.
     """
-    if distname != basename(distname):
-        raise Exception("base filename expected, fot %r" % distname)
-
     print "Added %r to index" % distname
+
+    if distname != basename(distname):
+        raise Exception("base filename expected, got %r" % distname)
+
     if distname in _index:
         raise Exception("%r already exists in index" % distname)
 
@@ -209,12 +215,11 @@ def main():
         return
 
     repo_dir = sys.argv[1]
+    init_index(repo_dir)
     if len(sys.argv) == 2:
-        set_index(repo_dir)
         test_index()
         return
 
-    set_index(indexpath)
     requirement = ' '.join(sys.argv[2:])
 
 #    dist = get_dist(req_from_string(requirement))
