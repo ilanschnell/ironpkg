@@ -209,6 +209,7 @@ def test_index(test_files=True, verbose=False):
             if verbose:
                 print '\t', r, '->', get_dist(r)
             assert isinstance(r.versions, list) and r.versions
+            assert all(v == v.strip() for v in r.versions)
             assert d in _index
 
         r = Req(spec['name'], [spec['version']])

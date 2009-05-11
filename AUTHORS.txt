@@ -1,8 +1,8 @@
 
 The original setuptools was originally written by Phillip J. Eby.
 
-The following people have written patches for setuptools that are
-now included in Enstaller, along with other changes:
+In the summer of 2008, the following people have written patches for
+setuptools that are now included in Enstaller, along with other changes:
   - Chris Galvan
   - Chris Casey
   - Dave Martin
@@ -12,6 +12,9 @@ without setuptools).   Rick Ratzel wrote the previous versions of Enstaller.
 
 Travis Oliphant has merged setuptools into Enstaller, and added
 functionality to setuptools, as well as fixes some bugs.
+
+In May, 2009 Ilan Schnell started writing a package called egginst, which
+is a clean implementation of an easy_install alternative.
 
 Enstaller is maintained by Ilan Schnell.
 
