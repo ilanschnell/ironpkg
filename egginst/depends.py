@@ -1,4 +1,5 @@
 import sys
+import re
 import string
 import zipfile
 from collections import defaultdict
@@ -67,164 +68,172 @@ def add_Reqs(spec):
     spec['Reqs'] = reqs
 
 
-_index = None
-_repo_dir = None
-def init_index(repo_dir):
-    """
-    Initialize the index, i.e. open the index file, parse its data and
-    create an index object, which is a dict mapping distributions to specs.
-    """
-    global _index, _repo_dir
-
-    _repo_dir = repo_dir
-
-    data = open(join(_repo_dir, 'index-depend.bz2'), 'rb').read()
-    _index = parsers.parse_depend_index(data)
-    for spec in _index.itervalues():
-        add_Reqs(spec)
+_old_version_pat = re.compile(r'(\S+?)(n\d+)$')
+def split_old_version(version):
+    m = _old_version_pat.match(version)
+    if m is None:
+        return version, None
+    return m.group(1), int(m.group(2)[1:])
 
 
-def matching_dists(req):
-    """
-    Return a list of distributions matching the requirement.
-    The list is sorted, such that the first element in the list is
-    the most recent.
-    """
-    res = []
-    for fn, spec in _index.iteritems():
-        if req.matches(spec['name'], spec['version']):
-            res.append(fn)
-    res.sort(reverse=True)
-    return res
+def get_build_old_eggname(eggname):
+    old_version = eggname.split('-')[1]
+    version, build = split_old_version(old_version)
+    assert build is not None
+    return build
 
 
-def get_dist(req):
-    """
-    Return the first (most recent) distribution matching the requirement
-    """
-    matches = matching_dists(req)
-    if not matches:
-        print 'ERROR: No matches found for', req
-        sys.exit(1)
-    return matches[0]
+class Repo(object):
 
+    def __init__(self, repo_dir):
+        """
+        Initialize the index, i.e. open the index file, parse its data and
+        create an index object, which is a dict mapping distributions to specs.
+        """
+        self.path = repo_dir
 
-def append_deps(dists, dist):
-    """
-    Append distributions required by (the distribution) 'dist' to the list
-    recursively.
-    """
-    # first we need to know what the requirements of 'dist' are, we sort them
-    # to because we want the list of distributions to be deterministic.
-    reqs = sorted(_index[dist]['Reqs'])
+        data = open(join(self.path, 'index-depend.bz2'), 'rb').read()
+        self.index = parsers.parse_depend_index(data)
+        for spec in self.index.itervalues():
+            add_Reqs(spec)
 
-    for r in reqs:
-        # This is the distribution we finally want to append
-        d = get_dist(r)
+    def matching_dists(self, req):
+        """
+        Return a list of distributions matching the requirement.
+        The list is sorted, such that the first element in the list is
+        the most recent.
+        """
+        res = []
+        for fn, spec in self.index.iteritems():
+            if req.matches(spec['name'], spec['version']):
+                res.append(fn)
+        res.sort(reverse=True, key=get_build_old_eggname)
+        return res
 
-        # if the distribution 'd' is already in the list, we have already
-        # added it (and it's dependencies) earlier.
-        if d in dists:
-            continue
+    def get_dist(self, req):
+        """
+        Return the first (most recent) distribution matching the requirement
+        """
+        matches = self.matching_dists(req)
+        if not matches:
+            print 'ERROR: No matches found for', req
+            sys.exit(1)
+        return matches[0]
 
-        # Append dependencies of the 'd', before 'd' itself.
-        append_deps(dists, d)
+    def append_deps(self, dists, dist):
+        """
+        Append distributions required by (the distribution) 'dist' to the list
+        recursively.
+        """
+        # first we need to know what the requirements of 'dist' are, we sort
+        # them to because we want the list of distributions to be deterministic.
+        reqs = sorted(self.index[dist]['Reqs'])
 
-        # Make sure we've only added dependencies and not 'd' itself, which
-        # could happen if there a loop is the dependency tree.
+        for r in reqs:
+            # This is the distribution we finally want to append
+            d = self.get_dist(r)
+
+            # if the distribution 'd' is already in the list, we have already
+            # added it (and it's dependencies) earlier.
+            if d in dists:
+                continue
+
+            # Append dependencies of the 'd', before 'd' itself.
+            self.append_deps(dists, d)
+
+            # Make sure we've only added dependencies and not 'd' itself, which
+            # could happen if there a loop is the dependency tree.
+            assert d not in dists
+
+            # Append the distribution itself.
+            dists.append(d)
+
+    def install_order(self, req_string):
+        """
+        Return the list of distributions which need to be installed to meet
+        the requirement.
+        The returned list is given in dependency order, i.e. the distributions
+        can be installed in this order without any package being installed
+        before its dependencies got installed.
+        """
+        req = req_from_string(req_string)
+
+        # This is the actual distribution we append at the end
+        d = self.get_dist(req)
+
+        # Start with no distributions and add all dependencies of the required
+        # distribution first.
+        dists = []
+        self.append_deps(dists, d)
+
+        # dists now has all dependencies, before adding the required
+        # distribution itself, we make sure it is not listed already.
         assert d not in dists
-
-        # Append the distribution itself.
         dists.append(d)
 
+        return dists
 
-def install_order(req_string):
-    """
-    Return the list of distributions which need to be installed to meet the
-    the requirement.
-    The returned list is given in dependency order, i.e. the distributions
-    can be installed in this order without any package being installed
-    before its dependencies got installed.
-    """
-    req = req_from_string(req_string)
+    def add_dist(self, distname):
+        """
+        Add an unindexed distribution (egg), which must already exist in the
+        repository, to the index (in memory).  Note that the index file on
+        disk remains untouched.
+        """
+        print "Added %r to index" % distname
 
-    # This is the actual distribution we append at the end
-    d = get_dist(req)
+        if distname != basename(distname):
+            raise Exception("base filename expected, got %r" % distname)
 
-    # Start with no distributions and add all dependencies of the required
-    # distribution first.
-    dists = []
-    append_deps(dists, d)
+        if distname in _index:
+            raise Exception("%r already exists in index" % distname)
 
-    # dists now has all dependencies, before adding the required distribution
-    # itself, we make sure it is not listed already.
-    assert d not in dists
-    dists.append(d)
+        arcname = 'EGG-INFO/spec/depend'
+        z = zipfile.ZipFile(join(self.path, distname))
+        if arcname not in z.namelist():
+            z.close()
+            raise Exception("arcname=%r does not exist in %r" %
+                            (arcname, zip_file))
 
-    return dists
-
-
-def add_index(distname):
-    """
-    Add an unindexed distribution (egg), which must already exist in the
-    repository, to the index (in memory).  Note that the index file on
-    disk remains untouched.
-    """
-    print "Added %r to index" % distname
-
-    if distname != basename(distname):
-        raise Exception("base filename expected, got %r" % distname)
-
-    if distname in _index:
-        raise Exception("%r already exists in index" % distname)
-
-    arcname = 'EGG-INFO/spec/depend'
-    z = zipfile.ZipFile(join(_repo_dir, distname))
-    if arcname not in z.namelist():
+        _index[distname] = parsers.parse_metadata(z.read(arcname),
+                                                  parsers._DEPEND_VARS)
+        add_Reqs(_index[distname])
         z.close()
-        raise Exception("arcname=%r does not exist in %r" %
-                        (arcname, zip_file))
 
-    _index[distname] = parsers.parse_metadata(z.read(arcname),
-                                              parsers._DEPEND_VARS)
-    add_Reqs(_index[distname])
-    z.close()
+    def test(self, test_files=True, verbose=False):
+        allreqs = defaultdict(int)
 
-
-def test_index(test_files=True, verbose=False):
-    allreqs = defaultdict(int)
-
-    for fn in sorted(_index.keys(), key=string.lower):
-        if verbose:
-            print fn
-
-        if test_files:
-            dist_path = join(_repo_dir, fn)
-            assert isfile(dist_path), dist_path
-
-        spec = _index[fn]
-        for r in spec['Reqs']:
-            allreqs[r] += 1
-            d = get_dist(r)
+        for fn in sorted(self.index.keys(), key=string.lower):
             if verbose:
-                print '\t', r, '->', get_dist(r)
-            assert isinstance(r.versions, list) and r.versions
-            assert all(v == v.strip() for v in r.versions)
-            assert d in _index
+                print fn
 
-        r = Req(spec['name'], [spec['version']])
-        assert len(matching_dists(r)) >= 1
+            if test_files:
+                dist_path = join(self.path, fn)
+                assert isfile(dist_path), dist_path
+
+            spec = self.index[fn]
+            for r in spec['Reqs']:
+                allreqs[r] += 1
+                d = self.get_dist(r)
+                if verbose:
+                    print '\t', r, '->', self.get_dist(r)
+                assert isinstance(r.versions, list) and r.versions
+                assert all(v == v.strip() for v in r.versions)
+                assert d in self.index
+
+            r = Req(spec['name'], [spec['version']])
+            assert len(self.matching_dists(r)) >= 1
+            if verbose:
+                print
+
         if verbose:
-            print
-
-    if verbose:
-        print 70 * '='
-    print "Index has %i distributions" % len(_index)
-    print "The following distributions are not required anywhere:"
-    for fn, spec in _index.iteritems():
-        if not any(r.matches(spec['name'], spec['version']) for r in allreqs):
-            print '\t%s' % fn
-    print 'OK'
+            print 70 * '='
+        print "Index has %i distributions" % len(self.index)
+        print "The following distributions are not required anywhere:"
+        for fn, spec in self.index.iteritems():
+            if not any(r.matches(spec['name'], spec['version'])
+                       for r in allreqs):
+                print '\t%s' % fn
+        print 'OK'
 
 
 def main():
@@ -233,9 +242,9 @@ def main():
         return
 
     repo_dir = sys.argv[1]
-    init_index(repo_dir)
+    r = Repo(repo_dir)
     if len(sys.argv) == 2:
-        test_index()
+        r.test(r)
         return
 
     requirement = ' '.join(sys.argv[2:])
@@ -244,7 +253,7 @@ def main():
 #    for r in sorted(_index[dist]['Reqs']):
 #        print r
 
-    for fn in install_order(requirement):
+    for fn in r.install_order(requirement):
         print fn
 
 
