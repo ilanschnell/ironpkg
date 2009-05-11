@@ -1,13 +1,11 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2008, Enthought, Inc.
+# Copyright (c) 2008-2009 by Enthought, Inc.
 # All rights reserved.
 #
 # This software is provided without warranty under the terms of the BSD license
 # available at http://www.enthought.com/licenses/BSD.txt and may be
 # redistributed only under the conditions described in the aforementioned
 # license.
-#
-# Dave Peterson
 #------------------------------------------------------------------------------
 
 
@@ -130,16 +128,18 @@ def get_configured_repos(unstable=False):
 
     results = []
 
-    # Add all the stable repos to the results list.
+    # Add all the stable repos to the results list in the sorted order
+    # of their keys.
     cp = get_config()
-    for name, value in cp.items('repos'):
+    for name, value in sorted(cp.items('repos')):
         value = value.strip()
         if not value.startswith('#') and not value.endswith(',index'):
             results.append(value)
 
-    # If the user wanted unstable repos, add them too.
+    # If the user wanted unstable repos, add them too, also in the sorted
+    # order of their keys.
     if unstable:
-        for name, value in cp.items('unstable_repos'):
+        for name, value in sorted(cp.items('unstable_repos')):
             value = value.strip()
             if not value.startswith('#') and not value.endswith(',index'):
                 results.append(value)
@@ -156,7 +156,7 @@ def get_configured_index():
     # Find all of the index urls specified in the stable repos list.
     results = []
     cp = get_config()
-    for name, value in cp.items('repos'):
+    for name, value in sorted(cp.items('repos')):
         value = value.strip()
         if value.endswith(',index'):
             results.append(value[:-6])
