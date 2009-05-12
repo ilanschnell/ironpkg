@@ -1,5 +1,6 @@
 import sys
 import os
+import hashlib
 from os.path import abspath, basename, dirname, exists, isdir, join
 
 
@@ -25,3 +26,12 @@ def rmdir_er(dn):
 
     if not os.listdir(dn):
         os.rmdir(dn)
+
+
+def md5_file(path):
+    """
+    Returns the md5sum of the file (located at `path`) as a hexadecimal
+    string of length 32.
+    """
+    data = open(path, 'rb').read()
+    return hashlib.md5(data).hexdigest()

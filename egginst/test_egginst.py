@@ -22,6 +22,7 @@ class TestRepo(unittest.TestCase):
             ('zope.interface-3.4.1n1-py2.5-macosx-10.3-fat.egg', 1),
             ('MySQL_python-1.2.2n3-py2.5-macosx-10.3-fat.egg', 3),
             ('Reportlab-2.1n4-py2.5.egg', 4),
+            ('hdf5-1.8.1n13.egg', 13),
             ]:
             self.assertEqual(get_build_old_eggname(fn), n)
 

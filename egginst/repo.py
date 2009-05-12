@@ -79,7 +79,8 @@ def split_old_version(version):
     return m.group(1), int(m.group(2)[1:])
 
 def split_old_eggname(eggname):
-    name, old_version = eggname.split('-')[:2]
+    assert basename(eggname) == eggname and eggname.endswith('.egg')
+    name, old_version = eggname[:-4].split('-')[:2]
     version, build = split_old_version(old_version)
     assert build is not None
     return name, version, build
@@ -93,14 +94,14 @@ def get_build_old_eggname(eggname):
 
 class Repo(object):
 
-    def __init__(self, repo_dir, has_index_file=True):
+    def __init__(self, repo_dir, read_index_file=True):
         """
         Initialize the index, i.e. open the index file, parse its data and
         create an index object, which is a dict mapping distributions to specs.
         """
         self.path = repo_dir
 
-        if not has_index_file:
+        if not read_index_file:
             self.index = {}
             return
 
@@ -131,16 +132,22 @@ class Repo(object):
             raise Exception("ERROR: No matches found for %s" % req)
         return matches[0]
 
+    def reqs_dist(self, dist):
+        """
+        Return the requirement objects (as a sorted list) which are a
+        distribution requires.
+        """
+        return sorted(self.index[dist]['Reqs'])
+
     def append_deps(self, dists, dist):
         """
         Append distributions required by (the distribution) 'dist' to the list
         recursively.
         """
         # first we need to know what the requirements of 'dist' are, we sort
-        # them to because we want the list of distributions to be deterministic.
-        reqs = sorted(self.index[dist]['Reqs'])
-
-        for r in reqs:
+        # them to because we want the list of distributions to be
+        # deterministic.
+        for r in self.reqs_dist(dist):
             # This is the distribution we finally want to append
             d = self.get_dist(r)
 
@@ -207,7 +214,7 @@ class Repo(object):
 
         _index[distname] = parsers.parse_metadata(z.read(arcname),
                                                   parsers._DEPEND_VARS)
-        add_Reqs(_index[distname])
+        add_Reqs(self.index[distname])
         z.close()
 
     def test(self, assert_files_exist=True, verbose=False):
@@ -251,20 +258,51 @@ class Repo(object):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print "Usage: %s repo_dir [requirement]" % sys.argv[0]
+    from optparse import OptionParser
+
+    p = OptionParser(
+        usage="usage: %prog [options] [REQUIREMENT]",
+        prog=basename(sys.argv[0]),
+        description="queries and tests a repository")
+
+    p.add_option('-d', "--dir",
+        action="store",
+        default=".",
+        help="repo directory, defaults to the current working directory")
+
+    p.add_option('-l', "--list",
+        action="store_true",
+        default=False,
+        help="List the requirements the distribution meeting REQUIREMENTS")
+
+    p.add_option('-t', "--test",
+        action="store_true",
+        default=False,
+        help="test if repo is self contained")
+
+    opts, args = p.parse_args()
+
+    repo = Repo(opts.dir)
+
+    if opts.test:
+        repo.test()
         return
 
-    repo_dir = sys.argv[1]
-    r = Repo(repo_dir)
-    if len(sys.argv) == 2:
-        r.test(r)
+    if not args:
+        print "nothing to do"
         return
 
-    requirement = ' '.join(sys.argv[2:])
-
-    for fn in r.install_order(requirement):
-        print fn
+    # query for a requirement
+    req_string = ' '.join(args)
+    if opts.list:
+        # list
+        dist = repo.get_dist(req_from_string(req_string))
+        for r in repo.reqs_dist(dist):
+            print r
+    else:
+        # install order
+        for fn in repo.install_order(req_string):
+            print fn
 
 
 if __name__ == '__main__':
