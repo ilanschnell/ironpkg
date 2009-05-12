@@ -70,27 +70,39 @@ def add_Reqs(spec):
 
 _old_version_pat = re.compile(r'(\S+?)(n\d+)$')
 def split_old_version(version):
+    """
+    Return tuple(version, build) for an old 'n' version.
+    """
     m = _old_version_pat.match(version)
     if m is None:
         return version, None
     return m.group(1), int(m.group(2)[1:])
 
-
-def get_build_old_eggname(eggname):
-    old_version = eggname.split('-')[1]
+def split_old_eggname(eggname):
+    name, old_version = eggname.split('-')[:2]
     version, build = split_old_version(old_version)
     assert build is not None
-    return build
+    return name, version, build
+
+def get_build_old_eggname(eggname):
+    """
+    Return the build number of an "old" style named egg.
+    """
+    return split_old_eggname(eggname)[2]
 
 
 class Repo(object):
 
-    def __init__(self, repo_dir):
+    def __init__(self, repo_dir, has_index_file=True):
         """
         Initialize the index, i.e. open the index file, parse its data and
         create an index object, which is a dict mapping distributions to specs.
         """
         self.path = repo_dir
+
+        if not has_index_file:
+            self.index = {}
+            return
 
         data = open(join(self.path, 'index-depend.bz2'), 'rb').read()
         self.index = parsers.parse_depend_index(data)
@@ -116,8 +128,7 @@ class Repo(object):
         """
         matches = self.matching_dists(req)
         if not matches:
-            print 'ERROR: No matches found for', req
-            sys.exit(1)
+            raise Exception("ERROR: No matches found for %s" % req)
         return matches[0]
 
     def append_deps(self, dists, dist):
@@ -199,14 +210,17 @@ class Repo(object):
         add_Reqs(_index[distname])
         z.close()
 
-    def test(self, test_files=True, verbose=False):
+    def test(self, assert_files_exist=True, verbose=False):
+        """
+        Test the content of the repo for consistency.
+        """
         allreqs = defaultdict(int)
 
         for fn in sorted(self.index.keys(), key=string.lower):
             if verbose:
                 print fn
 
-            if test_files:
+            if assert_files_exist:
                 dist_path = join(self.path, fn)
                 assert isfile(dist_path), dist_path
 
@@ -248,10 +262,6 @@ def main():
         return
 
     requirement = ' '.join(sys.argv[2:])
-
-#    dist = get_dist(req_from_string(requirement))
-#    for r in sorted(_index[dist]['Reqs']):
-#        print r
 
     for fn in r.install_order(requirement):
         print fn
