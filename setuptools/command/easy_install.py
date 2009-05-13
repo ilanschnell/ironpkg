@@ -44,7 +44,7 @@ if '--ignore-enstallerrc' in sys.argv:
         return []
 
     def get_configured_index():
-        return 'dummy'
+        return None
 else:
     from enstaller.config import get_configured_index, get_configured_repos
 

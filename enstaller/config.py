@@ -164,7 +164,7 @@ def get_configured_index():
     # If there was only one index url found, then just return it.
     # If the user specified more than one index url in the config file,
     # then we print a warning.  And if no index url was found, then
-    # just return 'dummy'.
+    # we return None.
     if len(results) == 1:
         return results[0]
     elif len(results) > 1:
@@ -175,7 +175,7 @@ def get_configured_index():
         # FIXME:  For now we just return 'dummy' if no index URL is specified,
         # but eventually we would like to modify the setuptools code base to
         # not have to use an index URL.
-        return 'dummy'
+        return None
 
 
 def _get_config_name():
