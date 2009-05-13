@@ -138,9 +138,14 @@ class RemoteRepository(Repository):
 class HTMLRepository(RemoteRepository):
     """A remote repository which easy_install can cope with.
     """
-    def __init__(self, location):
+    def __init__(self, location, index=False):
         self.location = location
-        self.environment = PackageIndex(index_url=self.location, search_path=[])
+        self.index = index
+        if index:
+            self.environment = PackageIndex(index_url=self.location, search_path=[])
+        else:
+            self.environment = PackageIndex(no_default_index=True)
+            self.environment.add_find_links([self.location])
         self._projects = None
         self.tmpdir = mkdtemp(prefix="enstaller-")
     

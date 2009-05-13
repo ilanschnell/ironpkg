@@ -210,3 +210,4 @@ def deactivate_requirement(requirements, repos=None, interactive=False,
                     package.deactivate(dry_run=dry_run)
         if not deactivated:
             warning("Found no requirement which matches %s" % requirement)
+

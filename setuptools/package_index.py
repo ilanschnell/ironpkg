@@ -154,12 +154,23 @@ class PackageIndex(Environment):
 
     def __init__(self, index_url=None,
                  hosts=('*',), *args, **kw):
+        # DMP 2009.05.13: Added 'no_default_index' keyword to allow enstaller
+        # package code to create instances that have no index url at all.  We
+        # have to strip this keyword out of the keywords before constructing
+        # the base Environment class to avoid exceptions.
+        if 'no_default_index' in kw:
+            self.no_default_index = kw['no_default_index']
+            del kw['no_default_index']
+        else:
+            self.no_default_index = None
 
         Environment.__init__(self, *args, **kw)
-        # Make sure URL has single trailing slash
-        if index_url is None:
+        self.index_url = index_url
+        if self.index_url is None and not self.no_default_index:
             index_url = get_configured_index()
-        self.index_url = index_url.rstrip("/") + "/"
+        # Make sure URL has single trailing slash
+        if self.index_url:
+            self.index_url = index_url.rstrip("/") + "/"
         self.scanned_urls = {}
         self.fetched_urls = {}
         self.package_pages = {}
@@ -201,8 +212,10 @@ class PackageIndex(Environment):
         base = f.url     # handle redirects
         page = f.read()
         f.close()
-        if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
-            page = self.process_index(url, page)
+        # DMP 2009.05.13: Allow index_url to be None for enstaller package code.
+        if self.index_url:
+            if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
+                page = self.process_index(url, page)
         for match in HREF.finditer(page):
             link = urlparse.urljoin(base, htmldecode(match.group(1)))
             self.process_url(link)
@@ -294,6 +307,10 @@ class PackageIndex(Environment):
         )
 
     def scan_all(self, msg=None, *args):
+        # DMP 2009.05.13: Allow index_url to be None for enstaller package code.
+        if not self.index_url:
+            return
+
         if self.index_url not in self.fetched_urls:
             if msg: self.warn(msg,*args)
             self.info(

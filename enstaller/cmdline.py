@@ -1,47 +1,39 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2008, Enthought, Inc.
+# Copyright (c) 2008-2009 by Enthought, Inc.
 # All rights reserved.
 #
 # This software is provided without warranty under the terms of the BSD license
 # available at http://www.enthought.com/licenses/BSD.txt and may be
 # redistributed only under the conditions described in the aforementioned
 # license.
-#
-# Corran Webster
 #------------------------------------------------------------------------------
 
 
-# standard library imports
 import datetime
-from distutils import sysconfig
-import sys
 import os
-from optparse import OptionParser
-from logging import basicConfig, error, warning, info, debug, DEBUG, INFO, \
-    WARNING, ERROR
+import sys
 import time
 
-# third party module imports
+from distutils import sysconfig
+from enstaller.config import get_configured_index, get_configured_repos
+from enstaller.proxy.api import setup_proxy
+from enstaller.repository import HTMLRepository, RepositoryUnion
+from enstaller.requirements import deactivate_requirement, get_local_repos, \
+    get_site_packages, install_requirement, remove_requirement
+from enstaller.rollback import parse_project_str, retrieve_states, rollback_state, save_state
+from enstaller.upgrade import get_upgrade_str
+from enstaller.utilities import rst_table, query_user, user_select
+from logging import basicConfig, error, warning, info, debug, DEBUG, INFO, \
+    WARNING, ERROR
+from optparse import OptionParser
 from pkg_resources import Requirement
 
-# enstaller imports
-from config import get_configured_repos
-from proxy.api import setup_proxy
-from repository import HTMLRepository, RepositoryUnion
-from requirements import deactivate_requirement, get_local_repos, get_site_packages, install_requirement, remove_requirement
-from rollback import parse_project_str, retrieve_states, rollback_state, save_state
-from upgrade import get_upgrade_str
-from utilities import rst_table, query_user, user_select
 
 
 try:
     from enstaller import __version__
 except ImportError:
     from __init__ import __version__
-
-
-# set up global variables
-PYPI_REPO = "http://pypi.python.org/simple"
 
 
 def upgrade_project(keys, local_repos=None, remote_repos=None,
@@ -393,9 +385,8 @@ The command needs to be one of the following: install, upgrade, update, rollback
         pass
 
     parser.set_defaults(interactive=False, logging=INFO, dry_run=False,
-        term_width=term_width, remote_html=[PYPI_REPO], remote_xmlrpc=[],
-        allow_unstable=False, proxy="", find_links=[], show_all=False, num_entries=5,
-        show_dates=False)
+        term_width=term_width, allow_unstable=False, proxy="", find_links=[],
+        show_all=False, num_entries=5, show_dates=False)
 
     parser.add_option("-i", "--interactive", action="store_true",
         dest="interactive", help="prompt user for choices")
@@ -407,10 +398,6 @@ The command needs to be one of the following: install, upgrade, update, rollback
         help="perform a dry-run without changing installed setup")
     parser.add_option("-w", "--width", action="store", type="int",
         dest="term_width", help="set the width of the terminal window")
-    parser.add_option("-r", "--remote-html", action="append", type="string",
-        dest="remote_html", help="add a remote HTML-based repository")
-    parser.add_option("-x", "--remote-xmlrpc", action="append", type="string",
-        dest="remote_xmlrpc", help="add a remote XMLRPC-based repository")
     parser.add_option("-f", "--find-links", action="append", type="string",
         dest="find_links", help="add location to look for packages")
     parser.add_option("-u", "--allow-unstable", action="store_true",
@@ -438,16 +425,14 @@ def main():
     # Set up logging
     basicConfig(level=options.logging, format="%(message)s")
 
-    # Build the list of remote repositories we'll search for distributions to
-    # install.  Note that we include any repos specified in our config file but
-    # that list depends on whether the user requested "unstable" repos or not.
-    remote_repos=[HTMLRepository(arg) for arg in options.remote_html]
-    # XXX hack!  Should make the find_packages part of the Repository object
-    # Add the find_links specified by the user on the command-line.
-    if options.find_links:
-        remote_repos[0].environment.add_find_links(find_links)
-    remote_repos.extend([HTMLRepository(arg) for arg in
-        get_configured_repos(unstable=options.allow_unstable)])
+    # Build our list of remote repositories we'll search for distributions to
+    # install.  Any repository settings provided via the command line take
+    # precedence over anything in the config file, and the index in the config
+    # file always comes last.
+    remote_repos = [HTMLRepository(arg) for arg in options.find_links]
+    remote_repos.extend([HTMLRepository(u) for u in get_configured_repos(
+        unstable=options.allow_unstable)])
+    remote_repos.append(HTMLRepository(get_configured_index(), index=True))
 
     # Try to set up a proxy server, either from options or environment vars.
     # This makes urllib2 calls do the right thing.
