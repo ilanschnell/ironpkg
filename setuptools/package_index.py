@@ -319,11 +319,13 @@ class PackageIndex(Environment):
         self.scan_url(self.index_url)
 
     def find_packages(self, requirement):
-        self.scan_url(self.index_url + requirement.unsafe_name+'/')
+        # DMP 2009.05.13: Allow index_url to be None for enstaller package code.
+        if self.index_url:
+            self.scan_url(self.index_url + requirement.unsafe_name+'/')
 
-        if not self.package_pages.get(requirement.key):
-            # Fall back to safe version of the name
-            self.scan_url(self.index_url + requirement.project_name+'/')
+            if not self.package_pages.get(requirement.key):
+                # Fall back to safe version of the name
+                self.scan_url(self.index_url + requirement.project_name+'/')
 
         if not self.package_pages.get(requirement.key):
             # We couldn't find the target package, so search the index page too
