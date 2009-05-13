@@ -338,6 +338,17 @@ class PackageIndex(Environment):
 
     def add_find_links(self, urls):
         """Add `urls` to the list that will be prescanned for searches"""
+
+        # DMP 2009.05.12: Patched here to record the list of "repositories" we
+        # are told to scan.  This is needed when we sort found distributions
+        # so that we can sort them within each repo, thus allowing us to
+        # pick the best match within the earliest repo, rather than the best
+        # match in any repo.
+        if not hasattr(self, '_repo_urls'):
+            self._repo_urls = list(urls)
+        else:
+            self._repo_urls.extend(list(urls))
+
         for url in urls:
             if (
                 self.to_scan is None        # if we have already "gone online"
@@ -436,10 +447,8 @@ class PackageIndex(Environment):
         skipped = {}
 
         def find(req, get_release=prefer_release):
-            # Find a matching distribution; may be called more than once
-            # get release is initially set to True.  If no release version is
-            # found, find is called again with get_release set to false. Then
-            # development versions are searched for.
+            """ Find a matching distribution; may be called more than once. """
+
             for dist in self[req.key]:
 
                 # get release versions by default
@@ -458,12 +467,13 @@ class PackageIndex(Environment):
                         location=self.download(dist.location, tmpdir)
                     )
 
-                # If no release versions were found, search for latest
-                #  development version.
-                if get_release:
-                    self.info("No matching release version found. Searching for "\
-                              "latest development version.")
-                    return find(req, get_release=False)
+            # If get_release was True but no release was found, we
+            # purposefully want to try to install a dev releases.  Thus we
+            # call oursevles explicitly with get_release set to False.
+            if get_release:
+                self.info("No matching release version found. Searching for "\
+                          "latest development version.")
+                return find(req, get_release=False)
 
         if force_scan:
             self.prescan()

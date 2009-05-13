@@ -726,7 +726,9 @@ class Environment(object):
 
         if project_name not in self._cache:
             dists = self._cache[project_name] = self._distmap[project_name]
-            _sort_dists(dists)
+            # DMP 2009.05.12: Sort by (repo,version) so need to pass repo list.
+            #_sort_dists(dists)
+            _sort_dists(dists, getattr(self, '_repo_urls', None))
 
         return self._cache[project_name]
 
@@ -737,7 +739,11 @@ class Environment(object):
             if dist not in dists:
                 dists.append(dist)
                 if dist.key in self._cache:
-                    _sort_dists(self._cache[dist.key])
+                    # DMP 2009.05.12: Sort by (repo,version) so need to pass
+                    # repo list.
+                    #_sort_dists(self._cache[dist.key])
+                    _sort_dists(self._cache[dist.key], 
+                        getattr(self, '_repo_urls', None))
 
 
     def best_match(self, req, working_set, installer=None):
@@ -2332,10 +2338,45 @@ def parse_requirements(strs):
         yield Requirement(project_name, specs, extras)
 
 
-def _sort_dists(dists):
-    tmp = [(dist.hashcmp,dist) for dist in dists]
-    tmp.sort()
-    dists[::-1] = [d for hc,d in tmp]
+def _sort_dists(dists, urls=None):
+    """
+    DMP 2009.05.12: If a list of repo urls was provided, We want to sort the
+    dists primarily in the order of the those repositories so that we prefer
+    any matching dist from the first repository over a later dist in a later
+    repository.  Secondarily, we want them sorted by the dist's hashcmp value
+    so that they are sorted with the most recent version first.
+
+    """
+    if urls:
+        # First build a dictionary where the urls are mapped to the integer
+        # we want them to sort by.  Note that we want the integers to force
+        # sorting in the reverse order because the hashcmp values of the
+        # distributions also sort in the reverse order we really want to
+        # end up with.  (older versions end up first.)  When we copy the
+        # sorted list back into the provided dists variable, we reverse the
+        # sorting then to end up with the desired final sort order.
+        url_map = dict(zip(urls, xrange(len(urls), 0, -1)))
+
+        # Build a list that will sort naturally by our desired attributes,
+        # that is the repo info first and the version second.
+        tmp = []
+        for dist in dists:
+            loc = dist.location
+            for prefix in url_map:
+                if loc.startswith(prefix):
+                    index = url_map[prefix]
+                    break
+            else:
+                index = -1
+            tmp.append((index, dist.hashcmp, dist))
+        
+        tmp.sort()
+        dists[::-1] = [d for i,hc,d in tmp]
+
+    else:
+        tmp = [(dist.hashcmp,dist) for dist in dists]
+        tmp.sort()
+        dists[::-1] = [d for hc,d in tmp]
 
 
 
