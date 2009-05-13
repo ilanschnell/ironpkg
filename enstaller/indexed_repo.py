@@ -150,18 +150,20 @@ def get_buildnumber(url):
     return split_old_eggname(eggname)[2]
 
 
-def download_data(url):
+def download_data(url, verbose=False):
     """
     Downloads data from the url, returns the data as a string.
     """
     from setuptools.package_index import open_with_auth
 
-    print "downloading data from: %r" % url
+    if verbose:
+        print "downloading data from: %r" % url
     handle = open_with_auth(url)
     data = handle.read()
     handle.close()
 
-    print "downloaded %i bytes" % len(data)
+    if verbose:
+        print "downloaded %i bytes" % len(data)
 
     return data
 
@@ -192,6 +194,9 @@ class IndexedRepo(object):
         """
         Initialize the index.
         """
+        # Verbosity
+        self.verbose = False
+
         # Local directory
         self.path = '.'
 
@@ -207,7 +212,8 @@ class IndexedRepo(object):
         Add a repo to the list of extra repos, i.e. read the index file of
         the url, parse it and update the index.
         """
-        print "Adding repo:", url_dir
+        if self.verbose:
+            print "Adding repo:", url_dir
         assert url_dir.endswith('/'), url_dir
         assert url_dir not in self.chain, url_dir
         self.chain.append(url_dir)
@@ -243,7 +249,8 @@ class IndexedRepo(object):
         data = get_data_from_url(dist, self.index[dist]['md5'])
 
         dst = join(self.path, distname)
-        print "Copying %r to %r" % (dist, dst)
+        if self.verbose:
+            print "Copying %r to %r" % (dist, dst)
         fo = open(dst, 'wb')
         fo.write(data)
         fo.close()
@@ -339,7 +346,8 @@ class IndexedRepo(object):
         repository, to the index (in memory).  Note that the index file on
         disk remains untouched.
         """
-        print "Added %r to index" % distname
+        if self.verbose:
+            print "Added %r to index" % distname
 
         if distname != basename(distname):
             raise Exception("base filename expected, got %r" % distname)
@@ -359,14 +367,14 @@ class IndexedRepo(object):
         add_Reqs(self.index[distname])
         z.close()
 
-    def test(self, assert_files_exist=False, verbose=False):
+    def test(self, assert_files_exist=False):
         """
         Test the content of the repo for consistency.
         """
         allreqs = defaultdict(int)
 
         for fn in sorted(self.index.keys(), key=string.lower):
-            if verbose:
+            if self.verbose:
                 print fn
 
             if assert_files_exist:
@@ -377,7 +385,7 @@ class IndexedRepo(object):
             for r in spec['Reqs']:
                 allreqs[r] += 1
                 d = self.get_dist(r)
-                if verbose:
+                if self.verbose:
                     print '\t', r, '->', self.get_dist(r)
                 assert isinstance(r.versions, list) and r.versions
                 assert all(v == v.strip() for v in r.versions)
@@ -385,10 +393,10 @@ class IndexedRepo(object):
 
             r = Req(spec['name'], [spec['version']])
             assert self.get_dist(r)
-            if verbose:
+            if self.verbose:
                 print
 
-        if verbose:
+        if self.verbose:
             print 70 * '='
         print "Index has %i distributions" % len(self.index)
         print "The following distributions are not required anywhere:"
