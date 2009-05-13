@@ -202,7 +202,7 @@ class Repo(object):
         if distname != basename(distname):
             raise Exception("base filename expected, got %r" % distname)
 
-        if distname in _index:
+        if distname in self.index:
             raise Exception("%r already exists in index" % distname)
 
         arcname = 'EGG-INFO/spec/depend'
@@ -212,8 +212,8 @@ class Repo(object):
             raise Exception("arcname=%r does not exist in %r" %
                             (arcname, zip_file))
 
-        _index[distname] = parsers.parse_metadata(z.read(arcname),
-                                                  parsers._DEPEND_VARS)
+        self.index[distname] = parsers.parse_metadata(z.read(arcname),
+                                                      parsers._DEPEND_VARS)
         add_Reqs(self.index[distname])
         z.close()
 
