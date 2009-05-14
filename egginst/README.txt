@@ -15,13 +15,5 @@ to easy_install are:
     require special post install scripts if (Enstaller) easy_install installs
     them.
 
-  * the dependency resolution of remote repositories is kept very simple.
-    A single (bz2 compressed) file containing all packages and its
-    dependencies is downloaded.  The information contained in this file
-    is used to determine which eggs need to be installed or updated.
-    This file eliminates the need to:
-      - download and search HTML files for egg locations
-      - keep .egg.info with dependency information alongside each .egg file
-
   * The install is much more direct and kept simple.  This is probably the
     biggest difference to easy_install.

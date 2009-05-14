@@ -9,6 +9,8 @@ from collections import defaultdict
 from os.path import abspath, basename, dirname, join, isfile
 
 
+_verbose = False
+
 def parse_metadata(data, var_names=None):
     """
     Given the content of a dependency file, return a dictionary mapping the
@@ -102,7 +104,7 @@ class Req(object):
         tmp = cmp(self.name, other.name)
         if tmp != 0:
             return tmp
-        # names are equal compare versions
+        # names are equal -> compare versions
         return cmp(self.versions, other.versions)
 
 
@@ -150,19 +152,19 @@ def get_buildnumber(url):
     return split_old_eggname(eggname)[2]
 
 
-def download_data(url, verbose=False):
+
+def download_data(url):
     """
     Downloads data from the url, returns the data as a string.
     """
     from setuptools.package_index import open_with_auth
 
-    if verbose:
+    if _verbose:
         print "downloading data from: %r" % url
     handle = open_with_auth(url)
     data = handle.read()
     handle.close()
-
-    if verbose:
+    if _verbose:
         print "downloaded %i bytes" % len(data)
 
     return data
@@ -188,98 +190,96 @@ def get_data_from_url(url, md5=None):
     return data
 
 
+
 class IndexedRepo(object):
 
-    def __init__(self):
+    def __init__(self, verbose=False):
         """
         Initialize the index.
         """
-        # Verbosity
-        self.verbose = False
+        global _verbose
+        self.verbose = _verbose = verbose
 
         # Local directory
-        self.path = '.'
+        self.local = '.'
 
         # chain of repos, either local or remote, from which distributions
-        # may be fetched
-        self.chain = []
+        # may be fetched, the local directory is always first.
+        self.chain = ['local:/']
 
         # maps distributions to specs
         self.index = {}
 
-    def add_repo(self, url_dir):
+    def add_repo(self, repo):
         """
         Add a repo to the list of extra repos, i.e. read the index file of
         the url, parse it and update the index.
         """
         if self.verbose:
-            print "Adding repo:", url_dir
-        assert url_dir.endswith('/'), url_dir
-        assert url_dir not in self.chain, url_dir
-        self.chain.append(url_dir)
+            print "Adding repo:", repo
+        assert repo.endswith('/'), repo
 
-        data = get_data_from_url(join(url_dir, 'index-depend.bz2'))
+        data = get_data_from_url(repo + 'index-depend.bz2')
 
         index2 = parse_depend_index(data)
         for spec in index2.itervalues():
             add_Reqs(spec)
 
+        self.chain.append(repo)
+
         for distname, spec in index2.iteritems():
-            dist = join(url_dir, distname)
-            assert dist not in self.index
-            self.index[dist] = spec
+            self.index[repo + distname] = spec
 
-    def dist_from_chain(self, distname):
-        for url_dir in self.chain:
-            dist = join(url_dir, distname)
-            if dist in self.index:
+    def get_dist_repo(self, req, repo):
+        """
+        Return the required distribution from the repository specified.
+        That is, from all distribution which match the requirement,
+        the one with the largest build number.
+        """
+        matches = []
+        for dist, spec in self.index.iteritems():
+            if (dist.startswith(repo) and
+                req.matches(spec['name'], spec['version'])):
+                matches.append(dist)
+        if not matches:
+            return None
+        matches.sort(key=get_buildnumber)
+        return matches[-1]
+
+    def get_dist(self, req):
+        """
+        Return the required distribution, following the repo chain.
+        That is, from the first repo which contains a distribution
+        which meets the requirement.
+        """
+        for repo in self.chain:
+            dist = self.get_dist_repo(req, repo)
+            if dist:
                 return dist
-        raise Exception("distname=%r not found in chain=%r" %
-                        (distname, self.chain))
+        return None
 
-    def fetch_dist(self, distname):
+    def fetch_dist(self, req):
         """
-        Get a distribution from the first item in the chain which lists it.
+        Get a distribution, i.e. copy the distribution into the local
+        repo, according to how the chain is resolved.
         """
-        if distname in os.listdir(self.path):
-            raise Exception("distribution %r in local directory" % distname)
+        dist = get_dist(req)
+        if dist is None:
+            raise Exception("no distribution found for %r" % req)
 
-        dist = self.dist_from_chain(distname)
+        if dist.startswith('local:/'):
+            if self.verbose:
+                print "Nothing to do for:", dist
+            return
 
         data = get_data_from_url(dist, self.index[dist]['md5'])
 
-        dst = join(self.path, distname)
+        dst = join(self.local, basename(dist))
         if self.verbose:
             print "Copying %r to %r" % (dist, dst)
         fo = open(dst, 'wb')
         fo.write(data)
         fo.close()
-
-    def get_dist(self, req):
-        """
-        Return a list of distributions matching the requirement.
-        The list is sorted, such that the first element in the list is
-        the most recent.
-        """
-        lst1 = []
-        for dist, spec in self.index.iteritems():
-            if req.matches(spec['name'], spec['version']):
-                lst1.append(dist)
-
-        if not lst1:
-            raise Exception("ERROR: No matches found for %s" % req)
-
-        lst2 = []
-        for distname in set([basename(dist) for dist in lst1]):
-            if distname in os.listdir(self.path):
-                lst2.append(dist)
-
-            else:
-                lst2.append(self.dist_from_chain(distname))
-
-        assert lst2 is not []
-        lst2.sort(reverse=True, key=get_buildnumber)
-        return lst2[0]
 
     def reqs_dist(self, dist):
         """
@@ -340,32 +340,29 @@ class IndexedRepo(object):
 
         return dists
 
-    def add_dist(self, distname):
+    def add_dist(self, filename):
         """
-        Add an unindexed distribution (egg), which must already exist in the
+        Add an unindexed distribution, which must already exist in the local
         repository, to the index (in memory).  Note that the index file on
         disk remains untouched.
         """
         if self.verbose:
-            print "Added %r to index" % distname
+            print "Adding %r to index" % filename
 
-        if distname != basename(distname):
-            raise Exception("base filename expected, got %r" % distname)
-
-        if distname in self.index:
-            raise Exception("%r already exists in index" % distname)
+        if filename != basename(filename):
+            raise Exception("base filename expected, got %r" % filename)
 
         arcname = 'EGG-INFO/spec/depend'
-        z = zipfile.ZipFile(join(self.path, distname))
+        z = zipfile.ZipFile(join(self.local, filename))
         if arcname not in z.namelist():
             z.close()
             raise Exception("arcname=%r does not exist in %r" %
-                            (arcname, zip_file))
+                            (arcname, filename))
 
-        self.index[distname] = parsers.parse_metadata(z.read(arcname),
-                                                      parsers._DEPEND_VARS)
-        add_Reqs(self.index[distname])
+        spec = parsers.parse_metadata(z.read(arcname), parsers._DEPEND_VARS)
         z.close()
+        add_Reqs(spec)
+        self.index['local:/' + filename] = spec
 
     def test(self, assert_files_exist=False):
         """
@@ -378,7 +375,7 @@ class IndexedRepo(object):
                 print fn
 
             if assert_files_exist:
-                dist_path = join(self.path, fn)
+                dist_path = join(self.local, fn)
                 assert isfile(dist_path), dist_path
 
             spec = self.index[fn]
@@ -457,7 +454,7 @@ def main():
     if opts.list:
         # list
         dist = ir.get_dist(req_from_string(req_string))
-        for r in repo.reqs_dist(dist):
+        for r in ir.reqs_dist(dist):
             print r
     else:
         # install order

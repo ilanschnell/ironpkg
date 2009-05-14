@@ -1,6 +1,7 @@
 import unittest
 
-from repo import split_old_version, split_old_eggname, get_build_old_eggname
+from enstaller.indexed_repo import (split_old_version, split_old_eggname,
+                                    get_buildnumber)
 
 
 class TestRepo(unittest.TestCase):
@@ -17,17 +18,17 @@ class TestRepo(unittest.TestCase):
         fn = 'grin-1.1.1-py2.5.egg'
         self.assertRaises(AssertionError, split_old_eggname, fn)
 
-    def test_get_build_old_eggname(self):
+    def test_get_buildnumber(self):
         for fn, n in [
-            ('zope.interface-3.4.1n1-py2.5-macosx-10.3-fat.egg', 1),
-            ('MySQL_python-1.2.2n3-py2.5-macosx-10.3-fat.egg', 3),
+            ('file:///zope.interface-3.4.1n1-py2.5-macosx-10.3-fat.egg', 1),
+            ('local:/MySQL_python-1.2.2n3-py2.5-macosx-10.3-fat.egg', 3),
             ('Reportlab-2.1n4-py2.5.egg', 4),
             ('hdf5-1.8.1n13.egg', 13),
             ]:
-            self.assertEqual(get_build_old_eggname(fn), n)
+            self.assertEqual(get_buildnumber(fn), n)
 
         fn = 'blist-0.9.17-py2.5-win32.egg'
-        self.assertRaises(AssertionError, get_build_old_eggname, fn)
+        self.assertRaises(AssertionError, get_buildnumber, fn)
 
 
 if __name__ == '__main__':
