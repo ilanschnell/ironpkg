@@ -263,7 +263,7 @@ class IndexedRepo(object):
         Get a distribution, i.e. copy the distribution into the local
         repo, according to how the chain is resolved.
         """
-        dist = get_dist(req)
+        dist = self.get_dist(req)
         if dist is None:
             raise Exception("no distribution found for %r" % req)
 
@@ -284,9 +284,18 @@ class IndexedRepo(object):
     def reqs_dist(self, dist):
         """
         Return the requirement objects (as a sorted list) which are a
-        distribution requires.
+        requirements for the distribution.
         """
         return sorted(self.index[dist]['Reqs'])
+
+    def dist_as_req(self, dist):
+        """
+        Return the distribution in terms of the a requirement object.
+        That is: What requirement gives me the distribution?
+        Which is different from the method reqs_dist above.
+        """
+        spec = self.index[dist]
+        return Req(spec['name'], [spec['version']])
 
     def append_deps(self, dists, dist):
         """
@@ -389,6 +398,7 @@ class IndexedRepo(object):
                 assert d in self.index
 
             r = Req(spec['name'], [spec['version']])
+            assert self.dist_as_req(fn) == r
             assert self.get_dist(r)
             if self.verbose:
                 print
