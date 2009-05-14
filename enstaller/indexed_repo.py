@@ -52,7 +52,7 @@ def parse_index(data):
 
 
 _DEPEND_VARS = [
-    'metadata_version', 'md5', 'name', 'version', 'disttype',
+    'metadata_version', 'md5', 'size', 'name', 'version', 'disttype',
     'arch', 'platform', 'osdist', 'python', 'packages',
 ]
 def parse_depend_index(data):
@@ -153,7 +153,21 @@ def get_buildnumber(url):
 
 
 
-def download_data(url):
+def human_bytes(n):
+    """
+    Return the number of bytes n in more human readable form.
+    """
+    if n < 1024:
+        return '%i B' % n
+
+    k = (n - 1) / 1024 + 1
+    if k < 1024:
+        return '%i KB' % k
+
+    return '%.2f MB' % (float(n) / (2**20))
+
+
+def download_data(url, size):
     """
     Downloads data from the url, returns the data as a string.
     """
@@ -161,8 +175,37 @@ def download_data(url):
 
     if _verbose:
         print "downloading data from: %r" % url
+    if size:
+        sys.stdout.write('%9s [' % human_bytes(size))
+        sys.stdout.flush()
+        cur = 0
+
     handle = open_with_auth(url)
-    data = handle.read()
+    data = []
+
+    if size < 16384:
+        buffsize = 1
+    else:
+        buffsize = 256
+
+    while True:
+        chunk = handle.read(buffsize)
+        if not chunk:
+            break
+        data.append(chunk)
+        if not size:
+            continue
+        rat = float(buffsize) * len(data) / size
+        if rat * 64 >= cur:
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            cur += 1
+
+    if size:
+        sys.stdout.write(']\n')
+        sys.stdout.flush()   
+
+    data = ''.join(data)
     handle.close()
     if _verbose:
         print "downloaded %i bytes" % len(data)
@@ -170,7 +213,7 @@ def download_data(url):
     return data
 
 
-def get_data_from_url(url, md5=None):
+def get_data_from_url(url, md5=None, size=None):
     """
     Get data from a url and check optionally check the MD5.
     """
@@ -179,7 +222,7 @@ def get_data_from_url(url, md5=None):
         data = open(index_path).read()
 
     elif url.startswith('http://'):
-        data = download_data(url)
+        data = download_data(url, size)
 
     else:
         raise Exception("Not valid url: " + url)
@@ -272,7 +315,9 @@ class IndexedRepo(object):
                 print "Nothing to do for:", dist
             return
 
-        data = get_data_from_url(dist, self.index[dist]['md5'])
+        data = get_data_from_url(dist,
+                                 self.index[dist]['md5'],
+                                 self.index[dist]['size'])
 
         dst = join(self.local, basename(dist))
         if self.verbose:
@@ -324,7 +369,7 @@ class IndexedRepo(object):
             # Append the distribution itself.
             dists.append(d)
 
-    def install_order(self, req_string):
+    def install_order(self, req):
         """
         Return the list of distributions which need to be installed to meet
         the requirement.
@@ -332,8 +377,6 @@ class IndexedRepo(object):
         can be installed in this order without any package being installed
         before its dependencies got installed.
         """
-        req = req_from_string(req_string)
-
         # This is the actual distribution we append at the end
         d = self.get_dist(req)
 
@@ -460,15 +503,15 @@ def main():
         return
 
     # query for a requirement
-    req_string = ' '.join(args)
+    req = req_from_string(args[0])
     if opts.list:
         # list
-        dist = ir.get_dist(req_from_string(req_string))
+        dist = ir.get_dist(req)
         for r in ir.reqs_dist(dist):
             print r
     else:
         # install order
-        for fn in ir.install_order(req_string):
+        for fn in ir.install_order(req):
             print fn
 
 
