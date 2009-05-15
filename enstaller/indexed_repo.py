@@ -227,8 +227,11 @@ def get_data_from_url(url, md5=None, size=None):
     else:
         raise Exception("Not valid url: " + url)
 
-    if md5 is not None:
-        assert hashlib.md5(data).hexdigest() == md5, url
+    if md5 is not None and hashlib.md5(data).hexdigest() != md5:
+        sys.stderr.write("FATAL ERROR: Data received from\n\n"
+                         "    %s\n\n"
+                         "is corrupted.  MD5 sums mismatch.\n" % url)
+        sys.exit(1)
 
     return data
 
@@ -285,7 +288,7 @@ class IndexedRepo(object):
                 assert dist not in matches
                 matches.add(dist)
         return matches
-       
+
     def get_matches(self, req):
         """
         Return the set of distributions which match the requirement from the
