@@ -183,7 +183,7 @@ def download_data(url, size):
     handle = open_with_auth(url)
     data = []
 
-    if size < 16384:
+    if size and size < 16384:
         buffsize = 1
     else:
         buffsize = 256
