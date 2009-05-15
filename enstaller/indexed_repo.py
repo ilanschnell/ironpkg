@@ -144,13 +144,13 @@ def split_old_eggname(eggname):
     assert build is not None
     return name, version, build
 
-def get_buildnumber(url):
+def get_version_build(dist):
     """
-    Return the build number of an "old" style named egg.
+    Return the verion and build number of an old style "n" egg, as a
+    tuple(version, build), where version is a string and build is an integer.
     """
-    eggname = basename(url)
-    return split_old_eggname(eggname)[2]
-
+    eggname = basename(dist)
+    return split_old_eggname(eggname)[1:]
 
 
 def human_bytes(n):
@@ -203,7 +203,7 @@ def download_data(url, size):
 
     if size:
         sys.stdout.write(']\n')
-        sys.stdout.flush()   
+        sys.stdout.flush()
 
     data = ''.join(data)
     handle.close()
@@ -273,33 +273,43 @@ class IndexedRepo(object):
         for distname, spec in index2.iteritems():
             self.index[repo + distname] = spec
 
-    def get_dist_repo(self, req, repo):
+    def get_matches_repo(self, req, repo):
         """
-        Return the required distribution from the repository specified.
-        That is, from all distribution which match the requirement,
-        the one with the largest build number.
+        Return the set of distributions which match the requirement from the
+        repository.  That is, all distribution which match the requirement.
         """
-        matches = []
+        matches = set()
         for dist, spec in self.index.iteritems():
             if (dist.startswith(repo) and
                 req.matches(spec['name'], spec['version'])):
-                matches.append(dist)
-        if not matches:
-            return None
-        matches.sort(key=get_buildnumber)
-        return matches[-1]
+                assert dist not in matches
+                matches.add(dist)
+        return matches
+       
+    def get_matches(self, req):
+        """
+        Return the set of distributions which match the requirement from the
+        first repository in the chain which contains at least one match.
+        """
+        for repo in self.chain:
+            matches = self.get_matches_repo(req, repo)
+            if matches:
+                return matches
+        # no matching distributions are found in any repo
+        return None
 
     def get_dist(self, req):
         """
-        Return the required distribution, following the repo chain.
-        That is, from the first repo which contains a distribution
-        which meets the requirement.
+        Return the distributions with the largest version and build number
+        from the first repository which contains any matches.
         """
-        for repo in self.chain:
-            dist = self.get_dist_repo(req, repo)
-            if dist:
-                return dist
-        return None
+        matches = self.get_matches(req)
+        if matches is None:
+            # no matching distributions were found in any repo
+            return None
+        # found matches, return the one with largest (version, build)
+        lst = sorted(matches, key=get_version_build)
+        return lst[-1]
 
     def fetch_dist(self, req):
         """
