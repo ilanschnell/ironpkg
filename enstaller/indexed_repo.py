@@ -6,8 +6,9 @@ import string
 import hashlib
 import zipfile
 from collections import defaultdict
-from os.path import abspath, basename, dirname, join, isfile
+from os.path import abspath, basename, join, isfile
 
+from egginst.utils import human_bytes
 
 _verbose = False
 
@@ -151,20 +152,6 @@ def get_version_build(dist):
     """
     eggname = basename(dist)
     return split_old_eggname(eggname)[1:]
-
-
-def human_bytes(n):
-    """
-    Return the number of bytes n in more human readable form.
-    """
-    if n < 1024:
-        return '%i B' % n
-
-    k = (n - 1) / 1024 + 1
-    if k < 1024:
-        return '%i KB' % k
-
-    return '%.2f MB' % (float(n) / (2**20))
 
 
 def download_data(url, size):

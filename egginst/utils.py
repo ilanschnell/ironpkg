@@ -35,3 +35,17 @@ def md5_file(path):
     """
     data = open(path, 'rb').read()
     return hashlib.md5(data).hexdigest()
+
+
+def human_bytes(n):
+    """
+    Return the number of bytes n in more human readable form.
+    """
+    if n < 1024:
+        return '%i B' % n
+
+    k = (n - 1) / 1024 + 1
+    if k < 1024:
+        return '%i KB' % k
+
+    return '%.2f MB' % (float(n) / (2**20))

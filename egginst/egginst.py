@@ -11,7 +11,7 @@ import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from utils import rmdir_er, on_win, bin_dir
+from utils import rmdir_er, on_win, bin_dir, human_bytes
 import scripts
 
 
@@ -99,23 +99,22 @@ class EggInst(object):
             yield line
 
     def extract(self):
-        if not self.verbose:
-            sys.stdout.write('[')
-            sys.stdout.flush()
-            cur = 0
-
-        size = len(self.arcnames)
-        for i, arcname in enumerate(self.arcnames):
-            rat = 1.0 * i / size
-            if not self.verbose and rat * 74 >= cur:
+        cur = 0
+        n = 0
+        size = sum(self.z.getinfo(name).file_size
+                   for name in self.arcnames)
+        sys.stdout.write('%9s [' % human_bytes(size))
+        for name in self.arcnames:
+            n += self.z.getinfo(name).file_size
+            rat = float(n) / size
+            if rat * 64 >= cur:
                 sys.stdout.write('.')
                 sys.stdout.flush()
                 cur += 1
-            self.write_arcname(arcname)
+            self.write_arcname(name)
 
-        if not self.verbose:
-            sys.stdout.write(']\n')
-            sys.stdout.flush()
+        sys.stdout.write('.' * (65-cur) + ']\n')
+        sys.stdout.flush()
 
     def get_dst(self, arcname):
         dispatch = [
