@@ -8,6 +8,9 @@ from os.path import abspath, basename, join, islink, isfile, exists
 from utils import rel_prefix
 
 
+verbose = False
+
+
 # Extensions which are assumed to belong to files which don't contain
 # object code
 NO_OBJ = ('.py', '.pyc', '.pyo', '.h', '.a', '.c', '.txt', '.html', '.xml',
@@ -62,7 +65,8 @@ def fix_object_code(fpath):
         f.close()
         return
 
-    print "Fixing placeholders in:", rel_prefix(fpath)
+    if verbose:
+        print "Fixing placeholders in:", rel_prefix(fpath)
     for m in matches:
         gr1 = m.group(1)
         if obj_type.startswith('MachO'):
@@ -95,9 +99,10 @@ def fix_files(egg):
     _targets = [join(sys.prefix, 'lib')]
     for line in egg.lines_from_arcname('EGG-INFO/inst/targets.dat'):
         _targets.append(abspath(join(sys.prefix, line)))
-    #print 'Target directories:'
-    #for tgt in _targets:
-    #    print '    %r' % tgt
+    if verbose:
+        print 'Target directories:'
+        for tgt in _targets:
+            print '    %r' % tgt
 
     for p in egg.files:
         fix_object_code(p)

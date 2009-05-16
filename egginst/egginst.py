@@ -19,12 +19,13 @@ class EggInst(object):
 
     site_packages = join(dirname(os.__file__), 'site-packages')
 
-    def __init__(self, fpath):
+    def __init__(self, fpath, verbose=False):
         self.fpath = fpath
         self.project = basename(fpath).split('-')[0]
         self.meta_dir = join(sys.prefix, 'EGG-INFO', self.project)
         self.files_txt = join(self.meta_dir, '__files__.txt')
         self.files = []
+        self.verbose = verbose
 
     def install(self):
         if not isdir(self.meta_dir):
@@ -32,17 +33,20 @@ class EggInst(object):
 
         self.z = zipfile.ZipFile(self.fpath)
         self.arcnames = self.z.namelist()
-        for arcname in self.arcnames:
-            self.write_arcname(arcname)
+
+        self.extract()
 
         if on_win:
             scripts.create_proxies(self)
 
         else:
             import links
-            links.create(self)
-
             import object_code
+
+            if self.verbose:
+                links.verbose = object_code.verbose = True
+
+            links.create(self)
             object_code.fix_files(self)
 
         self.entry_points()
@@ -67,7 +71,9 @@ class EggInst(object):
         conf = ConfigParser.ConfigParser()
         conf.read(path)
         if 'console_scripts' in conf.sections():
-            print 'creating console scripts'
+            if self.verbose:
+                print 'creating console scripts'
+                scripts.verbose = True
             scripts.create(self, conf)
 
     def write_files(self):
@@ -91,6 +97,25 @@ class EggInst(object):
             if ignore_comments and line.startswith('#'):
                 continue
             yield line
+
+    def extract(self):
+        if not self.verbose:
+            sys.stdout.write('[')
+            sys.stdout.flush()
+            cur = 0
+
+        size = len(self.arcnames)
+        for i, arcname in enumerate(self.arcnames):
+            rat = 1.0 * i / size
+            if not self.verbose and rat * 74 >= cur:
+                sys.stdout.write('.')
+                sys.stdout.flush()
+                cur += 1
+            self.write_arcname(arcname)
+
+        if not self.verbose:
+            sys.stdout.write(']\n')
+            sys.stdout.flush()
 
     def get_dst(self, arcname):
         dispatch = [
@@ -153,7 +178,7 @@ class EggInst(object):
 
     def remove(self):
         if not isdir(self.meta_dir):
-            print "Can't find meta data for:", self.project
+            print "Warning: Can't find meta data for:", self.project
             return
 
         self.run('pre_uninstall.py')

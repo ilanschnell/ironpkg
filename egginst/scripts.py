@@ -7,18 +7,23 @@ from os.path import abspath, basename, exists, join, islink, isfile
 from utils import on_win, bin_dir
 
 
+verbose = False
+
+
 def cp_exe(dst):
     shutil.copyfile(join(bin_dir, 'easy_install.exe'), dst)
 
 
 def unlink(fpath):
     if exists(fpath):
-        print "Warning: %r already exists, unlinking" % fpath
+        if verbose:
+            print "Warning: %r already exists, unlinking" % fpath
         os.unlink(fpath)
 
 
 def create_proxy(src):
-    print "Creating proxy executable to: %r" % src
+    if verbose:
+        print "Creating proxy executable to: %r" % src
     assert src.endswith('.exe')
 
     dst_name = basename(src)
@@ -50,18 +55,21 @@ sys.exit(subprocess.call([src] + sys.argv[1:]))
 def create_proxies(egg):
     for line in egg.lines_from_arcname('EGG-INFO/inst/files_to_install.txt'):
         arcname, action = line.split()
-        print "arcname=%r    action=%r" % (arcname, action)
+        if verbose:
+            print "arcname=%r    action=%r" % (arcname, action)
 
         if action == 'PROXY':
             ei = 'EGG-INFO/'
             assert arcname.startswith(ei)
             src = abspath(join(egg.meta_dir, arcname[len(ei):]))
-            print "     src: %r" % src
+            if verbose:
+                print "     src: %r" % src
             egg.files.extend(create_proxy(src))
         else:
             data = egg.z.read(arcname)
             dst = abspath(join(sys.prefix, action, basename(arcname)))
-            print "     dst: %r" % dst
+            if verbose:
+                print "     dst: %r" % dst
             unlink(dst)
             fo = open(dst, 'wb')
             fo.write(data)
@@ -70,7 +78,8 @@ def create_proxies(egg):
 
 
 def write_script(fpath, entry_pt, egg_name):
-    print 'Creating script', fpath
+    if verbose:
+        print 'Creating script', fpath
 
     assert entry_pt.count(':') == 1
     module, func = entry_pt.strip().split(':')
@@ -129,7 +138,8 @@ def fix_script(path):
     if new_data == data:
         return
 
-    print "Updating: %r" % path
+    if verbose:
+        print "Updating: %r" % path
     fo = open(path, 'w')
     fo.write(new_data)
     fo.close()

@@ -5,6 +5,9 @@ from os.path import basename, dirname, exists, islink, join
 from utils import rel_prefix
 
 
+verbose = False
+
+
 def create_link(arcname, link):
     usr = 'EGG-INFO/usr/'
     assert arcname.startswith(usr), arcname
@@ -19,10 +22,12 @@ def create_link(arcname, link):
     # exists('/path/to/dead-link') will return False, although
     # islink('/path/to/dead-link') is True.
     if islink(dst) or exists(dst):
-        print "Warning: %r already exists, unlinking" % rel_prefix(dst)
+        if verbose:
+            print "Warning: %r already exists, unlinking" % rel_prefix(dst)
         os.unlink(dst)
 
-    print "Creating: %s (link to %s)" % (rel_prefix(dst), link)
+    if verbose:
+        print "Creating: %s (link to %s)" % (rel_prefix(dst), link)
     os.symlink(link, dst)
     return dst
 
