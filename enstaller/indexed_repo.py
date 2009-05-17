@@ -411,7 +411,7 @@ class IndexedRepo(object):
             raise Exception("arcname=%r does not exist in %r" %
                             (arcname, filename))
 
-        spec = parsers.parse_metadata(z.read(arcname), parsers._DEPEND_VARS)
+        spec = parse_metadata(z.read(arcname))
         z.close()
         add_Reqs(spec)
         self.index['local:/' + filename] = spec
