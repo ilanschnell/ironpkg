@@ -1,5 +1,5 @@
 *** ../../setuptools-0.6c9/pkg_resources.py	2008-09-24 12:10:45.000000000 -0500
---- ../pkg_resources.py	2009-04-07 16:36:38.000000000 -0500
+--- ../pkg_resources.py	2009-05-14 11:23:56.000000000 -0500
 ***************
 *** 24,44 ****
   from os import open as os_open
@@ -104,32 +104,22 @@
       from distutils.util import get_platform
       plat = get_platform()
 ***************
-*** 195,207 ****
+*** 195,200 ****
+--- 167,177 ----
               # if someone is running a non-Mac darwin system, this will fall
               # through to the default implementation
               pass
-!     return plat
++ 
++     # If we can determine the architecture of the python executable itself,
++     # then use it instead of what distutils returns about the host OS's
++     # architecture.
++     #return _get_python_platform(plat)
+      return plat
   
   macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
-  darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
-  get_platform = get_build_platform   # XXX backward compat
-  
-  
-  
-  def compatible_platforms(provided,required):
-      """Can code for the `provided` platform run on the `required` platform?
---- 167,243 ----
-              # if someone is running a non-Mac darwin system, this will fall
-              # through to the default implementation
-              pass
-! 
-!     # If we can determine the architecture of the python executable itself,
-!     # then use it instead of what distutils returns about the host OS's
-!     # architecture.
-!     return _get_python_platform(plat)
-  
-  macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
-  darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
+***************
+*** 202,207 ****
+--- 179,244 ----
   get_platform = get_build_platform   # XXX backward compat
   
   
@@ -219,7 +209,7 @@
   class IResourceProvider(IMetadataProvider):
       """An object that provides access to package resources"""
   
---- 347,352 ----
+--- 348,353 ----
 ***************
 *** 356,372 ****
   
@@ -239,7 +229,7 @@
   class WorkingSet(object):
       """A collection of active distributions on sys.path (or a similar list)"""
   
---- 377,382 ----
+--- 378,383 ----
 ***************
 *** 405,413 ****
           return self.by_key.get(dist.key) == dist
@@ -251,7 +241,7 @@
       def find(self, req):
           """Find a distribution matching requirement `req`
   
---- 415,420 ----
+--- 416,421 ----
 ***************
 *** 509,516 ****
   
@@ -262,7 +252,7 @@
                   continue
               dist = best.get(req.key)
               if dist is None:
---- 516,524 ----
+--- 517,525 ----
   
           while requirements:
               req = requirements.pop(0)   # process dependencies breadth-first
@@ -281,7 +271,7 @@
                   to_activate.append(dist)
               if dist not in req:
                   # Oops, the "best" so far conflicts with a dependency
---- 529,540 ----
+--- 530,541 ----
                           env = Environment(self.entries)
                       dist = best[req.key] = env.best_match(req, self, installer)
                       if dist is None:
@@ -305,7 +295,7 @@
       def require(self, *requirements):
           """Ensure that distributions matching `requirements` are activated
   
---- 623,628 ----
+--- 624,629 ----
 ***************
 *** 646,663 ****
   
@@ -326,7 +316,7 @@
           """Snapshot distributions available on a search path
   
           Any distributions found on `search_path` are added to the environment.
---- 656,666 ----
+--- 657,667 ----
   
   
   
@@ -339,6 +329,46 @@
   
           Any distributions found on `search_path` are added to the environment.
 ***************
+*** 722,728 ****
+  
+          if project_name not in self._cache:
+              dists = self._cache[project_name] = self._distmap[project_name]
+!             _sort_dists(dists)
+  
+          return self._cache[project_name]
+  
+--- 726,734 ----
+  
+          if project_name not in self._cache:
+              dists = self._cache[project_name] = self._distmap[project_name]
+!             # DMP 2009.05.12: Sort by (repo,version) so need to pass repo list.
+!             #_sort_dists(dists)
+!             _sort_dists(dists, getattr(self, '_repo_urls', None))
+  
+          return self._cache[project_name]
+  
+***************
+*** 733,739 ****
+              if dist not in dists:
+                  dists.append(dist)
+                  if dist.key in self._cache:
+!                     _sort_dists(self._cache[dist.key])
+  
+  
+      def best_match(self, req, working_set, installer=None):
+--- 739,749 ----
+              if dist not in dists:
+                  dists.append(dist)
+                  if dist.key in self._cache:
+!                     # DMP 2009.05.12: Sort by (repo,version) so need to pass
+!                     # repo list.
+!                     #_sort_dists(self._cache[dist.key])
+!                     _sort_dists(self._cache[dist.key], 
+!                         getattr(self, '_repo_urls', None))
+  
+  
+      def best_match(self, req, working_set, installer=None):
+***************
 *** 817,823 ****
   
   
@@ -347,7 +377,7 @@
   class ResourceManager:
       """Manage resource extraction and packages"""
       extraction_path = None
---- 820,825 ----
+--- 827,832 ----
 ***************
 *** 889,905 ****
   
@@ -367,7 +397,7 @@
       def get_cache_path(self, archive_name, names=()):
           """Return absolute location in cache for `archive_name` and `names`
   
---- 891,896 ----
+--- 898,903 ----
 ***************
 *** 925,946 ****
   
@@ -392,7 +422,7 @@
       def postprocess(self, tempname, filename):
           """Perform any platform-specific postprocessing of `tempname`
   
---- 916,921 ----
+--- 923,928 ----
 ***************
 *** 963,987 ****
   
@@ -420,7 +450,7 @@
       def set_extraction_path(self, path):
           """Set the base path where resources will be extracted to, if needed.
   
---- 938,943 ----
+--- 945,950 ----
 ***************
 *** 1099,1110 ****
       return name.replace('-','_')
@@ -435,7 +465,7 @@
   class NullProvider:
       """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
   
---- 1055,1060 ----
+--- 1062,1067 ----
 ***************
 *** 1224,1233 ****
               path, base = os.path.split(path)
@@ -448,7 +478,7 @@
   class DefaultProvider(EggProvider):
       """Provides access to package resources in the filesystem"""
   
---- 1174,1179 ----
+--- 1181,1186 ----
 ***************
 *** 1267,1274 ****
   empty_provider = EmptyProvider()
@@ -459,7 +489,7 @@
   class ZipProvider(EggProvider):
       """Resource support for zips and eggs"""
   
---- 1213,1218 ----
+--- 1220,1225 ----
 ***************
 *** 1412,1438 ****
   
@@ -489,7 +519,7 @@
   class FileMetadata(EmptyProvider):
       """Metadata handler for standalone PKG-INFO files
   
---- 1356,1361 ----
+--- 1363,1368 ----
 ***************
 *** 1461,1479 ****
   
@@ -511,7 +541,7 @@
   class PathMetadata(DefaultProvider):
       """Metadata provider for egg directories
   
---- 1384,1389 ----
+--- 1391,1396 ----
 ***************
 *** 1669,1680 ****
                           path_item,entry,metadata,precedence=DEVELOP_DIST
@@ -526,7 +556,7 @@
                               yield item
                           break
   register_finder(ImpWrapper,find_on_path)
---- 1579,1593 ----
+--- 1586,1600 ----
                           path_item,entry,metadata,precedence=DEVELOP_DIST
                       )
                   elif not only and lower.endswith('.egg'):
@@ -544,7 +574,7 @@
   register_finder(ImpWrapper,find_on_path)
 ***************
 *** 1884,1889 ****
---- 1797,1844 ----
+--- 1804,1851 ----
                   parts.pop()
           parts.append(part)
       return tuple(parts)
@@ -604,7 +634,7 @@
   class Distribution(object):
       """Wrap an actual or potential sys.path entry w/metadata"""
       def __init__(self,
---- 1960,1965 ----
+--- 1967,1972 ----
 ***************
 *** 2087,2095 ****
                   )
@@ -616,7 +646,7 @@
       #@property
       def _dep_map(self):
           try:
---- 2039,2044 ----
+--- 2046,2051 ----
 ***************
 *** 2195,2217 ****
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
@@ -642,7 +672,7 @@
   
       def insert_on(self, path, loc = None):
           """Insert self.location in path before its nearest parent directory"""
---- 2144,2172 ----
+--- 2151,2179 ----
           """Return the EntryPoint object for `group`+`name`, or ``None``"""
           return self.get_entry_map(group).get(name)
   
@@ -682,7 +712,7 @@
   
           nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
           loc = normalize_path(self.location)
---- 2210,2217 ----
+--- 2217,2224 ----
   
   
       def check_version_conflict(self):
@@ -720,27 +750,76 @@
   def parse_requirements(strs):
       """Yield ``Requirement`` objects for each specification in `strs`
   
---- 2270,2275 ----
+--- 2277,2282 ----
 ***************
-*** 2404,2423 ****
+*** 2397,2420 ****
+          yield Requirement(project_name, specs, extras)
+  
+  
+! def _sort_dists(dists):
+!     tmp = [(dist.hashcmp,dist) for dist in dists]
+!     tmp.sort()
+!     dists[::-1] = [d for hc,d in tmp]
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
+! 
   
   
   
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-  class Requirement:
-      def __init__(self, project_name, specs, extras):
-          """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
---- 2338,2343 ----
+  
+  
+--- 2338,2382 ----
+          yield Requirement(project_name, specs, extras)
+  
+  
+! def _sort_dists(dists, urls=None):
+!     """
+!     DMP 2009.05.12: If a list of repo urls was provided, We want to sort the
+!     dists primarily in the order of the those repositories so that we prefer
+!     any matching dist from the first repository over a later dist in a later
+!     repository.  Secondarily, we want them sorted by the dist's hashcmp value
+!     so that they are sorted with the most recent version first.
+  
++     """
++     if urls:
++         # First build a dictionary where the urls are mapped to the integer
++         # we want them to sort by.  Note that we want the integers to force
++         # sorting in the reverse order because the hashcmp values of the
++         # distributions also sort in the reverse order we really want to
++         # end up with.  (older versions end up first.)  When we copy the
++         # sorted list back into the provided dists variable, we reverse the
++         # sorting then to end up with the desired final sort order.
++         url_map = dict(zip(urls, xrange(len(urls), 0, -1)))
++ 
++         # Build a list that will sort naturally by our desired attributes,
++         # that is the repo info first and the version second.
++         tmp = []
++         for dist in dists:
++             loc = dist.location
++             for prefix in url_map:
++                 if loc.startswith(prefix):
++                     index = url_map[prefix]
++                     break
++             else:
++                 index = -1
++             tmp.append((index, dist.hashcmp, dist))
++         
++         tmp.sort()
++         dists[::-1] = [d for i,hc,d in tmp]
+  
++     else:
++         tmp = [(dist.hashcmp,dist) for dist in dists]
++         tmp.sort()
++         dists[::-1] = [d for hc,d in tmp]
+  
+  
+  

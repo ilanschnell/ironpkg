@@ -540,6 +540,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/bdist_wininst.py ../setuptool
               _bdist_wininst.run(self)
           finally:
               self._is_running = False
+Only in ../setuptools/command: bdist_wininst.pyc
 diff -cr ../../setuptools-0.6c9/setuptools/command/build_ext.py ../setuptools/command/build_ext.py
 *** ../../setuptools-0.6c9/setuptools/command/build_ext.py	2008-09-24 12:10:28.000000000 -0500
 --- ../setuptools/command/build_ext.py	2008-12-15 14:14:31.000000000 -0600
@@ -1160,7 +1161,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/develop.py ../setuptools/comm
 Only in ../setuptools/command: develop.pyc
 diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../setuptools/command/easy_install.py
 *** ../../setuptools-0.6c9/setuptools/command/easy_install.py	2008-09-24 12:22:12.000000000 -0500
---- ../setuptools/command/easy_install.py	2009-04-07 17:18:15.000000000 -0500
+--- ../setuptools/command/easy_install.py	2009-05-14 11:23:56.000000000 -0500
 ***************
 *** 8,22 ****
   file, or visit the `EasyInstall home page`__.
@@ -1240,7 +1241,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/command/easy_install.py ../setuptools
 +         return []
 + 
 +     def get_configured_index():
-+         return 'dummy'
++         return None
 + else:
 +     from enstaller.config import get_configured_index, get_configured_repos
 + 
@@ -4238,11 +4239,10 @@ diff -cr ../../setuptools-0.6c9/setuptools/__init__.py ../setuptools/__init__.py
       def reinitialize_command(self, command, reinit_subcommands=0, **kw):
           cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
           for k,v in kw.items():
-Only in ../setuptools: __init__.py~
 Only in ../setuptools: __init__.pyc
 diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/package_index.py
 *** ../../setuptools-0.6c9/setuptools/package_index.py	2008-09-24 12:10:36.000000000 -0500
---- ../setuptools/package_index.py	2009-04-07 16:36:38.000000000 -0500
+--- ../setuptools/package_index.py	2009-05-14 11:23:56.000000000 -0500
 ***************
 *** 3,13 ****
   from pkg_resources import *
@@ -4338,7 +4338,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
       def process_url(self, url, retrieve=False):
           """Evaluate a URL as a possible download, and maybe retrieve it"""
           if url in self.scanned_urls and not retrieve:
---- 144,171 ----
+--- 144,182 ----
               if match:
                   yield urlparse.urljoin(url, htmldecode(match.group(1)))
   
@@ -4352,12 +4352,23 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
   
 !     def __init__(self, index_url=None,
 !                  hosts=('*',), *args, **kw):
+!         # DMP 2009.05.13: Added 'no_default_index' keyword to allow enstaller
+!         # package code to create instances that have no index url at all.  We
+!         # have to strip this keyword out of the keywords before constructing
+!         # the base Environment class to avoid exceptions.
+!         if 'no_default_index' in kw:
+!             self.no_default_index = kw['no_default_index']
+!             del kw['no_default_index']
+!         else:
+!             self.no_default_index = None
 ! 
 !         Environment.__init__(self, *args, **kw)
-!         # Make sure URL has single trailing slash
-!         if index_url is None:
+!         self.index_url = index_url
+!         if self.index_url is None and not self.no_default_index:
 !             index_url = get_configured_index()
-!         self.index_url = index_url.rstrip("/") + "/"
+!         # Make sure URL has single trailing slash
+!         if self.index_url:
+!             self.index_url = index_url.rstrip("/") + "/"
           self.scanned_urls = {}
           self.fetched_urls = {}
           self.package_pages = {}
@@ -4368,6 +4379,27 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
           """Evaluate a URL as a possible download, and maybe retrieve it"""
           if url in self.scanned_urls and not retrieve:
 ***************
+*** 197,204 ****
+          base = f.url     # handle redirects
+          page = f.read()
+          f.close()
+!         if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
+!             page = self.process_index(url, page)
+          for match in HREF.finditer(page):
+              link = urlparse.urljoin(base, htmldecode(match.group(1)))
+              self.process_url(link)
+--- 212,221 ----
+          base = f.url     # handle redirects
+          page = f.read()
+          f.close()
+!         # DMP 2009.05.13: Allow index_url to be None for enstaller package code.
+!         if self.index_url:
+!             if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
+!                 page = self.process_index(url, page)
+          for match in HREF.finditer(page):
+              link = urlparse.urljoin(base, htmldecode(match.group(1)))
+              self.process_url(link)
+***************
 *** 283,290 ****
           else:
               return ""   # no sense double-scanning non-package pages
@@ -4377,7 +4409,47 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
       def need_version_info(self, url):
           self.scan_all(
               "Page at %s links to .py file(s) without version info; an index "
---- 287,292 ----
+--- 300,305 ----
+***************
+*** 292,297 ****
+--- 307,316 ----
+          )
+  
+      def scan_all(self, msg=None, *args):
++         # DMP 2009.05.13: Allow index_url to be None for enstaller package code.
++         if not self.index_url:
++             return
++ 
+          if self.index_url not in self.fetched_urls:
+              if msg: self.warn(msg,*args)
+              self.info(
+***************
+*** 300,310 ****
+          self.scan_url(self.index_url)
+  
+      def find_packages(self, requirement):
+!         self.scan_url(self.index_url + requirement.unsafe_name+'/')
+! 
+!         if not self.package_pages.get(requirement.key):
+!             # Fall back to safe version of the name
+!             self.scan_url(self.index_url + requirement.project_name+'/')
+  
+          if not self.package_pages.get(requirement.key):
+              # We couldn't find the target package, so search the index page too
+--- 319,331 ----
+          self.scan_url(self.index_url)
+  
+      def find_packages(self, requirement):
+!         # DMP 2009.05.13: Allow index_url to be None for enstaller package code.
+!         if self.index_url:
+!             self.scan_url(self.index_url + requirement.unsafe_name+'/')
+! 
+!             if not self.package_pages.get(requirement.key):
+!                 # Fall back to safe version of the name
+!                 self.scan_url(self.index_url + requirement.project_name+'/')
+  
+          if not self.package_pages.get(requirement.key):
+              # We couldn't find the target package, so search the index page too
 ***************
 *** 323,331 ****
           return super(PackageIndex, self).obtain(requirement,installer)
@@ -4389,7 +4461,27 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
       def check_md5(self, cs, info, filename, tfp):
           if re.match('md5=[0-9a-f]{32}$', info):
               self.debug("Validating md5 checksum for %s", filename)
---- 325,330 ----
+--- 344,349 ----
+***************
+*** 339,344 ****
+--- 357,373 ----
+  
+      def add_find_links(self, urls):
+          """Add `urls` to the list that will be prescanned for searches"""
++ 
++         # DMP 2009.05.12: Patched here to record the list of "repositories" we
++         # are told to scan.  This is needed when we sort found distributions
++         # so that we can sort them within each repo, thus allowing us to
++         # pick the best match within the earliest repo, rather than the best
++         # match in any repo.
++         if not hasattr(self, '_repo_urls'):
++             self._repo_urls = list(urls)
++         else:
++             self._repo_urls.extend(list(urls))
++ 
+          for url in urls:
+              if (
+                  self.to_scan is None        # if we have already "gone online"
 ***************
 *** 408,416 ****
           return getattr(self.fetch_distribution(spec, tmpdir),'location',None)
@@ -4401,7 +4493,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
           """Obtain a distribution suitable for fulfilling `requirement`
   
           `requirement` must be a ``pkg_resources.Requirement`` instance.
---- 407,415 ----
+--- 437,445 ----
           return getattr(self.fetch_distribution(spec, tmpdir),'location',None)
   
   
@@ -4423,14 +4515,14 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
           skipped = {}
   
 !         def find(req):
-              # Find a matching distribution; may be called more than once
-! 
+!             # Find a matching distribution; may be called more than once
+  
               for dist in self[req.key]:
   
                   if dist.precedence==DEVELOP_DIST and not develop_ok:
                       if dist not in skipped:
                           self.warn("Skipping development or system egg: %s",dist)
---- 425,451 ----
+--- 455,479 ----
           checkout links will be considered.  Unless the `develop_ok` flag is
           set, development and system eggs (i.e., those using the ``.egg-info``
           format) will be ignored.
@@ -4445,10 +4537,8 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
           skipped = {}
   
 !         def find(req, get_release=prefer_release):
-              # Find a matching distribution; may be called more than once
-!             # get release is initially set to True.  If no release version is
-!             # found, find is called again with get_release set to false. Then
-!             # development versions are searched for.
+!             """ Find a matching distribution; may be called more than once. """
+  
               for dist in self[req.key]:
   
 +                 # get release versions by default
@@ -4460,23 +4550,24 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
                           self.warn("Skipping development or system egg: %s",dist)
 ***************
 *** 449,454 ****
---- 458,470 ----
+--- 486,499 ----
                           location=self.download(dist.location, tmpdir)
                       )
   
-+                 # If no release versions were found, search for latest
-+                 #  development version.
-+                 if get_release:
-+                     self.info("No matching release version found. Searching for "\
-+                               "latest development version.")
-+                     return find(req, get_release=False)
++             # If get_release was True but no release was found, we
++             # purposefully want to try to install a dev releases.  Thus we
++             # call oursevles explicitly with get_release set to False.
++             if get_release:
++                 self.info("No matching release version found. Searching for "\
++                           "latest development version.")
++                 return find(req, get_release=False)
 + 
           if force_scan:
               self.prescan()
               self.find_packages(requirement)
 ***************
 *** 470,475 ****
---- 486,492 ----
+--- 515,521 ----
               )
           return dist
   
@@ -4498,7 +4589,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
       def gen_setup(self, filename, fragment, tmpdir):
           match = EGG_FRAGMENT.match(fragment)
           dists = match and [d for d in
---- 501,506 ----
+--- 530,535 ----
 ***************
 *** 612,618 ****
               return self._attempt_download(url, filename)
@@ -4508,7 +4599,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
       def scan_url(self, url):
           self.process_url(url, True)
   
---- 623,628 ----
+--- 652,657 ----
 ***************
 *** 680,700 ****
       return entity_sub(decode_entity, text)
@@ -4532,7 +4623,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
   def open_with_auth(url):
       """Open a urllib2 request, handling HTTP authentication"""
   
---- 690,695 ----
+--- 719,724 ----
 ***************
 *** 712,720 ****
           request.add_header("Authorization", auth)
@@ -4544,7 +4635,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
   
       if auth:
           # Put authentication info back into request URL if same host,
---- 707,736 ----
+--- 736,765 ----
           request.add_header("Authorization", auth)
       else:
           request = urllib2.Request(url)
@@ -4593,7 +4684,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
   def fix_sf_url(url):
       return url      # backward compatibility
   
---- 742,747 ----
+--- 771,776 ----
 ***************
 *** 765,779 ****
               {'content-type':'text/html'}, cStringIO.StringIO(body))
@@ -4611,7 +4702,7 @@ diff -cr ../../setuptools-0.6c9/setuptools/package_index.py ../setuptools/packag
 - 
 - 
 - # this line is a kludge to keep the trailing blank lines for pje's editor
---- 771,773 ----
+--- 800,802 ----
 Only in ../setuptools: package_index.pyc
 diff -cr ../../setuptools-0.6c9/setuptools/sandbox.py ../setuptools/sandbox.py
 *** ../../setuptools-0.6c9/setuptools/sandbox.py	2007-01-09 11:38:27.000000000 -0600
