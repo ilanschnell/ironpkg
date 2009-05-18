@@ -473,7 +473,7 @@ def main():
     p.add_option('-d', "--dir",
         action="store",
         default="",
-        help="repo url to look at")
+        help="local repo to look at, i.e. the directory path")
 
     p.add_option('-l', "--list",
         action="store_true",
