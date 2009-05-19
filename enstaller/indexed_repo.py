@@ -295,6 +295,7 @@ class IndexedRepo(object):
         """
         matches = self.get_matches(req)
         if matches is None:
+            print 'Warning: No distribution found for', req
             # no matching distributions were found in any repo
             return None
         # found matches, return the one with largest (version, build)
