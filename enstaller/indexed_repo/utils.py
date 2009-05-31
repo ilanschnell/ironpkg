@@ -6,6 +6,23 @@ from os.path import basename
 from egginst.utils import human_bytes
 
 
+_dist_pat = re.compile(r'(.+/)([^/]+)')
+def split_dist(dist):
+    """
+    splits a distribution, e.g. 'http://www.example.com/repo/foo.egg', into
+    repo and filename ('http://www.example.com/repo/', 'foo.egg').
+    """
+    m = _dist_pat.match(dist)
+    assert m is not None, dist
+    repo, filename = m.group(1), m.group(2)
+    return repo, filename
+
+def repo_dist(dist):
+    return split_dist(dist)[0]
+
+def filename_dist(dist):
+    return split_dist(dist)[1]
+
 
 def canonical(s):
     """

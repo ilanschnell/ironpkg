@@ -1,10 +1,20 @@
 import random
 import unittest
 
-from utils import split_old_version, split_old_eggname, get_version_build
+from utils import (split_old_version, split_old_eggname, get_version_build,
+                   split_dist)
+from requirement import Req
 
 
 class TestUtils(unittest.TestCase):
+
+    def test_split_dist(self):
+        self.assertEqual(
+            split_dist('http://www.example.com/repo/foo.egg'),
+            ('http://www.example.com/repo/', 'foo.egg'))
+        self.assertEqual(
+            split_dist('file:///home/repo/numpy-1.1.1-5.egg'),
+            ('file:///home/repo/', 'numpy-1.1.1-5.egg'))
 
     def test_split_old_version(self):
         self.assertEqual(split_old_version('1.1.0n3'), ('1.1.0', 3))
@@ -46,6 +56,66 @@ class TestUtils(unittest.TestCase):
         random.shuffle(dists)
         dists.sort(key=get_version_build)
         self.assertEqual(dists, org)
+
+
+class TestReq(unittest.TestCase):
+
+    def test_misc_methods(self):
+        for req_string, n in [
+            ('', 0),
+            ('foo', 1),
+            ('foo 1.8', 2),
+            ('foo 1.8, 1.9', 2),
+            ('foo 1.8-7', 3)
+            ]:
+            r = Req(req_string)
+            if r.strictness >= 1:
+                self.assertEqual(r.name, 'foo')
+            self.assertEqual(r.strictness, n)
+            self.assertEqual(str(r), req_string)
+            self.assertEqual(r, r)
+            self.assertEqual(eval(repr(r)), r)
+            
+    def test_versions(self):
+        for req_string, versions in [
+            ('foo 1.8', ['1.8']),
+            ('foo 2.3 1.8', ['1.8', '2.3']),
+            ('foo 4.0.1, 2.3, 1.8', ['1.8', '2.3', '4.0.1']),
+            ('foo 1.8-7', ['1.8-7'])
+            ]:
+            r = Req(req_string)
+            self.assertEqual(r.versions, versions)
+
+    def test_matches(self):
+        spec = dict(
+            metadata_version = '1.1',
+            name = 'foo-bar',
+            version = '2.4.1',
+            build = 3,
+        )
+        for req_string, m in [
+            ('', True),
+            ('foo', False),
+            ('Foo-BAR', True),
+            ('foo-Bar 2.4.1', True),
+            ('foo-Bar 2.4.0 2.4.1', True),
+            ('foo-Bar 2.4.0 2.4.3', False),
+            ('FOO-Bar 1.8.7', False),
+            ('FOO-BAR 2.4.1-3', True),
+            ('FOO-Bar 2.4.1-1', False),
+            ]:
+            r = Req(req_string)
+            self.assertEqual(r.matches(spec), m)
+
+    def test_as_setuptools(self):
+        for s1, s2 in [
+            ('foo', 'foo'),
+            ('bar 1.8', 'bar >=1.8'),
+            ('bar 1.8 2.0', 'bar >=1.8'),
+            ('baz 1.3.1-7', 'baz ==1.3.1n7')
+            ]:
+            r = Req(s1)
+            self.assertEqual(r.as_setuptools(), s2)
 
 
 if __name__ == '__main__':

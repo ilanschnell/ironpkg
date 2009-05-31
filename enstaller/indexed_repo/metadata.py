@@ -1,4 +1,3 @@
-import bz2
 import re
 import string
 from collections import defaultdict
@@ -13,8 +12,6 @@ def parse_index(data):
     mapping the distribution names to the content of the cooresponding
     section.
     """
-    data = bz2.decompress(data)
-
     d = defaultdict(list)
     sep_pat = re.compile(r'==>\s*(\S+)\s*<==')
     for line in data.splitlines():

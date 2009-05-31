@@ -2,19 +2,36 @@ from utils import canonical
 
 
 class Req(object):
+    """
+    A requirement object is initalized by a requirement string. Attributes:
+    name: the canonical project name
+    versions: the list of possible versions required
+    strictness: the level of strictness
+        0   nothing matters, anything matches
+        1   name matters
+        2   name and version(s) matter
+        3   name, version and build matter
+    """
+
     def __init__(self, req_string):
         for c in '<>=':
             assert c not in req_string, req_string
         lst = req_string.replace(',', ' ').split()
-        self.name = canonical(lst[0])
-        assert '-' not in self.name
+        self.strictness = 0
+        self.name = ''
+
+        if lst:
+            self.name = canonical(lst[0])
+            assert '-' not in self.name
+            self.strictness = 1
+
         self.versions = sorted(lst[1:])
+        if self.versions:
+            self.strictness = 2
+
         if any('-' in v for v in self.versions):
             assert len(self.versions) == 1
-            assert '-' in self.versions[0]
-            self.strict = True
-        else:
-            self.strict = False
+            self.strictness = 3
 
     def matches(self, spec):
         """
@@ -23,18 +40,42 @@ class Req(object):
         must be in the list of required versions.
         """
         assert spec['metadata_version'] == '1.1', spec
+        if self.strictness == 0:
+            return True
         if canonical(spec['name']) != self.name:
             return False
-        if self.versions == []:
+        if self.strictness == 1:
             return True
-        if self.strict:
-            return '%(version)s-%(build)i' % spec == self.versions[0]
-        return spec['version'] in self.versions
+        if self.strictness == 2:
+            return spec['version'] in self.versions
+        assert self.strictness == 3
+        return '%(version)s-%(build)i' % spec == self.versions[0]
+
+    def __str__(self):
+        res = self.name
+        if self.versions:
+            res += ' ' + ', '.join(self.versions)
+        return res
 
     def __repr__(self):
-        tmp = '%s %s' % (self.name, ', '.join(self.versions))
-        return 'Req(%r)' % tmp.strip()
+        """
+        return a canonical representation of the object
+        """
+        return 'Req(%r)' % str(self)
 
-    def __cmp__(self, other):
-        assert isinstance(other, Req)
-        return cmp(repr(self), repr(other))
+    def __cmp__(self, other):        
+        return cmp(str(self), str(other))
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def as_setuptools(self):
+        if self.strictness == 0:
+            raise Exception("Can't convert requirement with strictness = 0")
+        if self.strictness == 1:
+            return self.name
+        ver = self.versions[0]
+        if self.strictness == 2:
+            return '%s >=%s' % (self.name, ver)
+        assert self.strictness == 3
+        return '%s ==%s' % (self.name, ver.replace('-', 'n'))
