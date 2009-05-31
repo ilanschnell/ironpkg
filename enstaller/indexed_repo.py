@@ -12,21 +12,6 @@ from egginst.utils import human_bytes
 
 _verbose = False
 
-def parse_metadata(data, var_names=None):
-    """
-    Given the content of a dependency file, return a dictionary mapping the
-    variables to their values, optionally filtered by var_names.
-    """
-    d = {}
-    exec data in d
-    if var_names is None:
-        return d
-
-    d2 = {}
-    for name in var_names:
-        d2[name] = d[name]
-    return d2
-
 
 def parse_index(data):
     """
@@ -37,7 +22,7 @@ def parse_index(data):
     data = bz2.decompress(data)
 
     d = defaultdict(list)
-    sep_pat = re.compile(r'==>\s+(\S+)\s+<==')
+    sep_pat = re.compile(r'==>\s*(\S+)\s*<==')
     for line in data.splitlines():
         m = sep_pat.match(line)
         if m:
@@ -45,87 +30,159 @@ def parse_index(data):
             continue
         d[fn].append(line.rstrip())
 
-    d2 = {}
-    for k in d.iterkeys():
-        d2[k] = '\n'.join(d[k])
+    res = {}
+    for fn in d.iterkeys():
+        res[fn] = '\n'.join(d[fn])
+    return res
 
-    return d2
+
+def metadata_from_spec(spec):
+    """
+    Given a spec dictionary, returns a the spec file as a well formed string.
+    Also this function is a reference for metadata version 1.1
+    """
+    str_None = str, type(None)
+    for var, typ in [
+        ('name', str), ('version', str), ('build', int),
+        ('arch', str_None), ('platform', str_None), ('osdist', str_None),
+        ('python', str_None), ('packages', list)]:
+        assert isinstance(spec[var], typ), spec
+        if isinstance(spec[var], str):
+            s = spec[var]
+            assert s == s.strip(), spec
+            assert s != '', spec
+    assert spec['build'] > 0
+
+    for req in spec['packages']:
+        assert isinstance(req, str), req
+
+    lst = ["""\
+metadata_version = '1.1'
+name = %(name)r
+version = %(version)r
+build = %(build)i
+
+arch = %(arch)r
+platform = %(platform)r
+osdist = %(osdist)r
+python = %(python)r""" % spec]
+
+    if spec['packages']:
+        lst.append('packages = [')
+        deps = spec['packages']
+        for req in sorted(deps, key=string.lower):
+            lst.append("  %r," % req)
+        lst.append(']')
+    else:
+        lst.append('packages = []')
+
+    lst.append('')
+    return '\n'.join(lst)
 
 
-_DEPEND_VARS = [
-    'metadata_version', 'md5', 'size', 'name', 'version', 'disttype',
-    'arch', 'platform', 'osdist', 'python', 'packages',
-]
+def parse_metadata(data, index):
+    """
+    Given the content of a dependency spec file, return a dictionary mapping
+    the variables to their values.
+    """
+    spec = {}
+    exec data in spec
+    assert spec['metadata_version'] in ('1.0', '1.1'), spec
+
+    var_names = [ # these must be present
+        'metadata_version', 'name', 'version', 'build',
+        'arch', 'platform', 'osdist', 'python', 'packages']
+    if index:
+        # An index spec also has these
+        var_names.extend(['md5', 'size'])
+        assert isinstance(spec['md5'], str) and len(spec['md5']) == 32
+        assert isinstance(spec['size'], int)
+
+    if spec['metadata_version'] == '1.0':
+        # convert 1.0 -> 1.1
+        spec['metadata_version'] = '1.1'
+
+        assert spec['filename'].endswith('.egg')
+        dum, v, b = spec['filename'][:-4].split('-')
+        assert v == spec['version']
+        assert b >= 1
+        spec['build'] = int(b)
+        pkgs = spec['packages']
+        spec['packages'] = [name + " " + pkgs[name]
+                            for name in sorted(pkgs, key=string.lower)]
+    res = {}
+    for name in var_names:
+        res[name] = spec[name]
+    return res
+
+
 def parse_depend_index(data):
     """
     Given the data of index-depend.bz2, return a dict mapping each distname
     to a dict mapping variable names to their values.
     """
     d = parse_index(data)
-    for k in d.iterkeys():
-        d[k] = parse_metadata(d[k], _DEPEND_VARS)
+    for fn in d.iterkeys():
+        d[fn] = parse_metadata(d[fn], index=True)
     return d
 
 
+def canonical(s):
+    """
+    Return a canonical representations of a project name.  This is used
+    for finding matches.
+    """
+    s = s.lower()
+    s = s.replace('-', '_')
+    if s == 'tables':
+        s = 'pytables'
+    return s
+
 
 class Req(object):
-    def __init__(self, name, versions):
-        self.name = self.canonical(name)
-        self.versions = sorted(versions)
+    def __init__(self, string):
+        for c in '<>=':
+            assert c not in string, string
+        lst = string.replace(',', ' ').split()
+        self.name = canonical(lst[0])
+        assert '-' not in self.name
+        self.versions = sorted(lst[1:])
+        if any('-' in v for v in self.versions):
+            assert len(self.versions) == 1
+            assert '-' in self.versions[0]
+            self.strict = True
+        else:
+            self.strict = False
 
-    def canonical(self, s):
+    def matches(self, spec):
         """
-        Return a canonical representations of a project name.  This is
-        necessary for finding matches.
+        Returns True if the spec of a distribution matches the requirement
+        (self).  That is, the canonical name must match, and the version
+        must be in the list of required versions.
         """
-        s = s.lower()
-        s = s.replace('-', '_')
-        if s == 'tables':
-            s = 'pytables'
-        return s
-
-    def matches(self, name, version):
-        """
-        Returns True if the name and version of a distribution matches the
-        requirement (self).  That is, the canonical name must match, and
-        the version must be in the list of requirement versions.
-        """
-        assert isinstance(version, str)
-
-        if self.canonical(name) != self.name:
+        assert spec['metadata_version'] == '1.1', spec
+        if canonical(spec['name']) != self.name:
             return False
         if self.versions == []:
             return True
-        return version in self.versions
+        if self.strict:
+            return '%(version)s-%(build)i' % spec == self.versions[0]
+        return spec['version'] in self.versions
 
     def __repr__(self):
-        return "Req(%r, %r)" % (self.name, self.versions)
+        tmp = '%s %s' % (self.name, ', '.join(self.versions))
+        return 'Req(%r)' % tmp.strip()
 
     def __cmp__(self, other):
-        tmp = cmp(self.name, other.name)
-        if tmp != 0:
-            return tmp
-        # names are equal -> compare versions
-        return cmp(self.versions, other.versions)
-
-
-def req_from_string(s):
-    """
-    Return a requirement object from a string such as:
-    'numpy', 'numpy 1.3.0', 'numpy 1.2.1, 1.3.0'
-    the optional comma between versions meaning "or".
-    """
-    lst = s.replace(',', ' ').split()
-    return Req(lst[0], lst[1:])
+        assert isinstance(other, Req)
+        return cmp(repr(self), repr(other))
 
 
 def add_Reqs(spec):
     """
     add the 'Reqs' key to a spec dictionary.
     """
-    reqs = set(Req(n, vs.replace(',', ' ').split())
-               for n, vs in spec['packages'].iteritems())
-    spec['Reqs'] = reqs
+    spec['Reqs'] = set(Req(s) for s in spec['packages'])
 
 
 _old_version_pat = re.compile(r'(\S+?)(n\d+)$')
@@ -254,13 +311,13 @@ class IndexedRepo(object):
 
         data = get_data_from_url(repo + 'index-depend.bz2')
 
-        index2 = parse_depend_index(data)
-        for spec in index2.itervalues():
+        new_index = parse_depend_index(data)
+        for spec in new_index.itervalues():
             add_Reqs(spec)
 
         self.chain.append(repo)
 
-        for distname, spec in index2.iteritems():
+        for distname, spec in new_index.iteritems():
             self.index[repo + distname] = spec
 
     def get_matches_repo(self, req, repo):
@@ -270,8 +327,7 @@ class IndexedRepo(object):
         """
         matches = set()
         for dist, spec in self.index.iteritems():
-            if (dist.startswith(repo) and
-                req.matches(spec['name'], spec['version'])):
+            if dist.startswith(repo) and req.matches(spec):
                 assert dist not in matches
                 matches.add(dist)
         return matches
@@ -330,18 +386,21 @@ class IndexedRepo(object):
     def reqs_dist(self, dist):
         """
         Return the requirement objects (as a sorted list) which are a
-        requirements for the distribution.
+        required by the distribution.
         """
         return sorted(self.index[dist]['Reqs'])
 
-    def dist_as_req(self, dist):
+    def dist_as_req(self, dist, strict=False):
         """
         Return the distribution in terms of the a requirement object.
         That is: What requirement gives me the distribution?
         Which is different from the method reqs_dist above.
         """
         spec = self.index[dist]
-        return Req(spec['name'], [spec['version']])
+        tmp = '%(name)s %(version)s' % spec
+        if strict:
+            tmp += '-%(build)i' % spec
+        return Req(tmp)
 
     def append_deps(self, dists, dist):
         """
@@ -412,7 +471,7 @@ class IndexedRepo(object):
             raise Exception("arcname=%r does not exist in %r" %
                             (arcname, filename))
 
-        spec = parse_metadata(z.read(arcname))
+        spec = parse_metadata(z.read(arcname), index=False)
         z.close()
         add_Reqs(spec)
         self.index['local:/' + filename] = spec
@@ -441,7 +500,7 @@ class IndexedRepo(object):
                 assert all(v == v.strip() for v in r.versions)
                 assert d in self.index
 
-            r = Req(spec['name'], [spec['version']])
+            r = Req('%(name)s %(version)s' % spec)
             assert self.dist_as_req(fn) == r
             assert self.get_dist(r)
             if self.verbose:
@@ -452,8 +511,7 @@ class IndexedRepo(object):
         print "Index has %i distributions" % len(self.index)
         print "The following distributions are not required anywhere:"
         for fn, spec in self.index.iteritems():
-            if not any(r.matches(spec['name'], spec['version'])
-                       for r in allreqs):
+            if not any(r.matches(spec) for r in allreqs):
                 print '\t%s' % fn
         print 'OK'
 

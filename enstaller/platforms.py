@@ -7,8 +7,8 @@ def to_list(s):
 
 class Platforms(object):
     """
-    An instance represents the list of platforms which are available on
-    a remote repository.
+    An instance represents the list of platforms which are available in a
+    repository.
     """
 
     def __init__(self, url):
@@ -45,16 +45,19 @@ class Platforms(object):
             return True
         return any(v in self.data[ID][var] for v in to_list(val))
 
-    def get_IDs(self, spec):
+    def get_IDs(self, spec=None):
         """
-        returns the set of platform IDs for which the requirements match.
+        returns a sorted list of platform IDs for which the requirements
+        (if provided) match.  If the requirements are not provided all IDs
+        are returned.
         """
         res = set()
         for ID in self.data.iterkeys():
-            if all(self._ID_matches(ID, var, spec[var])
-                   for var in ['arch', 'platform', 'osdist']):
+            if (spec is None or
+                all(self._ID_matches(ID, var, spec[var])
+                    for var in ['arch', 'platform', 'osdist'])):
                 res.add(ID)
-        return res
+        return sorted(res)
 
 
 if __name__ == '__main__':
