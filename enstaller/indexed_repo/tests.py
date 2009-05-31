@@ -1,11 +1,10 @@
 import random
 import unittest
 
-from enstaller.indexed_repo import (split_old_version, split_old_eggname,
-                                    get_version_build)
+from utils import split_old_version, split_old_eggname, get_version_build
 
 
-class TestRepo(unittest.TestCase):
+class TestUtils(unittest.TestCase):
 
     def test_split_old_version(self):
         self.assertEqual(split_old_version('1.1.0n3'), ('1.1.0', 3))
