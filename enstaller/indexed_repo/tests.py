@@ -75,7 +75,7 @@ class TestReq(unittest.TestCase):
             self.assertEqual(str(r), req_string)
             self.assertEqual(r, r)
             self.assertEqual(eval(repr(r)), r)
-            
+
     def test_versions(self):
         for req_string, versions in [
             ('foo 1.8', ['1.8']),

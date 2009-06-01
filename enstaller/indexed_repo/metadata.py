@@ -1,6 +1,13 @@
+import os
+import sys
 import re
+import bz2
 import string
+import StringIO
+import zipfile
+import hashlib
 from collections import defaultdict
+from os.path import basename, join, getsize
 
 from utils import canonical
 
@@ -122,3 +129,73 @@ def parse_depend_index(data):
         # convert the values from a text string (of the spec file) to a dict
         d[fn] = parse_data(d[fn], index=True)
     return d
+
+
+def get_index_section(zip_path):
+    """
+    Returns a section corresponding to the zip-file, which can be appended
+    to an index.
+    """
+    z = zipfile.ZipFile(zip_path)
+    spec = parse_data(z.read('EGG-INFO/spec/depend'), index=False)
+    z.close()
+
+    md5 = hashlib.md5(open(zip_path).read()).hexdigest()
+    return ('==> %s <==\n' % basename(zip_path) +
+            'size = %i\n'  % getsize(zip_path) +
+            'md5 = %r\n\n' % md5 +
+            data_from_spec(spec) + '\n')
+
+
+def compress_txt(src):
+    """
+    reads 'src' and writes the bz2 compressed data to 'dst'
+    """
+    assert src.endswith('.txt')
+    dst = src[:-4] + '.bz2'
+
+    data = open(src, 'rb').read()
+
+    fo = open(dst, 'wb')
+    fo.write(bz2.compress(data))
+    fo.close()
+
+
+def write_index(dir_path, compress=False):
+    """
+    Updates index-depend.txt (and optionally index-depend.bz2)
+    in the directory specified.
+    """
+    txt_path = join(dir_path, 'index-depend.txt')
+    print "Updating:", txt_path
+
+    # since accumulating the new data takes a while, we first write to memory
+    # and then write the file in one shot.
+    faux = StringIO.StringIO()
+    n = 0
+    for fn in sorted(os.listdir(dir_path), key=string.lower):
+        if not fn.endswith('.egg'):
+            continue
+        faux.write(get_index_section(join(dir_path, fn)))
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        n += 1
+    print n
+
+    fo = open(txt_path, 'w')
+    fo.write(faux.getvalue())
+    fo.close()
+    compress_txt(txt_path)
+
+
+def append_dist(zip_path, compress=False):
+    """
+    Appends a the distribution to index-depend.txt (and optionally
+    index-depend.bz2), in the directory in which the distribution is located.
+    """
+    txt_path = join(dirname(zip_path), 'index-depend.txt')
+
+    f = open(txt_path, 'a')
+    f.write(get_index_section(zip_path))
+    f.close()
+    compress_index(txt_path)

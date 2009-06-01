@@ -1,6 +1,7 @@
 from utils import canonical
 
 
+
 class Req(object):
     """
     A requirement object is initalized by a requirement string. Attributes:
@@ -63,7 +64,7 @@ class Req(object):
         """
         return 'Req(%r)' % str(self)
 
-    def __cmp__(self, other):        
+    def __cmp__(self, other):
         return cmp(str(self), str(other))
 
     def __hash__(self):

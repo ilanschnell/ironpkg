@@ -5,7 +5,7 @@ from collections import defaultdict
 from os.path import basename, join, isfile
 
 from utils import (get_data_from_url, canonical, get_version_build,
-                   repo_dist, filename_dist)
+                   split_old_eggname, repo_dist, filename_dist)
 from metadata import parse_depend_index, parse_data
 from requirement import Req
 
@@ -17,6 +17,21 @@ def add_Reqs_to_spec(spec):
     to a spec dictionary.
     """
     spec['Reqs'] = set(Req(s) for s in spec['packages'])
+
+
+def dist_as_req(dist, strictness=3):
+    """
+    Return the distribution in terms of the a requirement object.
+    That is: What requirement gives me the distribution?
+    """
+    assert strictness >= 1
+    name, version, build = split_old_eggname(basename(dist))
+    req_string = name
+    if strictness >= 2:
+        req_string += ' %s' % version
+    if strictness >= 3:
+        req_string += '-%s' % build
+    return Req(req_string)
 
 
 
@@ -58,28 +73,26 @@ class IndexedRepo(object):
         for distname, spec in new_index.iteritems():
             self.index[repo + distname] = spec
 
-    def fetch_dist(self, req):
+    def fetch_dist(self, dist, force=False):
         """
-        Get a distribution, i.e. copy the distribution into the local
-        repo, according to how the chain is resolved.
+        Get a distribution, i.e. copy the distribution into the local repo.
         """
-        dist = self.get_dist(req)
-        if dist is None:
-            raise Exception("no distribution found for %r" % req)
+        if dist not in self.index:
+            raise Exception("distribution not found: %r" % dist)
 
-        if repo_dist(dist) == 'local:/':
+        dst = join(self.local, filename_dist(dist))
+        if not force and isfile(join(self.local, filename_dist(dist))):
             if self.verbose:
-                print "Nothing to do for:", dist
+                print "Not forcing rewrite, %r already exists" % dst
             return
 
         data = get_data_from_url(dist,
                                  self.index[dist]['md5'],
                                  self.index[dist]['size'],
                                  verbose=self.verbose)
-
-        dst = join(self.local, filename_dist(dist))
         if self.verbose:
-            print "Copying %r to %r" % (dist, dst)
+            print "Copying: %r" % dist
+            print "     to: %r" % dst
         fo = open(dst, 'wb')
         fo.write(data)
         fo.close()
@@ -134,20 +147,6 @@ class IndexedRepo(object):
             raise("Index does not contain distribution: %r" % dist)
         return self.index[dist]['Reqs']
 
-    def dist_as_req(self, dist, strictness=2):
-        """
-        Return the distribution in terms of the a requirement object.
-        That is: What requirement gives me the distribution?
-        Which is different from the method reqs_dist above.
-        """
-        spec = self.index[dist]
-        req_string = '%(name)s' % spec
-        if strictness >= 2:
-            req_string += ' %(version)s' % spec
-        if strictness >= 3:
-            req_string += '-%(build)i' % spec
-        return Req(req_string)
-
     def _add_reqs(self, reqs, req):
         for dist in self.get_matches(req):
             for r in self.reqs_dist(dist):
@@ -174,7 +173,7 @@ class IndexedRepo(object):
         names = set(r.name for r in reqs)
 
         res = set()
-        for name in sorted(names):
+        for name in names:
             # get all requirements for the name
             rs = [r for r in reqs if r.name == name]
             # sort by strictness
@@ -183,61 +182,44 @@ class IndexedRepo(object):
             res.add(rs[-1])
         return res
 
-    def append_deps(self, dists, dist):
-        """
-        Append distributions required by (the distribution) 'dist' to the list
-        recursively.
-        """
-        # first we need to know what the requirements of 'dist' are, we sort
-        # them to because we want the list of distributions to be
-        # deterministic.
-        for r in self.reqs_dist(dist):
-            # This is the distribution we finally want to append
-            d = self.get_dist(r)
-
-            # if the distribution 'd' is already in the list, we have already
-            # added it (and it's dependencies) earlier.
-            if d in dists:
-                continue
-
-            # Append dependencies of the 'd', before 'd' itself.
-            self.append_deps(dists, d)
-
-            # Make sure we've only added dependencies and not 'd' itself, which
-            # could happen if there a loop is the dependency tree.
-            assert d not in dists
-
-            # Append the distribution itself.
-            dists.append(d)
-
     def install_order(self, req):
         """
-        Return the list of distributions which need to be installed to meet
-        the requirement.
+        Return the list of distributions which need to be installed.
         The returned list is given in dependency order, i.e. the distributions
         can be installed in this order without any package being installed
         before its dependencies got installed.
         """
-        # This is the actual distribution we append at the end
-        d = self.get_dist(req)
+        reqs = self.get_reqs(req)
+        dists = sorted(self.get_dist(r) for r in reqs)
+        # maps dist -> set of required names
+        rns = {}
+        for dist in dists:
+            rns[dist] = set(r.name for r in self.reqs_dist(dist))
 
-        # Start with no distributions and add all dependencies of the required
-        # distribution first.
-        dists = []
-        self.append_deps(dists, d)
-
-        # dists now has all dependencies, before adding the required
-        # distribution itself, we make sure it is not listed already.
-        assert d not in dists
-        dists.append(d)
-
-        return dists
+        # As long as we have things missing, simply look for things which
+        # can be added, i.e. all the requirements have been added already
+        res = []
+        names_inst = set()
+        while len(res) < len(dists):
+            n = len(res)
+            for dist in dists:
+                if dist in res:
+                    continue
+                # see if all required packages were added already
+                if all(bool(n in names_inst) for n in rns[dist]):
+                    res.append(dist)
+                    names_inst.add(dist_as_req(dist).name)
+            if len(res) == n:
+                # nothing was added
+                print "WARNING: Loop in the dependency graph"
+                break
+        return res
 
     def add_to_local(self, filename):
         """
         Add an unindexed distribution, which must already exist in the local
         repository, to the index (in memory).  Note that the index file on
-        disk remains untouched.
+        disk remains unchanged.
         """
         if self.verbose:
             print "Adding %r to index" % filename
@@ -282,7 +264,7 @@ class IndexedRepo(object):
                 assert d in self.index
 
             r = Req('%(name)s %(version)s' % spec)
-            assert self.dist_as_req(fn) == r
+            assert dist_as_req(fn, strictness=2) == r
             assert self.get_dist(r)
             if self.verbose:
                 print
@@ -295,3 +277,44 @@ class IndexedRepo(object):
             if not any(r.matches(spec) for r in allreqs):
                 print '\t%s' % fn
         print 'OK'
+
+
+
+def fetch(repo, req_string,
+          verbose=False,
+          no_deps=False,
+          dry_run=False,
+          local_dir='.',
+          ):
+    """
+    Convenient wrapper function
+    """
+    ir = IndexedRepo(verbose=verbose)
+    ir.local = local_dir
+    ir.add_repo(repo)
+
+    req = Req(req_string)
+    if verbose:
+        print "==================== %r ====================" % req
+
+    if no_deps:
+        dists = [ir.get_dist(req)]
+    else:
+        dists = ir.install_order(req)
+
+    if verbose:
+        for d in dists:
+            print '\t', filename_dist(d)
+
+    for dist in dists:
+        filename = filename_dist(dist)
+        if verbose:
+            print 70 * '='
+            print dist
+        if isfile(join(ir.local, filename)):
+            print '%-60s [already exists]' % filename
+        else:
+            print '%-60s    [downloading]' % filename
+            if dry_run:
+                continue
+            ir.fetch_dist(dist)
