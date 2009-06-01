@@ -102,13 +102,11 @@ class IndexedRepo(object):
     def get_matches_repo(self, req, repo):
         """
         Return the set of distributions which match the requirement from a
-        specified repository.  That is, all distribution which match the
-        requirement from that repository.
+        specified repository.
         """
         matches = set()
         for dist, spec in self.index.iteritems():
             if repo_dist(dist) == repo and req.matches(spec):
-                assert dist not in matches
                 matches.add(dist)
         return matches
 
@@ -211,6 +209,7 @@ class IndexedRepo(object):
                 if all(bool(n in names_inst) for n in rns[dist]):
                     res.append(dist)
                     names_inst.add(dist_as_req(dist).name)
+                    assert len(names_inst) == len(res)
             if len(res) == n:
                 # nothing was added
                 print "WARNING: Loop in the dependency graph"
