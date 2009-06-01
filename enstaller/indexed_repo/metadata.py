@@ -7,7 +7,7 @@ import StringIO
 import zipfile
 import hashlib
 from collections import defaultdict
-from os.path import basename, join, getsize
+from os.path import basename, dirname, join, getsize
 
 from utils import canonical
 
@@ -198,4 +198,4 @@ def append_dist(zip_path, compress=False):
     f = open(txt_path, 'a')
     f.write(get_index_section(zip_path))
     f.close()
-    compress_index(txt_path)
+    compress_txt(txt_path)
