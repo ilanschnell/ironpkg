@@ -81,9 +81,9 @@ class IndexedRepo(object):
             raise Exception("distribution not found: %r" % dist)
 
         dst = join(self.local, filename_dist(dist))
-        if not force and isfile(join(self.local, filename_dist(dist))):
+        if not force and isfile(dst):
             if self.verbose:
-                print "Not forcing rewrite, %r already exists" % dst
+                print "Not forcing refetch, %r already exists" % dst
             return
 
         data = get_data_from_url(dist,
@@ -161,24 +161,23 @@ class IndexedRepo(object):
     def get_reqs(self, req):
         """
         Returns the set of requirements, which are necessary to install 'req'.
-        For each required project, only one requirement, i.e. the one with
-        the highest strictness, is contained in the output.
+        For each required (project) name, only one requirement, i.e. the one
+        with the highest strictness, is contained in the output.
         """
         # first, get the set of all requirements
         reqs = set()
         self._add_reqs(reqs, req)
         reqs.add(req)
 
-        # the set of all required project names all names
+        # the set of all required (project) names
         names = set(r.name for r in reqs)
 
         res = set()
         for name in names:
             # get all requirements for the name
             rs = [r for r in reqs if r.name == name]
-            # sort by strictness
             rs.sort(key=lambda r: r.strictness)
-            # add the requirement with the greatest strictness
+            # add the requirement with greatest strictness
             res.add(rs[-1])
         return res
 
@@ -189,9 +188,12 @@ class IndexedRepo(object):
         can be installed in this order without any package being installed
         before its dependencies got installed.
         """
+        # all requirements necessary for install
         reqs = self.get_reqs(req)
+        # the corresponding distributions (sorted because the output of this
+        # function is otherwise not deterministic)
         dists = sorted(self.get_dist(r) for r in reqs)
-        # maps dist -> set of required names
+        # maps dist -> set of required (project) names
         rns = {}
         for dist in dists:
             rns[dist] = set(r.name for r in self.reqs_dist(dist))
