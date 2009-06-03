@@ -90,7 +90,7 @@ def retrieve_states():
     return cached_states
 
 
-def save_state():
+def save_state(verbose=False):
     """
     Adds an entry of the current working configuration of packages to the
     enstaller.cache file.
@@ -120,9 +120,10 @@ def save_state():
         recent_state = stored_states[0]
         recent_project_list = recent_state[1]
         if project_list == recent_project_list:
-            print ('There is no difference between the current state and the '
-                'most recent saved state in the enstaller.cache, so the current '
-                'state does not need to be saved.')
+            if verbose:
+                print ('There is no difference between the current state and '
+                    'the most recent saved state in the enstaller.cache, so '
+                    'the current state does not need to be saved.')
             return
     
     # Save the current state to an entry in the enstaller.cache file.  Each entry begins
@@ -132,13 +133,15 @@ def save_state():
     timestamp = strftime("%Y%m%d%H%M%S")
     pkg_list = ','.join(project_list)
     try:
-        print 'Saving current state...'
+        if verbose:
+            print 'Saving current state...'
         f = open(enstaller_cache, 'a')
         f.write(timestamp + ':')
         f.write(pkg_list)
         f.write('\n')
         f.close()
-        print 'Successfully saved the current state.'
+        if verbose:
+            print 'Successfully saved the current state.'
     except:
         print "Error trying to write to the enstaller.cache."
     

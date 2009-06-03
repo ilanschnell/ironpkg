@@ -241,8 +241,9 @@ class easy_install(Command):
         if self.proxy is not None:
             from enstaller.proxy.api import setup_proxy
             installed = setup_proxy(self.proxy)
-            print "Yes...", installed
-            print self.proxy
+            if self.verbose:
+                print "Yes...", installed
+                print self.proxy
 
     def run(self):
         if self.verbose != self.distribution.verbose:
@@ -1960,7 +1961,7 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
 
 
 def bootstrap():
-    # This function is called when enstaller*.egg is run using /bin/sh
+    # This function is called when an enstaller egg is run using /bin/sh
     import setuptools
 
     argv0 = os.path.dirname(setuptools.__path__[0])

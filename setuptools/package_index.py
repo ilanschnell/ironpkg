@@ -490,8 +490,8 @@ class PackageIndex(Environment):
             # purposefully want to try to install a dev releases.  Thus we
             # call oursevles explicitly with get_release set to False.
             if get_release:
-                self.info("No matching release version found. Searching for "\
-                          "latest development version.")
+                self.debug("No matching release version found. Searching for "\
+                    "latest development version.")
                 return find(req, get_release=False)
 
         if force_scan:
