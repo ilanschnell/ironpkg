@@ -10,14 +10,16 @@
 
 
 import ConfigParser
-from distutils import sysconfig
 import os
 import stat
 import sys
 
+from distutils import sysconfig
+from os.path import abspath, exists, expanduser, join
+
 
 def default_config():
-    """
+    """\
     Return the default state of this project's config file.
 
     We expect the config to consist of the following sections:
@@ -33,7 +35,6 @@ def default_config():
         distributions only. i.e. "unstable" distributions.
 
     """
-
     cp = ConfigParser.SafeConfigParser()
     
     # By default, set the index url to the pypi index in the 'repos' section.
@@ -47,12 +48,11 @@ def default_config():
     return cp
 
 
-def get_config():
-    """
+def get_config(verbose=False):
+    """\
     Return the current configuration.
 
     """
-
     # Try to read the current config.  If the config file doesn't exist,
     # just create a new config file with our default config.   We do this to
     # try and give user's a template to fill out rather than having to guess at
@@ -61,7 +61,8 @@ def get_config():
     if path:
         cp = ConfigParser.SafeConfigParser()
         cp.read(path)
-        print 'Retrieved config from: %s' % path
+        if verbose:
+            print 'Retrieved config from: %s' % path
     else:
         # If user is 'root', then create the config file in the system
         # site-packages.  Otherwise, create it in the user's HOME directory.
@@ -74,8 +75,8 @@ def get_config():
     return cp
 
 
-def init_config(path):
-    """
+def init_config(path, verbose=True):
+    """\
     Initialize the config file at the specified path.
 
     This will fail silently if the user can not write to the specified path.
@@ -109,7 +110,8 @@ def init_config(path):
             os.chmod(path, 0444|stat.S_IWUSR)
         else:
             os.chmod(path, stat.S_IRUSR|stat.S_IWUSR)
-        print 'Created config file: %s' % path
+        if verbose:
+            print 'Created config file: %s' % path
     except IOError:
         pass
 
@@ -117,7 +119,7 @@ def init_config(path):
 
 
 def get_configured_repos(unstable=False):
-    """
+    """\
     Return the set of repository urls in our config file.
 
     The config file allows for a declaration of unstable repos as well, but
@@ -125,7 +127,6 @@ def get_configured_repos(unstable=False):
     true.
 
     """
-
     results = []
 
     # Add all the stable repos to the results list in the sorted order
@@ -147,12 +148,11 @@ def get_configured_repos(unstable=False):
     return results
     
 
-def get_configured_index():
-    """
+def get_configured_index(verbose=True):
+    """\
     Return the index that is set in our config file.
 
     """
-    
     # Find all of the index urls specified in the stable repos list.
     results = []
     cp = get_config()
@@ -168,8 +168,9 @@ def get_configured_index():
     if len(results) == 1:
         return results[0]
     elif len(results) > 1:
-        print ("Warning:  You specified more than one index URL in the config "
-            "file.  Only the first one found will be used.")
+        if verbose:
+            print ("Warning:  You specified more than one index URL in the "
+                "config file.  Only the first one found will be used.")
         return results[0]
     else:
         # FIXME:  For now we just return 'dummy' if no index URL is specified,
@@ -179,11 +180,10 @@ def get_configured_index():
 
 
 def _get_config_name():
-    """
+    """\
     Return the name of the configuration file based on what platform we are on.
 
     """
-
     if sys.platform == 'win32':
         name = "enstaller.ini"
     else:
@@ -192,36 +192,30 @@ def _get_config_name():
 
     
 def _get_default_config_path():
-    """
+    """\
     Return the path to the default config file in a user's HOME directory.
 
     """
-    
-    name = _get_config_name()
-    return os.path.abspath(os.path.join(os.path.expanduser("~"), name))
+    return abspath(join(expanduser("~"), _get_config_name()))
 
 
 def _get_system_config_path():
-    """
+    """\
     Return the path to the config file in the system site-packages.
     
     """
-
-    name = _get_config_name()
-    site_packages = sysconfig.get_python_lib()
-    return os.path.abspath(os.path.join(site_packages, name))
+    return abspath(join(sysconfig.get_python_lib(), _get_config_name()))
 
     
 def _get_config_path():
-    """
+    """\
     Return the absolute path to our config file.
 
     """
-
     # First, look for the config file in the user's HOME directory.
     # If the config file can be found here, then return its path.
     file_path = _get_default_config_path()
-    if os.path.exists(file_path):
+    if exists(file_path):
         return file_path
         
     # If a config file can't be found in the user's HOME directory,
@@ -229,7 +223,7 @@ def _get_config_path():
     # the config file in site-packages is different on non-Windows platforms
     # so that it will sort next to the Enstaller egg.
     file_path = _get_system_config_path()
-    if os.path.exists(file_path):
+    if exists(file_path):
         return file_path
     
     # If we reach this point, it means that we couldn't locate a config
