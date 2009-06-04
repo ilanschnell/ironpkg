@@ -142,7 +142,7 @@ class IndexedRepo(object):
         Return the set of requirement objects of the distribution.
         """
         if dist not in self.index:
-            raise("Index does not contain distribution: %r" % dist)
+            raise Exception("Index does not contain distribution: %r" % dist)
         return self.index[dist]['Reqs']
 
     def _add_reqs(self, reqs, req):
