@@ -1,5 +1,3 @@
-
-
 #    name           platform   osdist
 _DATA = {
     'xp-32':       'win32      XP',
@@ -47,8 +45,11 @@ class EnForm(object):
         print 'bits:', self.bits
 
     def matches(self, spec):
-        if spec['platform'] != self.platform:
-            return False
+        for var in ['arch', 'platform', 'osdist']:
+            if (var in spec and
+                spec[var] is not None and
+                getattr(self, var) not in to_list(spec[var])):
+                return False
         return True
 
 
@@ -76,4 +77,5 @@ def get_names(spec):
 if __name__ == '__main__':
     #for x in ENFORMS.itervalues():
     #    x.print_details()
-    print get_names({'arch': 'x86', 'platform':'linux2'})
+    print get_names({})
+    print get_names({'arch': 'amd64', 'osdist': None});
