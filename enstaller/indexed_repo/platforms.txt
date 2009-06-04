@@ -1,0 +1,16 @@
+ID    keyword        arch     platform   osdist
+----------------------------------------------------
+ 1    win-32         x86      win32      XP
+ 2    win-64         amd64    win64      XP
+ 3    os10.4-32      x86      darwin     MacOS_10.4
+ 4    os10.4-64      amd64    darwin     MacOS_10.4
+ 5    rh3-32         x86      linux2     RedHat_3
+ 6    rh3-64         amd64    linux2     RedHat_3
+ 7    rh5-32         x86      linux2     RedHat_5
+ 8    rh5-64         amd64    linux2     RedHat_5
+ 9    sol10-32       x86      sunos5     Solaris_10
+10    sol10-64       amd64    sunos5     Solaris_10
+11    ubu8.04-32     x86      linux2     Ubuntu_8.04
+12    ubu8.04-64     amd64    linux2     Ubuntu_8.04
+13    suse10.3-32    x86      linux2     SuSE_10.3
+14    suse10.3-64    amd64    linux2     SuSE_10.3
