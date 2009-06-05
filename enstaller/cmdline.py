@@ -327,9 +327,10 @@ def rollback_menu(remote_repos=None, interactive=True,
     while True:
         selection = user_select(["date"],
             metadata, ("Select a restore point to rollback your "
-            "environment to.\nFor more information about a "
-            "specific rollback point,\ntype the option number "
-            "followed by a question mark:  "), extra_char="?",
+            "environment to.  For more information about a "
+            "specific rollback point, type the option number "
+            "followed by a question mark.  Use '0' to cancel "
+            "rollback:  "), default="0", extra_char="?",
             max_width=term_width)
         if not selection.endswith("?"):
             break
@@ -350,6 +351,10 @@ def rollback_menu(remote_repos=None, interactive=True,
                 state_data, sorted=False, max_width=term_width)
             msg += "\n\n"
             print msg
+
+    # If the user selected option '0', then there's nothing to do.
+    if selection == '0':
+        return
             
     # Now that the user has selected a rollback point, perform the action to rollback
     # to that state.  Once the rollback has been completed successfully, let the user

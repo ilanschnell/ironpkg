@@ -267,6 +267,8 @@ def user_select(header, data, prompt, default="1", extra_char=None,
     """
 
     valid_responses = [str(i+1) for i in range(len(data))]
+    if default not in valid_responses:
+        valid_responses.append(default)
     if extra_char:
         valid_responses += [(str(i+1)+extra_char) for i in range(len(data))]
     for i, row in enumerate(data):

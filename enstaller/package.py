@@ -35,11 +35,12 @@ class Package(object):
     
     active = False
     
-    def __init__(self, project, version):
+    def __init__(self, project, version, verbose=False):
         self.project = project
         self.version = version
         self.parsed_version = parse_version(version)
-    
+        self.verbose = verbose
+
     @property
     def repository(self):
         return self.project.repository
@@ -74,9 +75,10 @@ class PkgResourcesPackage(Package):
     inherited_metadata = ["location", "project_name", "key", "extras",
         "version", "parsed_version", "py_version", "platform", "precedence"]
 
-    def __init__(self, project, distribution):
+    def __init__(self, project, distribution, verbose=False):
         self.project = project
         self.distribution = distribution
+        self.verbose = verbose
     
     @property
     def requirement(self):
@@ -453,7 +455,7 @@ class RemotePackage(PkgResourcesPackage):
             print "Run post-activate scripts."
 
 
-def retrieve_metadata_from_egginfo(package):
+def retrieve_metadata_from_egginfo(package, verbose=False):
     """\
     Return the metadata from an associated .egg.info file.
 
@@ -477,7 +479,8 @@ def retrieve_metadata_from_egginfo(package):
                 raise DistutilsError('Dummy')
             results = get_egg_specs_from_info(h.read())
         except DistutilsError, e:
-            info("No .egg.info link available for %s" % package.name)
+            if verbose:
+                info("No .egg.info link available for %s" % package.name)
             results = dict()
     finally:
         if h: h.close()
@@ -493,12 +496,14 @@ class HTMLPackage(RemotePackage):
     """
     @property
     def metadata(self):
-        metadata = dict([(attr, getattr(self.distribution, attr, None))
-            for attr in self.inherited_metadata])
-        metadata['active'] = ""
-        metadata.update(retrieve_metadata_from_egginfo(self))
+        if not getattr(self, '_metadata', None):
+            self._metadata = dict([(attr, getattr(self.distribution, attr,
+                None)) for attr in self.inherited_metadata])
+            self._metadata['active'] = ""
+            self._metadata.update(retrieve_metadata_from_egginfo(self),
+                verbose=self.verbose)
             
-        return metadata
+        return self._metadata
 
 
 class XMLRPCPackage(RemotePackage):
@@ -509,22 +514,12 @@ class XMLRPCPackage(RemotePackage):
     """
     @property
     def metadata(self):
-        if self._metadata == None:
+        if not getattr(self, '_metadata', None):
             self._metadata = self.project.repository.server.release_data(
                     self.project.name, self.version)
-        metadata['active'] = ""
-        metadata.update(retrieve_metadata_from_egginfo(self))
+            self._metadata['active'] = ""
+            self._metadata.update(retrieve_metadata_from_egginfo(self),
+                verbose=self.verbose)
         
-        h = None
-        try:
-            h = open_url(egg_info_url)
-            if isinstance(h, urllib2.HTTPError):
-                raise DistutilsError('Dummy')
-            egg_info = get_egg_specs_from_info(h.read())
-            metadata.update(egg_info)
-        except urllib2.URLError:
-            info("No .egg.info link available for %s" % self.name)
-        if h:
-            h.close()
         return self._metadata
 
