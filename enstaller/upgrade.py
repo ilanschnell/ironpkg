@@ -6,48 +6,48 @@
 # available at http://www.enthought.com/licenses/BSD.txt and may be
 # redistributed only under the conditions described in the aforementioned
 # license.
-#
-# Corran Webster
 #------------------------------------------------------------------------------
 
-# Enstaller imports.
+
 from pkg_resources import compose_version_string, parse_version
 
 
 def get_upgrade_str(name, version, upgrade=True):
-    """
+    """\
+    Return a requirement string that defines an upgrade to a project spec.
+
     Given a package name and version, return a requirement string in
     pkg_resources.Requirement format that can be used to retrieve
     an upgrade to that particular package version.  By default,
-    the string returned would be an upgrade(i.e. change in major/minor
-    version number), but if 'upgrade' is set to False, it will return a string
-    that would constitute an update(i.e. change in patch/build level version
-    number).
+    the string returned would be an upgrade (i.e. change in major version)
+    but if 'upgrade' is set to False, it will return a string
+    that would constitute an update (i.e. change in minor or patch version.)
+
     """
     
-    # Split up the version string into a list so we can determine
-    # upgrades in the major/minor version parts.  Also check to see
-    # if the package has our build number tag.
+    # FIXME: This is legacy code that probably isn't needed anymore.
+    # Strip off any of Enthought's special tags representing distributions
+    # with post-install scripts.
     orig_version = version
     if version[-2:] == "-s":
         version = version[:-2]
 
-    # Find out the length of the version string as split by '.' and the length of what we consider
-    # the major part of the version.
+    # Find out the length of the version string as split by '.' and the length
+    # of what we consider the major part of the version.
     version_len = len(version.split('.'))
     major_len = len(version.split('.')) // 2
     
     # Retrieve the version_parts from pkg_resources.parse_version.
-    # Separate the major part from the version_parts, which signifies
-    # the difference between the parts of the version that represent major/minor level upgrades
-    # and patch/build level updates.
+    # Separate the major part from the version_parts, which signifies the
+    # difference between the parts of the version that represent major/minor
+    # level upgrades and patch/build level updates.
     version_parts = parse_version(version)
     major_part = version_parts[:major_len]
     
-    # Handle the end-case where there is only a single version for the package.
+    # Special case to handle when there is only a single version part.
     # In this case, only an upgrade can be performed because each version must
-    # have at least 1 major version number.  However, if this single version is a
-    # mix of integers and characters, then we can determine an upgrade/update
+    # have at least 1 major version number.  However, if this single version is
+    # a mix of integers and characters, then we can determine an upgrade/update
     # based on that.
     if version_len == 1:
         if len(version_parts) == 2:
@@ -64,9 +64,9 @@ def get_upgrade_str(name, version, upgrade=True):
         return req_str
     
     # Retrieve the last entry of the major part so that we can increment it to
-    # determine our upgrade version number.  Convert the end of the major part to an
-    # integer or it's ASCII code and then increment it and convert it back to a string
-    # to be placed back in the major part of the version.
+    # determine our upgrade version number.  Convert the end of the major part
+    # to an integer or it's ASCII code and then increment it and convert it
+    # back to a string to be placed back in the major part of the version.
     end_part = major_part[-1]
     try:
         end_part = int(end_part)
@@ -74,10 +74,11 @@ def get_upgrade_str(name, version, upgrade=True):
         end_part = ord(end_part[-1])
     end_part = str(end_part+1)
     
-    # If there is only one item in the major_part tuple, then the upgrade version is just
-    # the end_part, which is the major_part incremented.  Otherwise, we need to convert the
-    # major_part tuple into a list so that we can remove its last entry and then append our
-    # incremented end_part and retrieve an upgrade version from that.
+    # If there is only one item in the major_part tuple, then the upgrade
+    # version is just the end_part, which is the major_part incremented.
+    # Otherwise, we need to convert the major_part tuple into a list so that we
+    # can remove its last entry and then append our incremented end_part and
+    # retrieve an upgrade version from that.
     if len(major_part) == 1:
         upgrade_version = end_part
     else:
@@ -93,50 +94,51 @@ def get_upgrade_str(name, version, upgrade=True):
     else:
         req_str = "%s>%s, <%s" % (name, orig_version, upgrade_version)
     
-    # Return our requirement string.
     return req_str
     
     
 def reason(reasons, project, message):
     reasons[project] = reasons.get(project, []) + [message]
 
+
 def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
-                     reasoning):
-    """Recursively resolve a set of dependencies.
+    reasoning):
+    """\
+    Recursively resolve a set of dependencies.
     
     Parameters
     ----------
-    fixed : a dictionary consisting of project keys and corresponding packages
-            that have been decided upon in the current scenario
+    fixed : a dictionary consisting of project keys and corresponding 
+        distributions that have been decided upon in the current scenario.
     flexible : a dictionary consisting of projects and a corresponding set of
-            packages where we may have choice, but where we cannot use the
-            currently installed package
+        distributionss where we may have choice, but where we cannot use the
+        currently installed distribution.
     installed_flexible : a dictionary consisting of projects and a
-            corresponding set of packages where we may have choice, and where
-            the currently installed package is OK - the default is not to
-            change anything
-    installed : a dictionary representing the current state of the system
+        corresponding set of distributions where we may have choice, and where
+        the currently installed distribution is OK - the default is not to
+        change anything
+    installed : a dictionary representing the current state of the system.
     available : a dictionary representing the available projects and their
-            packages
+        distributions.
     
+
     Return
     ------
-    
-    proposal : a dictionary of project keys and packages that represents the
-            required changes
+    proposal : a dictionary of project keys and distributionss that represent
+        the required changes
     reasons : a dictionary of project keys and reasons for the selection of
             each package
     
+
     Notes
     -----
-    
     This function is in fact a generator, so if you don't need to have all
     possibilities generated, you can just grab the first one (which should be
     the most preferred).
     
+
     Algorithm
     ---------
-    
     If there are no flexible projects, we have a consistent set in the fixed
     variable, so we can yield that.
     
@@ -146,23 +148,24 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
             satisfactory
         * if these projects are flexible or installed_flexible, we restrict
             the choices based on the requirements, possibly shifting
-            installed_flexible projects if the currently installed option does
+            installed_flexible projectss if the currently installed option does
             not satisfy any more
         * other projects are added to flexible or installed_flexible as
             appropriate.
     If at any point the set of choices for flexible or installed_flexible
-    projects is empty, or we conflict with a fixed project, we rule the package
-    out, and proceed to the next one.
+    projects is empty, or we conflict with a fixed project, we rule the
+    distribution out, and proceed to the next one.
     
-    If a package passes all the tests, then we make a recursive call and,
+    If a distribution passes all the tests, then we make a recursive call and,
     presuming success, yield the results.
     
-    When trying packages, the general strategy is that if we have to upgrade,
-    then we should use the most up-to-date package that is compatible with the
-    requirements.
+    When trying distributions, the general strategy is that if we have to
+    upgrade, then we should use the most up-to-date distribution that is
+    compatible with the requirements.
+
     """
-    #XXX We have a bug in this - it can loop forever or return duplicates.
-    
+    # FIXME:  We have a bug in this - it can loop forever or return duplicates.
+
     if flexible:
         # pick one
         project = list(flexible)[0]
@@ -304,5 +307,6 @@ def upgrade(packages, installed, available):
     fixed = {}
     flexible = dict((pkg.key, set([pkg])) for pkg in packages)
     installed_flexible = {}
-    return resolve_flexible(fixed, flexible,
-                    installed_flexible, installed, available, {})
+    return resolve_flexible(fixed, flexible, installed_flexible, installed,
+        available, {})
+

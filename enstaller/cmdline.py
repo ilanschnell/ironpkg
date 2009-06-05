@@ -37,12 +37,12 @@ except ImportError:
 
 
 def upgrade_project(keys, local_repos=None, remote_repos=None,
-    interactive=True, dry_run=False, term_width=0):
+    interactive=True, dry_run=False, term_width=0, verbose=False):
     """ Upgrade a project, if possible.
     """
     # Before we do anything, save the current working state of the environment to a rollback point.
     # TODO:  If the upgrade fails, we need to rollback to this save point.
-    save_state()
+    save_state(verbose=verbose)
     
     if local_repos == None:
         local_repos = get_local_repos()
@@ -98,72 +98,90 @@ def upgrade_project(keys, local_repos=None, remote_repos=None,
         
     # After we have finished the upgrade, we save the new state.
     # TODO:  If the upgrade failed, we should instead revert to the previous state.
-    save_state()
+    save_state(verbose=verbose)
 
     
-def update_project(keys, local_repos=None, remote_repos=None,
-    interactive=True, dry_run=False, term_width=0):
-    """ Update a project, if possible.
+def update_project(projects, local_repos=None, remote_repos=None,
+    interactive=True, dry_run=False, term_width=0, verbose=False):
+    """\
+    Update a project, if possible.
+
     """
-    # Before we do anything, save the current working state of the environment to a rollback point.
+    # Before we do anything, save the current working state of the environment
+    # to a rollback point.
     # TODO:  If the upgrade fails, we need to rollback to this save point.
-    save_state()
-    
+    save_state(verbose=verbose)
+   
+    # Ensure we know what our local repository consists of.
     if local_repos == None:
         local_repos = get_local_repos()
-    local = RepositoryUnion(get_local_repos())
-    requirements = []
+    local = RepositoryUnion(local_repos)
 
-    # If no explicit project(s) were specified to update, try to update
-    # all of the local projects installed.
-    if len(keys) == 0:
-        for project in local.projects:
+    # If no explicit project(s) were specified to update, add all locally
+    # installed projects to those we'll try to update.
+    if len(projects) == 0:
+        for project in sorted(local.projects):
             pkg = local.projects[project].active_package
             if pkg:
-                keys.append(project)
-    
-    for key in keys:
-        # All of the keys in the local.projects dictionary are lowercase, so
-        # convert all of the user-specified keys to lowercase.
-        key = key.lower()
+                projects.append(project)
+
+    # Otherwise, since all of the name in the local.projects dictionary
+    # are lowercase, we might as well make them all that way for consistency
+    # sake.
+    else:
+        projects = [name.lower() for name in projects]
+   
+    # Determine the requirement specification needed for each project.
+    requirements = []
+    for name in projects:
         
         # If the user specified a project which isn't installed, just skip it.
         try:
             active_local_projects = [project
-                for project in local.projects[key].projects
-                    if project.active]
+                for project in local.projects[name].projects
+                if project.active]
         except KeyError:
-            print "Skipping %s because it is not installed on your system." % key
+            if verbose:
+                print ("Skipping %s because it is not installed on your "
+                    "system.") % name
             continue
-        
+   
+        # If we have a current version active, then we use it's version to
+        # to determine what a valid update would be.
         if active_local_projects:
             pkg = active_local_projects[0].active_package
-
-            # Retrieve an update string based on the package name/version.
-            req_str = get_upgrade_str(key, pkg.version, upgrade=False)
-
-            # Create a requirement object from our requirement string.
+            req_str = get_upgrade_str(name, pkg.version, upgrade=False)
             requirement = Requirement.parse(req_str)
+
+        # Otherwise, we try to build an upgrade requirement from the largest
+        # version number of all inactive versions.
         else:
             max_pkg = None
-            for pkg in local.projects[key].packages:
+            for pkg in local.projects[name].packages:
                 if max_pkg is None or pkg > max_pkg:
                     max_pkg = pkg
             if max_pkg is not None:
-                req_str = get_upgrade_str(key, max_pkg.version, upgrade=False)
+                req_str = get_upgrade_str(name, max_pkg.version, upgrade=False)
                 requirement = Requirement.parse(req_str)
             else:
                 requirement = Requirement.parse(project)
         requirements.append(requirement)
+    if not requirements:
+        return
+    if verbose:
+        print 'Generated requirements for updates:'
+        for r in requirements:
+            print '\t%s' % r
 
     # Try to install all of the generated requirements.
+    # FIXME: This takes WAY to long.
     install_requirement(requirements, local_repos=local_repos,
         remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
-        term_width=term_width)
+        term_width=term_width, verbose=verbose)
         
     # After we have finished the update, we save the new state.
     # TODO:  If the update failed, we should instead revert to the previous state.
-    save_state()
+    save_state(verbose=verbose)
         
 
 def date_display_diff(recent, old):
@@ -388,31 +406,41 @@ The command needs to be one of the following: install, upgrade, update, rollback
         term_width=term_width, allow_unstable=False, proxy="", find_links=[],
         show_all=False, num_entries=5, show_dates=False)
 
-    parser.add_option("-i", "--interactive", action="store_true",
-        dest="interactive", help="prompt user for choices")
-    parser.add_option("-v", "--verbose", action="store_const", const=DEBUG,
-        dest="logging")
-    parser.add_option("-q", "--quiet", action="store_const", const=WARNING,
-        dest="logging")
-    parser.add_option("-d", "--dry-run", action="store_true", dest="dry_run",
+    parser.add_option("-a", "--show-all",
+        action="store_true", dest="show_all",
+        help="show all rollback point entries")
+    parser.add_option("-d", "--dry-run",
+        action="store_true", dest="dry_run",
         help="perform a dry-run without changing installed setup")
-    parser.add_option("-w", "--width", action="store", type="int",
-        dest="term_width", help="set the width of the terminal window")
-    parser.add_option("-f", "--find-links", action="append", type="string",
-        dest="find_links", help="add location to look for packages")
-    parser.add_option("-u", "--allow-unstable", action="store_true",
-        dest="allow_unstable", help="search unstable repositories")
-    parser.add_option("--proxy", action="store", type="string",
-        dest="proxy", help="use a proxy for downloads")
-    parser.add_option("-a", "--show-all", action="store_true",
-        dest="show_all", help="show all rollback point entries")
-    parser.add_option("-n", "--num-entries", action="store", type="int",
-        dest="num_entries", help="number of rollback point entries to show")
-    parser.add_option("--show-dates", action="store_true",
-        dest="show_dates", help="show the dates and timestamps for rollback entries")
+    parser.add_option("-f", "--find-links",
+        action="append", type="string", dest="find_links",
+        help="add location to look for packages")
+    parser.add_option("-i", "--interactive",
+        action="store_true", dest="interactive",
+        help="prompt user for choices")
+    parser.add_option("-n", "--num-entries",
+        action="store", type="int", dest="num_entries", 
+        help="number of rollback point entries to show")
+    parser.add_option("--proxy",
+        action="store", type="string", dest="proxy", 
+        help="use a proxy for downloads")
+    parser.add_option("-q", "--quiet",
+        action="store_const", const=WARNING, dest="logging")
+    parser.add_option("--show-dates",
+        action="store_true", dest="show_dates", 
+        help="show the dates and timestamps for rollback entries")
+    #parser.add_option("-u", "--allow-unstable",
+    #    action="store_true", dest="allow_unstable",
+    #    help="search unstable repositories")
+    parser.add_option("-v", "--verbose", 
+        action="store_const", const=DEBUG, dest="logging")
+    parser.add_option("-w", "--width",
+        action="store", type="int", dest="term_width", 
+        help="set the width of the terminal window")
     return parser
 
 
+#def real_main():
 def main():
 
     # Get and validate our options and arguments
@@ -425,13 +453,17 @@ def main():
     # Set up logging
     basicConfig(level=options.logging, format="%(message)s")
 
+    # Setup our verbosity.  We are verbose only if logging is DEBUG level.
+    options.verbose = (DEBUG == options.logging)
+
     # Build our list of remote repositories we'll search for distributions to
     # install.  Any repository settings provided via the command line take
     # precedence over anything in the config file, and the index in the config
-    # file always comes last.
+    # file always comes last.  This ordering is important because we now stop
+    # as soon as we find a matching distribution in the first repository.
     remote_repos = [HTMLRepository(arg) for arg in options.find_links]
     remote_repos.extend([HTMLRepository(u) for u in get_configured_repos(
-        unstable=options.allow_unstable)])
+        unstable=options.allow_unstable, verbose=options.verbose)])
     remote_repos.append(HTMLRepository(get_configured_index(), index=True))
 
     # Try to set up a proxy server, either from options or environment vars.
@@ -454,44 +486,55 @@ def main():
         upgrade_project(args,
             remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
-            term_width=options.term_width)
+            term_width=options.term_width, verbose=options.verbose)
     elif command == "update":
         update_project(args,
             remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
-            term_width=options.term_width)
+            term_width=options.term_width, verbose=options.verbose)
     elif command == "rollback":
         rollback_menu(remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width, show_all=options.show_all,
             num_entries=options.num_entries, show_dates=options.show_dates)
     elif command == "save_state":
-        save_state()
+        save_state(verbose=options.verbose)
     elif sys.argv[1] == "activate":
         # Before we do anything, save the current working state of the environment to a rollback point.
-        save_state()
+        save_state(verbose=options.verbose)
         install_requirement([Requirement.parse(arg) for arg in args],
             remote_repos=[], interactive=options.interactive,
             dry_run=options.dry_run, term_width=options.term_width)
         # After we have finished the activate, we save the new state.
-        save_state()
+        save_state(verbose=options.verbose)
     elif sys.argv[1] == "deactivate":
         # Before we do anything, save the current working state of the environment to a rollback point.
-        save_state()
+        save_state(verbose=options.verbose)
         deactivate_requirement([Requirement.parse(arg) for arg in args],
             interactive=options.interactive, dry_run=options.dry_run)
         # After we have finished the deactivate, we save the new state.
-        save_state()
+        save_state(verbose=options.verbose)
     elif command == "remove":
         # Before we do anything, save the current working state of the environment to a rollback point.
-        save_state()
+        save_state(verbose=options.verbose)
         remove_requirement([Requirement.parse(arg) for arg in args],
             interactive=options.interactive, dry_run=options.dry_run)
         # After we have finished the remove, we save the new state.
-        save_state()
+        save_state(verbose=options.verbose)
     elif command == "list":
         list_installed(interactive=options.interactive,
             term_width=options.term_width)
+
+
+def _main():
+    import cProfile, pstats, StringIO
+    prof = cProfile.Profile()
+    prof = prof.runctx("real_main()", globals(), locals())
+    stream = StringIO.StringIO()
+    stats = pstats.Stats(prof, stream=stream)
+    stats.sort_stats("time")
+    stats.print_stats(80)
+    print "Profile data:\n%s" % stream.getvalue()
 
 
 if __name__ == "__main__":

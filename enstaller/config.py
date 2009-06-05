@@ -118,7 +118,7 @@ def init_config(path, verbose=True):
     return cp
 
 
-def get_configured_repos(unstable=False):
+def get_configured_repos(unstable=False, verbose=False):
     """\
     Return the set of repository urls in our config file.
 
@@ -131,7 +131,7 @@ def get_configured_repos(unstable=False):
 
     # Add all the stable repos to the results list in the sorted order
     # of their keys.
-    cp = get_config()
+    cp = get_config(verbose=verbose)
     for name, value in sorted(cp.items('repos')):
         value = value.strip()
         if not value.startswith('#') and not value.endswith(',index'):

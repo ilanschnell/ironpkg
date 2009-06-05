@@ -1,34 +1,35 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2008, Enthought, Inc.
+# Copyright (c) 2008-2009 by Enthought, Inc.
 # All rights reserved.
 #
 # This software is provided without warranty under the terms of the BSD license
 # available at http://www.enthought.com/licenses/BSD.txt and may be
 # redistributed only under the conditions described in the aforementioned
 # license.
-#
-# Corran Webster
 #------------------------------------------------------------------------------
 
-# imports from standard library
-import os
-from logging import debug, info, warning
-from xmlrpclib import Server
-from tempfile import mkdtemp
-from shutil import rmtree
 
-# imports from 3rd party packages
+import os
+
+from distutils.errors import DistutilsError
+from enstaller.project import Project, ProjectUnion, PkgResourcesProject, \
+        EasyInstallProject, HTMLProject, XMLRPCProject
+from enstaller.utilities import rst_table, rmtree_error
+from logging import debug, info, warning
+from os.path import abspath, exists, isdir
 from pkg_resources import Environment
 from setuptools.command.easy_install import PthDistributions
-from setuptools.package_index import PackageIndex
+from setuptools.package_index import PackageIndex, URL_SCHEME
+from shutil import rmtree
+from tempfile import mkdtemp
+from xmlrpclib import Server
 
-# local imports
-from project import Project, ProjectUnion, PkgResourcesProject, \
-        EasyInstallProject, HTMLProject, XMLRPCProject
-from utilities import rst_table, rmtree_error
 
 class Repository(object):
-    """A repository represents a collection of projects which contain packages"""
+    """\
+    A repository represents a collection of projects which contain packages.
+    
+    """
     
     default_package_fields = ["project_name", "version", "location"]
     
@@ -65,8 +66,12 @@ class Repository(object):
         if isinstance(key, basestring):
             return key in self.projects
 
+
 class RepositoryUnion(Repository):
-    """A union of several repositories that acts as a single repository."""
+    """\
+    A union of several repositories that acts as a single repository.
+    
+    """
     
     def __init__(self, repositories):
         self.repositories = repositories
@@ -87,7 +92,9 @@ class RepositoryUnion(Repository):
         
 
 class LocalRepository(Repository):
-    """A local repository is a repository on the host machine.
+    """\
+    A local repository is a repository on the host machine.
+
     """
    
     def search(self, combiner='and', **kwargs):
@@ -96,8 +103,11 @@ class LocalRepository(Repository):
             matches += self.projects[project].search(combiner, **kwargs)
         return matches
  
+
 class EasyInstallRepository(LocalRepository):
-    """A local repository which is controlled by an easy_install.pth file.
+    """\
+    A local repository which is controlled by an easy_install.pth file.
+
     """
     _pth = "easy-install.pth"
     default_package_fields = ["project_name", "version", "active", "location"]
@@ -135,11 +145,38 @@ class RemoteRepository(Repository):
     def __del__(self):
         rmtree(self.tmpdir, onerror=rmtree_error)
 
+
+def format_as_url(location):
+    """
+    Return a url-formatted version of the location.
+
+    If the location doesn't already have a URL scheme as a prefix, we
+    assume it is a path on the local filesystem.
+
+    """
+    if URL_SCHEME(location):
+        return location
+
+    # Ensure any file or directory path actually exists.
+    if not exists(location):
+        raise DistutilsError('Location does not exist: %s' % location)
+
+    # If it is a directory, make sure it ends with a trailing slash -- because
+    # package_index functions expect it that way.
+    location = abspath(location)
+    if isdir(location) and not location.endswith('/'):
+        location = location + '/'
+
+    return 'file://' + location
+
+        
 class HTMLRepository(RemoteRepository):
-    """A remote repository which easy_install can cope with.
+    """\
+    A remote repository which easy_install can cope with.
+
     """
     def __init__(self, location, index=False):
-        self.location = location
+        self.location = format_as_url(location)
         self.index = index
         if index:
             self.environment = PackageIndex(index_url=self.location, search_path=[])
@@ -177,6 +214,7 @@ class HTMLRepository(RemoteRepository):
             matches += self.projects[project].search(combiner, **kwargs)
         return matches
 
+
 class XMLRPCRepository(RemoteRepository):
     def __init__(self, location):
         self.location = location
@@ -207,3 +245,4 @@ class XMLRPCRepository(RemoteRepository):
         for project in partial_match_names:
             matches += self.projects[project].search(combiner, **kwargs)
         return matches
+

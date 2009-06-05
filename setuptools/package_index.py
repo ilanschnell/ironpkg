@@ -149,6 +149,27 @@ user_agent = "Python-urllib/%s enstaller/%s" % (
 )
 
 
+def open_any_url(url, warning=None, warn_fn=None):
+    """\
+    Return a handle to an opened URL connection.
+
+    May raise a DistutilsError, or return None or an urllib2.HTTPError.
+
+    """
+    if url.startswith('file:'):
+        return local_open(url)
+    try:
+        return open_with_auth(url)
+    except urllib2.HTTPError, v:
+        return v
+    except urllib2.URLError, v:
+        if warning: warn_fn(warning, v.reason)
+        else:
+            raise DistutilsError("Download error for %s: %s" % (url, v.reason))
+
+    return
+
+
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
@@ -613,17 +634,8 @@ class PackageIndex(Environment):
 
 
     def open_url(self, url, warning=None):
-        if url.startswith('file:'):
-            return local_open(url)
-        try:
-            return open_with_auth(url)
-        except urllib2.HTTPError, v:
-            return v
-        except urllib2.URLError, v:
-            if warning: self.warn(warning, v.reason)
-            else:
-                raise DistutilsError("Download error for %s: %s"
-                                     % (url, v.reason))
+        return open_any_url(url, warning=warning, warn_fn=self.warn)
+
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename

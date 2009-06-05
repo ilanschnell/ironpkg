@@ -10,6 +10,8 @@ setuptools that are now included in Enstaller, along with other changes:
 Corran Webster is the original author of Enstaller v3.0 itself (that is
 without setuptools).   Rick Ratzel wrote the previous versions of Enstaller.
 
+Dave Peterson has cleaned-up and also added features to Enstaller v3.x.
+
 Travis Oliphant has merged setuptools into Enstaller, and added
 functionality to setuptools, as well as fixes some bugs.
 

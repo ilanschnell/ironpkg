@@ -6,22 +6,18 @@
 # available at http://www.enthought.com/licenses/BSD.txt and may be
 # redistributed only under the conditions described in the aforementioned
 # license.
-#
-# Corran Webster
 #------------------------------------------------------------------------------
 
 
-# Standard library imports
-from distutils import sysconfig
-from logging import error, warning, info
 import os
 import sys
 
-# Enstaller imports
-from package import EasyInstallPackage, RemotePackage
-from repository import EasyInstallRepository, HTMLRepository, RepositoryUnion
-from upgrade import upgrade
-from utilities import remove_eggs_from_path, user_select, query_user
+from distutils import sysconfig
+from enstaller.package import EasyInstallPackage, RemotePackage
+from enstaller.repository import EasyInstallRepository, HTMLRepository, RepositoryUnion
+from enstaller.upgrade import upgrade
+from enstaller.utilities import remove_eggs_from_path, user_select, query_user
+from logging import error, warning, info
 
 
 def get_local_repos():
@@ -48,8 +44,11 @@ def get_site_packages():
 def install_requirement(requirements, target_repo=None, local_repos=None,
         remote_repos=None, interactive=True, dry_run=False, verbose=False,
         term_width=0):
-    """Find and install packages which match the requirements, upgradeing or
-    downgrading packages when needed.
+    """\
+    Find and install packages which match the requirements.
+    
+    This may either upgrade or downgrade packages when needed.
+
     """
     if target_repo is None:
         target_repo = get_site_packages()
@@ -57,49 +56,64 @@ def install_requirement(requirements, target_repo=None, local_repos=None,
         remote_repos = [HTMLRepository("http://pypi.python.org/simple")]
     if local_repos is None:
         local_repos = get_local_repos()
-    local = RepositoryUnion(get_local_repos())
+    # FIXME: DMP why did we not use the specified set of local repos?
+    # Commenting out for now.
+    #local = RepositoryUnion(get_local_repos())
+    local = RepositoryUnion(local_repos)
     available = RepositoryUnion(local_repos+remote_repos)
 
-    # generate proposals
-    installed = dict((key, project.active_package)
-                     for key, project in local.projects.items()
-                     if project.active_package != None)
+    # Generate proposals
+    installed = dict((key, project.active_package) for key, project in \
+        local.projects.items() if project.active_package != None)
     to_install = []
     for requirement in requirements:
+
+        # Ensure we can find at least one distribution matching the 
+        # requirement.
         try:
             packages = [package
                 for package in available.projects[requirement.key].packages
                     if package.distribution in requirement]
         except KeyError:
-            print "Could not find suitable distribution for %s" % requirement
+            if verbose:
+                print "Could not find suitable distribution for %s" % \
+                    requirement
+            # FIXME: Should we really return here?  I guess we're trying to say
+            # we couldn't find ANY match for ALL requirements by doing so?
             return
         if not packages:
-            warning("Could not find a package which matches requirement %s" %
-                    requirement)
+            if verbose:
+                warning("Could not find a package which matches requirement "
+                    "%s" % requirement)
             continue
+
+        # If we're running in interactive mode, let the user pick a
+        # distribution if there is more than one to pick from.  Otherwise,
+        # we just go with the first one.
         if interactive and len(packages) > 1:
             selection = user_select(["version", "active", "location"],
                 [pkg.metadata for pkg in packages], "Select package: ",
                 max_width=term_width)
-
             #selection = user_select(["Package '%s' at %s%s" % (pkg.name,
             #    pkg.location, " (Active)" if pkg.active else "")
             #    for pkg in packages], "Select package: ")
             if selection == None:
-                info("User selected no package for requirement %s" %
-                     requirement)
+                if verbose:
+                    info("User selected no package for requirement %s" %
+                        requirement)
                 continue
             package = packages[selection]
         else:
             package = packages[0]
 
+        # If the selected distribution is already active, we have nothing to
+        # install.
         if package.active:
-            # nothing to do
-            info("Package %s satisfies %s and is already active" %
-                (package.name, requirement))
+            if verbose:
+                info("Package %s satisfies %s and is already active" %
+                    (package.name, requirement))
         else:
             to_install.append(package)
-
     if not to_install:
         return
 

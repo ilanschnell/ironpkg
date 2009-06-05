@@ -1,37 +1,36 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2008, Enthought, Inc.
+# Copyright (c) 2008-2009 by Enthought, Inc.
 # All rights reserved.
 #
 # This software is provided without warranty under the terms of the BSD license
 # available at http://www.enthought.com/licenses/BSD.txt and may be
 # redistributed only under the conditions described in the aforementioned
 # license.
-#
-# Corran Webster
 #------------------------------------------------------------------------------
 
-# imports from standard library
 import os
+import re
 import subprocess
 import urllib2
-from logging import debug, info, warning
-from shutil import rmtree, copyfile
-import re
+
+from distutils.errors import DistutilsError
+from enstaller.utilities import rmtree_error, run_scripts, get_egg_specs_from_info
 from glob import glob
-
-# imports from 3rd party packages
+from logging import debug, info, warning
 from pkg_resources import Requirement, Distribution
-from setuptools.package_index import distros_for_url, find_distributions, \
-    ensure_directory, open_with_auth
 from setuptools.archive_util import unpack_archive
+from setuptools.package_index import distros_for_url, find_distributions, \
+    ensure_directory, open_any_url
+from shutil import rmtree, copyfile
 
-# local imports
-from utilities import rmtree_error, run_scripts, get_egg_specs_from_info
 
 EGG_INFO_RE = re.compile(r".*EGG-INFO")
 
+
 class Package(object):
-    """A Package is a particular installable
+    """\
+    A Package is a particular installable.
+
     """
     
     active = False
@@ -64,14 +63,16 @@ class Package(object):
             return reduce(lambda x, y: x or y, matches, False)
         return reduce(lambda x, y: x and y, matches, True)
 
+
 class PkgResourcesPackage(Package):
-    """A PkgResourcesPackage is an installable wrapping a pkg_resources.Distribution
-    object
+    """\
+    A PkgResourcesPackage is an installable wrapping a 
+    pkg_resources.Distribution object.
+
     """
     
     inherited_metadata = ["location", "project_name", "key", "extras",
-                          "version", "parsed_version", "py_version",
-                          "platform", "precedence"]
+        "version", "parsed_version", "py_version", "platform", "precedence"]
 
     def __init__(self, project, distribution):
         self.project = project
@@ -80,11 +81,12 @@ class PkgResourcesPackage(Package):
     @property
     def requirement(self):
         return Requirement.parse("%s == %s" % (self.project.name,
-                                               self.version))
+            self.version))
     
     @property
     def name(self):
-        return "%s %s" % (self.distribution.project_name, self.distribution.version)
+        return "%s %s" % (self.distribution.project_name,
+            self.distribution.version)
     
     @property
     def key(self):
@@ -107,7 +109,9 @@ class PkgResourcesPackage(Package):
         return self.distribution.precedence
 
     def reversed_reqs(self, active_projects):
-        """ Find all local packages which depend on this package
+        """\
+        Find all local packages which depend on this package.
+
         """
         projects = {}
         for key, project in active_projects.items():
@@ -117,15 +121,19 @@ class PkgResourcesPackage(Package):
                 projects[key] = dependencies
         return projects
 
+
 class EasyInstallPackage(PkgResourcesPackage):
-    """An EasyInstallPackage represents a locally installed egg.
+    """\
+    An EasyInstallPackage represents a locally installed egg.
+
     """
     @property
     def metadata(self):
         metadata = dict([(attr, getattr(self.distribution, attr, None))
-                      for attr in self.inherited_metadata])
+            for attr in self.inherited_metadata])
         active_env = self.project.repository.active
-        metadata['location'] = active_env.make_relative(self.distribution.location)
+        metadata['location'] = active_env.make_relative(
+            self.distribution.location)
         if self.active:
             metadata['active'] = "Y"
         else:
@@ -134,36 +142,43 @@ class EasyInstallPackage(PkgResourcesPackage):
 
     @property
     def active(self):
-        return self.distribution in set(self.project.repository.active[self.project.name])
+        return self.distribution in set(self.project.repository.active[
+            self.project.name])
     
     def requires(self):
         return self.distribution.requires()
     
     def depends_on(self, package):
-        """Does a given package depend on this package
+        """\
+        Does a given package depend on this package?
         
         Parameters
         ----------
-        package : a PkgResource package
+        package : a PkgResource package.
+
         """
-        matches = [package.distribution in requirement
-                   for requirement in self.distribution.requires()]
+        matches = [package.distribution in requirement for requirement in
+            self.distribution.requires()]
         return reduce(lambda x,y: x or y, matches, False)
     
     @property
     def dependent_packages(self):
-        """ Find active packages which immediately depend on this package
+        """\
+        Find active packages which immediately depend on this package.
+
         """
         if self.active:
-            return [package
-                    for package in self.project.repository.active_packages
-                    if package.depends_on(self)]
+            return [package for package in
+                self.project.repository.active_packages if
+                package.depends_on(self)]
         else:
             return []
     
     @property
     def full_dependent_packages(self):
-        """ Recursively find all active packages which depend on this package
+        """\
+        Recursively find all active packages which depend on this package.
+
         """
         if self.active:
             packages = set(self.dependent_packages)
@@ -187,7 +202,8 @@ class EasyInstallPackage(PkgResourcesPackage):
     
     def activate(self, save=True, dependencies=True, dry_run=False,
         verbose=True):
-        """Activate the package, adding it to the Python import path.
+        """\
+        Activate the package, adding it to the Python import path.
 
         Parameters
         ----------
@@ -202,7 +218,7 @@ class EasyInstallPackage(PkgResourcesPackage):
         if not self.active:
             if self.project.active:
                 self.project.deactivate(save=False, dependencies=False,
-                                        dry_run=dry_run)
+                    dry_run=dry_run)
             info("Activating package %s..." % (self.name))
             if not dry_run:
                 self.project.repository.active.add(self.distribution)
@@ -219,7 +235,8 @@ class EasyInstallPackage(PkgResourcesPackage):
                 warning("Package %s is already active." % (self.name))
     
     def deactivate(self, save=True, dependencies=False, dry_run=True):
-        """Deactivate the package, removing it from the Python import path.
+        """\
+        Deactivate the package, removing it from the Python import path.
         
         Parameters
         ----------
@@ -228,6 +245,7 @@ class EasyInstallPackage(PkgResourcesPackage):
         dependencies : boolean
             Should we ensure a consistent state by deactivating all packages
             which depend on this one?
+
         """
         if self.active:
             #if dependencies:
@@ -236,8 +254,8 @@ class EasyInstallPackage(PkgResourcesPackage):
             #                           dry_run=dry_run)
             for package in sorted(self.full_dependent_packages,
                     key=lambda x: x.name):
-                warning("Package %s depends upon %s and may no longer work correctly"
-                    % (package.name, self.name))
+                warning("Package %s depends upon %s and may no longer work "
+                    "correctly" % (package.name, self.name))
             run_scripts(self.distribution, "pre-deactivate", dry_run=dry_run)
             info("Deactivating package %s..." % (self.name))
             if not dry_run:
@@ -253,10 +271,12 @@ class EasyInstallPackage(PkgResourcesPackage):
             warning("Package %s is already inactive." % (self.name))
     
     def remove(self, dry_run=False):
-        """ Uninstall the package, removing all files and attempting to
+        """\
+        Uninstall the package, removing all files and attempting to
         restore to the pre-installed state.
+
         """
-        # XXX we would like to replace most of this with a call out to
+        # FIXME: we would like to replace most of this with a call out to
         # our patched version of setuptools.  For the time being I'm leaving
         # this in here, since we don't have the interface set yet.
         
@@ -265,7 +285,7 @@ class EasyInstallPackage(PkgResourcesPackage):
             self.deactivate(dry_run=dry_run)
         run_scripts(self.distribution, "pre-uninstall", dry_run=dry_run)
         
-        # XXX this isn't working properly, but I'm not going to fight it
+        # FIXME: this isn't working properly, but I'm not going to fight it
         # since we're replacing this with patched setuptools
         
         # if we have a files file
@@ -274,8 +294,8 @@ class EasyInstallPackage(PkgResourcesPackage):
             # extract the list of files
             fp = open(files_file)
             try:
-                file_list = [filename.strip()
-                             for filename in fp.read().split('\n')]
+                file_list = [filename.strip() for filename in
+                    fp.read().split('\n')]
             finally:
                 fp.close()    
             # and try to remove each file from the list
@@ -317,8 +337,10 @@ class EasyInstallPackage(PkgResourcesPackage):
        
     
 class RemotePackage(PkgResourcesPackage): 
-    """An RemotePackage represents an egg that can be installed from a remote
+    """\
+    An RemotePackage represents an egg that can be installed from a remote
     repository.
+
     """
     def __init__(self, *args, **kwargs):
         super(RemotePackage, self).__init__(*args, **kwargs)
@@ -369,8 +391,10 @@ class RemotePackage(PkgResourcesPackage):
         return self.local_distribution.requires()
     
     def install(self, target_repo, source=False, develop=False, dry_run=False, *args):
-        """Install a package by fetching it into a temporary directory and then
+        """\
+        Install a package by fetching it into a temporary directory and then
         calling easy_install with the appropriate args.
+
         """
         args = list(args)
         files_file = os.path.join(self.tmpdir, "files")
@@ -428,37 +452,60 @@ class RemotePackage(PkgResourcesPackage):
             print "Run post-install scripts."
             print "Run post-activate scripts."
 
+
+def retrieve_metadata_from_egginfo(package):
+    """\
+    Return the metadata from an associated .egg.info file.
+
+    Returns an empty dict if an .egg.info couldn't be found.
+
+    FIXME: If we're going to make patches to setuptools itself, we can
+    simplify by having setuptools do this when it creates a Distribution
+    for this package in package_index.
+
+    """
+    if package.location.endswith('.egg'):
+        url = package.location + '.info'
+    else:
+        url = package.location + '.egg.info'
+
+    h = None
+    try:
+        try:
+            h = open_any_url(url)
+            if isinstance(h, urllib2.HTTPError):
+                raise DistutilsError('Dummy')
+            results = get_egg_specs_from_info(h.read())
+        except DistutilsError, e:
+            info("No .egg.info link available for %s" % package.name)
+            results = dict()
+    finally:
+        if h: h.close()
+
+    return results
+
+
 class HTMLPackage(RemotePackage):
-    """An RemotePackage represents an egg that can be installed from a remote
+    """\
+    An RemotePackage represents an egg that can be installed from a remote
     HTML-style repository.
+
     """
     @property
     def metadata(self):
         metadata = dict([(attr, getattr(self.distribution, attr, None))
-                      for attr in self.inherited_metadata])
+            for attr in self.inherited_metadata])
         metadata['active'] = ""
-        
-        # is there an .egg.info metadata file?
-        # XXX if we're going to patch setuptools, we might want to simply have
-        # setuptools do this when it creates a Distribution for this in
-        # package_index
-        if self.location.endswith(".egg"):
-            egg_info_url = self.location +".info"
-        else:
-            egg_info_url = self.location +".egg.info"
-        try:
-            url = open_with_auth(egg_info_url)
-            egg_info = get_egg_specs_from_info(url.read())
-            metadata.update(egg_info)
-        except urllib2.URLError:
-            info("No .egg.info link available for %s" % self.name)
+        metadata.update(retrieve_metadata_from_egginfo(self))
             
         return metadata
 
 
 class XMLRPCPackage(RemotePackage):
-    """An RemotePackage represents an egg that can be installed from a remote
+    """\
+    An RemotePackage represents an egg that can be installed from a remote
     PyPI-style XMLRPC repository.
+
     """
     @property
     def metadata(self):
@@ -466,17 +513,18 @@ class XMLRPCPackage(RemotePackage):
             self._metadata = self.project.repository.server.release_data(
                     self.project.name, self.version)
         metadata['active'] = ""
+        metadata.update(retrieve_metadata_from_egginfo(self))
         
-        # is there an .egg.info metadata file?
-        if self.location.endswith(".egg"):
-            egg_info_url = self.location +".info"
-        else:
-            egg_info_url = self.location +".egg.info"
+        h = None
         try:
-            url = open_with_auth(egg_info_url)
-            egg_info = get_egg_specs_from_info(url.read())
+            h = open_url(egg_info_url)
+            if isinstance(h, urllib2.HTTPError):
+                raise DistutilsError('Dummy')
+            egg_info = get_egg_specs_from_info(h.read())
             metadata.update(egg_info)
         except urllib2.URLError:
             info("No .egg.info link available for %s" % self.name)
-        
+        if h:
+            h.close()
         return self._metadata
+

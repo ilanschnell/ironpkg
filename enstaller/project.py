@@ -179,7 +179,7 @@ class HTMLProject(RemoteProject):
             if self.name not in set(self.repository.environment) or \
                     self.scan_needed:
                 # load this package into the environment
-                info("Finding packages for project %s" % self.name)
+                info("Finding distributions for project %s" % self.name)
                 self.repository.environment.find_packages(self.requirement)
             for package in self.repository.environment[self.name]:
                 self._packages.append(self.PackageType(self, package))
@@ -196,7 +196,7 @@ class XMLRPCProject(RemoteProject):
         if self._packages == None:
             # find distributions in the repository
             distributions = []
-            info("Finding packages for project %s" % self.name)
+            info("Finding distributions for project %s" % self.name)
             for version in self.repository.server.package_releases(self.name):
                 releases = self.repository.server.release_urls(self.name,
                                                                version)
