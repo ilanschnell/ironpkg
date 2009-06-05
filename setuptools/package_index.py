@@ -731,53 +731,94 @@ def htmldecode(text):
     return entity_sub(decode_entity, text)
 
 
+def split_auth(auth):
+    if not auth:
+        return ('', '')
+    parts = auth.split(':')
+    if len(parts) == 1:
+        return (parts[0], '')
+    elif len(parts) == 2:
+        return parts
+    else:
+        raise DistutilsError('Unrecognized authorization specification: '
+            '%s' % auth)
+
+
 def open_with_auth(url):
     """Open a urllib2 request, handling HTTP authentication"""
 
+    # Parse the url to determine two things.  First, what the scheme for the
+    # URL is -- important because we only try logging in if it is http or
+    # https protocol.  Second, try to determine if credentials were embedded
+    # in the URL.
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
-
     if scheme in ('http', 'https'):
         auth, host = urllib2.splituser(netloc)
     else:
         auth = None
+        host = None # Do not cache auth for non-web requests.
 
+    # Prefer any previously cached authorization over anything in the URL
+    # as the user may have already corrected the URL's embedded version.
+    # Note that we cache the authorizations as metadata associated with this
+    # method.
+    # FIXME: For now, we assume a single login per host machine.
+    if not hasattr(open_with_auth, 'auth_cache'):
+        open_with_auth.auth_cache = auth_cache = {}
+    else:
+        auth_cache = open_with_auth.auth_cache
+    if host in auth_cache:
+        auth = auth_cache[host]
+
+    # Attempt the request in such a way that if we get an authorization
+    # failure, we can give the user a couple chances to provide valid 
+    # credentials.
     if auth:
-        auth = "Basic " + urllib2.unquote(auth).encode('base64').strip()
+        coded_auth = "Basic " + urllib2.unquote(auth).encode('base64').strip()
         new_url = urlparse.urlunparse((scheme,host,path,params,query,frag))
         request = urllib2.Request(new_url)
-        request.add_header("Authorization", auth)
+        request.add_header("Authorization", coded_auth)
     else:
         request = urllib2.Request(url)
-
-    # If retrieving the URL throws an authorization required error, give the
-    # user a chance to supply a valid user name/password.
     request.add_header('User-Agent', user_agent)
     tries_left = 3
     while tries_left >= 0:
         try:
             fp = urllib2.urlopen(request)
+            if host and auth:
+                auth_cache[host] = auth
             break
         except urllib2.HTTPError, e:
             if e.code == 401:
-                print "Please enter credentials to access this repository:"
-                user = raw_input("User Name: ")
+                old_user, old_passwd = split_auth(auth)
+                print ("Please enter credentials to access the repository at "
+                    "%s:" % host)
+                msg = 'User name'
+                if old_user:
+                    msg = msg + ' [%s]: ' % old_user
+                else:
+                    msg = msg + ': '
+                user = raw_input(msg)
+                if len(user) < 1:
+                    user = old_user
                 passwd = getpass.getpass("Password: ")
-                auth_split = "%s:%s" % (user, passwd)
-                auth = "Basic " + urllib2.unquote(auth_split).encode('base64').strip()
+                auth = "%s:%s" % (user, passwd)
+                coded_auth = "Basic " + urllib2.unquote(auth).encode('base64').strip()
                 new_url = urlparse.urlunparse((scheme,host,path,params,query,frag))
                 request = urllib2.Request(new_url)
-                request.add_header("Authorization", auth)
+                request.add_header("Authorization", coded_auth)
                 tries_left -=  1
             else:
                 raise e
     if tries_left < 0:
         raise e
 
-    if auth:
-        # Put authentication info back into request URL if same host,
-        # so that links found on the page will work
+    # Put authentication info back into request URL if same host,
+    # so that links found on the page will work
+    if host and auth:
         s2, h2, path2, param2, query2, frag2 = urlparse.urlparse(fp.url)
         if s2==scheme and h2==host:
+            netloc = '%s@%s' % (auth, host)
             fp.url = urlparse.urlunparse((s2,netloc,path2,param2,query2,frag2))
 
     return fp
