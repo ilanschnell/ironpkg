@@ -813,13 +813,16 @@ def open_with_auth(url):
     if tries_left < 0:
         raise e
 
-    # Put authentication info back into request URL if same host,
-    # so that links found on the page will work
-    if host and auth:
-        s2, h2, path2, param2, query2, frag2 = urlparse.urlparse(fp.url)
-        if s2==scheme and h2==host:
-            netloc = '%s@%s' % (auth, host)
-            fp.url = urlparse.urlunparse((s2,netloc,path2,param2,query2,frag2))
+    # FIXME: Commented out now that we are caching auth ourselves.  This is better
+    # since putting the working auth in the url will display the user's name AND
+    # password in various logged lines.
+    ## Put authentication info back into request URL if same host,
+    ## so that links found on the page will work
+    #if host and auth:
+    #    s2, h2, path2, param2, query2, frag2 = urlparse.urlparse(fp.url)
+    #    if s2==scheme and h2==host:
+    #        netloc = '%s@%s' % (auth, host)
+    #        fp.url = urlparse.urlunparse((s2,netloc,path2,param2,query2,frag2))
 
     return fp
 
