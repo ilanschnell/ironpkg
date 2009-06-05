@@ -29,10 +29,11 @@ class Project(object):
     active_package = None
     active = False
     
-    def __init__(self, repository, name):
+    def __init__(self, repository, name, verbose=False):
         self.repository = repository
         self.name = name
         self._packages = None
+        self.verbose = verbose
 
     def search(self, combiner='and', **kwargs):
         return [package for package in self.packages
@@ -47,8 +48,8 @@ class Project(object):
         return rst_table(fields, [package.metadata for package in self.packages])
 
 class ProjectUnion(Project):
-    def __init__(self, repository, name, projects):
-        super(ProjectUnion, self).__init__(repository, name)
+    def __init__(self, repository, name, projects, verbose=False):
+        super(ProjectUnion, self).__init__(repository, name, verbose=verbose)
         self.projects = projects
     
     @property
@@ -166,23 +167,30 @@ class HTMLProject(RemoteProject):
 
     PackageType = HTMLPackage
     
-    def __init__(self, repository, name):
+    def __init__(self, repository, name, verbose=False):
+        # FIXME: Are we really purposefully avoiding calling the base class's
+        # __init__ method?   Why??
         self.repository = repository
         self.name = name
         self._packages = None
         self.scan_needed = False
+        self.verbose= verbose
 
     @property
     def packages(self):
         if self._packages == None:
             self._packages = []
+
+            # load this package into the environment
             if self.name not in set(self.repository.environment) or \
-                    self.scan_needed:
-                # load this package into the environment
-                info("Finding distributions for project %s" % self.name)
+                self.scan_needed:
+                if self.verbose:
+                    info("Finding distributions for project %s" % self.name)
                 self.repository.environment.find_packages(self.requirement)
+
             for package in self.repository.environment[self.name]:
                 self._packages.append(self.PackageType(self, package))
+
         return self._packages
 
 
@@ -196,7 +204,8 @@ class XMLRPCProject(RemoteProject):
         if self._packages == None:
             # find distributions in the repository
             distributions = []
-            info("Finding distributions for project %s" % self.name)
+            if self.verbose:
+                info("Finding distributions for project %s" % self.name)
             for version in self.repository.server.package_releases(self.name):
                 releases = self.repository.server.release_urls(self.name,
                                                                version)

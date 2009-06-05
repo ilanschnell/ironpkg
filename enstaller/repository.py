@@ -33,8 +33,9 @@ class Repository(object):
     
     default_package_fields = ["project_name", "version", "location"]
     
-    def __init__(self, location):
+    def __init__(self, location, verbose=False):
         self.location = location
+        self.verbose = verbose
     
     def build_package_list(self):
         for project in self.projects.values():
@@ -73,9 +74,12 @@ class RepositoryUnion(Repository):
     
     """
     
-    def __init__(self, repositories):
+    def __init__(self, repositories, verbose=False):
+        # NOTE: Explicitly not calling the base class constructor.  We
+        # don't have all the same attributes.
         self.repositories = repositories
         self._projects = None
+        self.verbose = verbose
     
     @property
     def projects(self):
@@ -112,13 +116,15 @@ class EasyInstallRepository(LocalRepository):
     _pth = "easy-install.pth"
     default_package_fields = ["project_name", "version", "active", "location"]
     
-    def __init__(self, location):
+    def __init__(self, location, verbose=False):
         self._projects = None
         self.location = location
         self._pth_file = os.path.join(self.location, self._pth)
         self.environment = Environment(search_path=[self.location])
         self.active = PthDistributions(self._pth_file)
-    
+        self.verbose = verbose
+
+
     @property
     def projects(self):
         if self._projects == None:
@@ -175,7 +181,7 @@ class HTMLRepository(RemoteRepository):
     A remote repository which easy_install can cope with.
 
     """
-    def __init__(self, location, index=False):
+    def __init__(self, location, index=False, verbose=False):
         self.location = format_as_url(location)
         self.index = index
         if index:
@@ -185,7 +191,8 @@ class HTMLRepository(RemoteRepository):
             self.environment.add_find_links([self.location])
         self._projects = None
         self.tmpdir = mkdtemp(prefix="enstaller-")
-    
+        self.verbose = verbose
+
     @property
     def projects(self):
         if self._projects == None:
@@ -194,10 +201,12 @@ class HTMLRepository(RemoteRepository):
             self.environment.prescan()
             self.environment.scan_all()
             for project in self.environment:
-                self._projects[project] = HTMLProject(self, project)
+                self._projects[project] = HTMLProject(self, project,
+                    verbose=self.verbose)
             for project in self.environment.package_pages:
                 if project not in self._projects:
-                    self._projects[project] = HTMLProject(self, project)
+                    self._projects[project] = HTMLProject(self, project,
+                        verbose=self.verbose)
                 self._projects[project].scan_needed = True
         return self._projects
     
@@ -216,13 +225,14 @@ class HTMLRepository(RemoteRepository):
 
 
 class XMLRPCRepository(RemoteRepository):
-    def __init__(self, location):
+    def __init__(self, location, verbose=False):
         self.location = location
         # an empty Environment to help with tracking packages
         self.environment = Environment(search_path=[])
         self.server = Server(self.location)
         self._projects = None
         self.tmpdir = mkdtemp(prefix="enstaller-")
+        self.verbose = verbose
    
     @property
     def projects(self):

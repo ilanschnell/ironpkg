@@ -461,10 +461,13 @@ def main():
     # precedence over anything in the config file, and the index in the config
     # file always comes last.  This ordering is important because we now stop
     # as soon as we find a matching distribution in the first repository.
-    remote_repos = [HTMLRepository(arg) for arg in options.find_links]
-    remote_repos.extend([HTMLRepository(u) for u in get_configured_repos(
-        unstable=options.allow_unstable, verbose=options.verbose)])
-    remote_repos.append(HTMLRepository(get_configured_index(), index=True))
+    remote_repos = [HTMLRepository(arg, verbose=options.verbose) for arg in
+        options.find_links]
+    remote_repos.extend([HTMLRepository(u, verbose=options.verbose) for u in
+        get_configured_repos(unstable=options.allow_unstable,
+        verbose=options.verbose)])
+    remote_repos.append(HTMLRepository(get_configured_index(), index=True,
+        verbose=options.verbose))
 
     # Try to set up a proxy server, either from options or environment vars.
     # This makes urllib2 calls do the right thing.

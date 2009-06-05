@@ -82,9 +82,8 @@ def install_requirement(requirements, target_repo=None, local_repos=None,
             # we couldn't find ANY match for ALL requirements by doing so?
             return
         if not packages:
-            if verbose:
-                warning("Could not find a package which matches requirement "
-                    "%s" % requirement)
+            warning("Could not find a package which matches requirement: "
+                "%s" % requirement)
             continue
 
         # If we're running in interactive mode, let the user pick a
