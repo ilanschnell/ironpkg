@@ -169,6 +169,7 @@ def compress_txt(src):
     fo.close()
 
 
+egg_pat = re.compile(r'[^-]+-[^-]+-\d+.egg$')
 def write_index(dir_path, compress=False):
     """
     Updates index-depend.txt (and optionally index-depend.bz2)
@@ -182,7 +183,7 @@ def write_index(dir_path, compress=False):
     faux = StringIO.StringIO()
     n = 0
     for fn in sorted(os.listdir(dir_path), key=string.lower):
-        if not fn.endswith('.egg'):
+        if not egg_pat.match(fn):
             continue
         faux.write(get_index_section(join(dir_path, fn)))
         sys.stdout.write('.')
@@ -193,7 +194,9 @@ def write_index(dir_path, compress=False):
     fo = open(txt_path, 'w')
     fo.write(faux.getvalue())
     fo.close()
-    compress_txt(txt_path)
+
+    if compress:
+        compress_txt(txt_path)
 
 
 def append_dist(zip_path, compress=False):
@@ -206,4 +209,6 @@ def append_dist(zip_path, compress=False):
     f = open(txt_path, 'a')
     f.write(get_index_section(zip_path))
     f.close()
-    compress_txt(txt_path)
+
+    if compress:
+        compress_txt(txt_path)
