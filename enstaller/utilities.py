@@ -26,10 +26,12 @@ entry_patt = re.compile( "^([\w\-_]+):\ .*" )
 
 
 def get_platform():
-    """ Return finer-grained platform names, corresponding to supported EPD
-    versions."""
+    """
+    Return finer-grained platform names, corresponding to supported EPD
+    versions.
+    """
 
-    (PLAT, PLAT_VER) = platform.dist()[0:2]
+    PLAT, PLAT_VER = platform.dist()[0:2]
 
     # Map RedHat to Enthought repo names
     if PLAT.lower().startswith("redhat"):

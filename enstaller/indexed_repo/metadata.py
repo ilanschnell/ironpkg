@@ -9,7 +9,7 @@ import hashlib
 from collections import defaultdict
 from os.path import basename, dirname, join, getsize
 
-from utils import canonical
+from utils import canonical, is_valid_eggname
 
 
 
@@ -169,7 +169,6 @@ def compress_txt(src):
     fo.close()
 
 
-egg_pat = re.compile(r'[^-]+-[^-]+-\d+.egg$')
 def write_index(dir_path, compress=False):
     """
     Updates index-depend.txt (and optionally index-depend.bz2)
@@ -183,7 +182,7 @@ def write_index(dir_path, compress=False):
     faux = StringIO.StringIO()
     n = 0
     for fn in sorted(os.listdir(dir_path), key=string.lower):
-        if not egg_pat.match(fn):
+        if not is_valid_eggname(fn):
             continue
         faux.write(get_index_section(join(dir_path, fn)))
         sys.stdout.write('.')

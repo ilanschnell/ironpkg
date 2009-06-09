@@ -1,3 +1,11 @@
+"""
+This module contains functionality for platform versions supported by EPD.
+"""
+
+import sys
+import platform
+
+
 #    name           platform   osdist
 _DATA = {
     'xp-32':       'win32      XP',
@@ -53,6 +61,7 @@ class EnForm(object):
         return True
 
 
+
 def init_enforms():
     global ENFORMS
 
@@ -61,6 +70,41 @@ def init_enforms():
         ENFORMS[k] = EnForm(k, v)
 
 init_enforms()
+
+
+def get_current_enform():
+    """
+    returns the Enform of the current platform
+    """
+    if sys.platform.startswith("win"):
+        return 'xp-32'
+
+    if sys.platform == 'darwin':
+        return 'os10.4-32'
+
+    if sys.platform == 'linux2':
+        bits = 32
+        if '64' in platform.architecture()[0]:
+            bits = 64
+        plat, plat_ver = platform.dist()[0:2]
+
+        if plat.lower().startswith("redhat"):
+            if plat_ver.startswith(('3', '4')):
+                return 'rh3-%i' % bits
+            if plat_ver.startswith('5'):
+                return 'rh5-%i' % bits
+
+        if 'debian-lenny-sid' in platform.platform():
+            return 'u8.04-%i' % bits
+
+        if 'SuSE' in platform.platform():
+            return 'suse10.3-%i' % bits
+
+    if sys.platform == 'sunos5':
+        bits = 32
+        if '64bit' in platform.platform():
+            bits = 64
+        return 'sol10-%i' % bits
 
 
 def get_names(spec):
@@ -77,5 +121,9 @@ def get_names(spec):
 if __name__ == '__main__':
     #for x in ENFORMS.itervalues():
     #    x.print_details()
-    print get_names({})
-    print get_names({'arch': 'amd64', 'osdist': None});
+    #print get_names({})
+    #  print get_names({'arch': 'amd64', 'osdist': None});
+
+    enform = get_current_enform()
+    print enform
+    assert enform in ENFORMS

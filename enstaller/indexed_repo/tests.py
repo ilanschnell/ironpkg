@@ -30,13 +30,11 @@ class TestUtils(unittest.TestCase):
 
     def test_get_version_build(self):
         for fn, tu in [
-            ('file:///zope.interface-3.4.1n1-py2.5-macosx-10.3-fat.egg',
-                ('3.4.1', 1)),
-            ('local:/MySQL_python-1.2.2n3-py2.5-macosx-10.3-fat.egg',
-                ('1.2.2', 3)),
-            ('Reportlab-2.1n4-py2.5.egg', ('2.1', 4)),
-            ('hdf5-1.8.1n13.egg', ('1.8.1', 13)),
-            ('pytz-2008cn3.egg', ('2008c', 3)),
+            ('file:///zope.interface-3.4.1-1.egg', ('3.4.1', 1)),
+            ('local:/MySQL_python-1.2.2-3.egg', ('1.2.2', 3)),
+            ('Reportlab-2.1-4.egg', ('2.1', 4)),
+            ('hdf5-1.8.1-13.egg', ('1.8.1', 13)),
+            ('pytz-2008c-3.egg', ('2008c', 3)),
             ]:
             self.assertEqual(get_version_build(fn), tu)
 
@@ -45,12 +43,12 @@ class TestUtils(unittest.TestCase):
 
     def test_matchsort(self):
         dists = [
-            'numpy-1.0.4n1.egg',
-            'numpy-1.2.1n1.egg',
-            'numpy-1.2.1n8.egg',
-            'numpy-1.2.1n11.egg',
-            'numpy-1.2.1n21.egg',
-            'numpy-1.3.0n1.egg',
+            'numpy-1.0.4-1.egg',
+            'numpy-1.2.1-1.egg',
+            'numpy-1.2.1-8.egg',
+            'numpy-1.2.1-11.egg',
+            'numpy-1.2.1-21.egg',
+            'numpy-1.3.0-1.egg',
         ]
         org = list(dists)
         random.shuffle(dists)

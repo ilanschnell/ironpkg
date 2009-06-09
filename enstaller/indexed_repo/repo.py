@@ -5,7 +5,7 @@ from collections import defaultdict
 from os.path import basename, join, isfile
 
 from utils import (get_data_from_url, canonical, get_version_build,
-                   split_old_eggname, repo_dist, filename_dist)
+                   split_eggname, repo_dist, filename_dist)
 from metadata import parse_depend_index, parse_data
 from requirement import Req
 
@@ -25,7 +25,7 @@ def dist_as_req(dist, strictness=3):
     That is: What requirement gives me the distribution?
     """
     assert strictness >= 1
-    name, version, build = split_old_eggname(basename(dist))
+    name, version, build = split_eggname(filename_dist(dist))
     req_string = name
     if strictness >= 2:
         req_string += ' %s' % version

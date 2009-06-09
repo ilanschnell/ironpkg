@@ -53,13 +53,25 @@ def split_old_eggname(eggname):
     assert build is not None
     return name, version, build
 
-def get_version_build(dist):
+
+
+egg_pat = re.compile(r'([^-]+)-([^-]+)-(\d+).egg$')
+
+def is_valid_eggname(eggname):
+    return egg_pat.match(eggname)
+
+def split_eggname(eggname):
+    m = egg_pat.match(eggname)
+    assert m, eggname
+    return m.group(1), m.group(2), int(m.group(3))
+
+def get_version_build(eggname):
     """
-    Return the verion and build number of an old style "n" egg, as a
+    Return the version and build number of an distribution, as a
     tuple(version, build), where version is a string and build is an integer.
     """
-    eggname = basename(dist)
-    return split_old_eggname(eggname)[1:]
+    return split_eggname(eggname)[1:]
+
 
 
 def download_data(url, size, verbose=True):
