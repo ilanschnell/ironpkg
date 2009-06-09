@@ -5,18 +5,18 @@ from enstaller import enstaller
 class list_packages(enstaller):
     def initialize_options(self):
         pass
-    
+
     def finalize_options(self):
         pass
-    
+
     def run(self):
         self.initialize()
         self.list_packages(self.args)
-    
+
     def list_packages(self, package_specs):
         for pkg in self.get_installed_packages(package_specs):
             print pkg.name, pkg.version, pkg.active, pkg.location
-    
+
     def get_installed_packages(self, package_specs=[]):
         """
         Returns a list of packages in self.pythonpath which match package_specs.

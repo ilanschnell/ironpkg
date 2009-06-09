@@ -55,7 +55,7 @@ def retrieve_states():
     if not os.path.exists(enstaller_cache):
         print "The enstaller.cache does not exist."
         return None
-        
+
     # Read in all of the lines from the enstaller.cache.  If the enstaller.cache can not be
     # read, print an error message and return None.  If there are no lines in the
     # enstaller.cache for some reason, print an error message as well.
@@ -71,7 +71,7 @@ def retrieve_states():
         print ("There are no entries in the enstaller.cache so a "
             "rollback can not be performed.")
         return None
-        
+
     # Iterate through the lines from the enstaller.cache and from this generate the 2D
     # array of timestamps/project_name-versions and then return it after reversing the
     # list so that it is in descending order by timestamp.
@@ -82,7 +82,7 @@ def retrieve_states():
         entry_parts = line.strip().split(':')
         if len(entry_parts) != 2:
             continue
-        
+
         timestamp = entry_parts[0]
         pkg_list = entry_parts[1].split(',')
         cached_states.append([timestamp, pkg_list])
@@ -104,14 +104,14 @@ def save_state(verbose=False):
         pkg = local.projects[project].active_package
         if pkg:
             active_local_packages.append(pkg)
-            
+
     # Retrieve a list of project_name-version for the currently active packages.
     # Sort them by name so that we can display them easier.
     project_list = []
     for pkg in active_local_packages:
         project_list.append("%s-%s" % (pkg.project.name, pkg.version))
     project_list.sort()
-        
+
     # Retrieve the most recently saved state and compare it to the current
     # state of the system.  If there have been no changes, then don't bother saving
     # a entry to the enstaller.cache.
@@ -125,7 +125,7 @@ def save_state(verbose=False):
                     'the most recent saved state in the enstaller.cache, so '
                     'the current state does not need to be saved.')
             return
-    
+
     # Save the current state to an entry in the enstaller.cache file.  Each entry begins
     # with a timestamp, followed by a colon, and then a comma separated list of the
     # project_name-versions for the currently active packages.
@@ -144,8 +144,8 @@ def save_state(verbose=False):
             print 'Successfully saved the current state.'
     except:
         print "Error trying to write to the enstaller.cache."
-    
-    
+
+
 def rollback_state(project_list, remote_repos=None, interactive=True,
     dry_run=False, term_width=0):
     """
@@ -182,7 +182,7 @@ def rollback_state(project_list, remote_repos=None, interactive=True,
                 if '.dev-r' in pkg.version:
                     pkg.activate(verbose=False)
                     break
-            
+
     # We also need to deactivate any packages that the user has installed since
     # the rollback point.
     active_local_packages = []
@@ -199,4 +199,4 @@ def rollback_state(project_list, remote_repos=None, interactive=True,
         if new_package:
             pkg = local.projects[package].active_package
             pkg.deactivate(dry_run=False)
-            
+

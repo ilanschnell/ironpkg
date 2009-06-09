@@ -8,6 +8,6 @@ class FindEggsTest(unittest.TestCase):
         url = 'http://sourceforge.net/project/showfiles.php?group_id=27747&package_id=19531'
         # should be something here
         self.assertNotEqual(find_eggs_in_url(url), [])
-        
+
 if __name__ == '__main__':
     unittest.main()

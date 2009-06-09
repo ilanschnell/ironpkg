@@ -43,24 +43,24 @@ class enstaller(easy_install):
         'no-deps', 'local-snapshots-ok',
     ]
     negative_opt = {'always-unzip': 'zip-ok'}
-    
+
     def initialize_options(self):
         pass
-    
+
     def finalize_options(self):
         pass
-    
+
     def run(self):
         pass
-    
+
     # ======================
     # Common Utility methods
     # ======================
-    
+
     def initialize(self):
         self.read_pythonpath()
-    
-        
+
+
     def is_on_pythonpath(self, dirname):
         """
         Returns True if the dirname is already a local repo on self.pythonpath,
@@ -70,9 +70,9 @@ class enstaller(easy_install):
         dirpath = path.normcase(path.normpath(path.abspath(dirname)))
         if dirpath in [r.location for r in self.pythonpath]:
             on_pythonpath = True
-        return on_pythonpath    
+        return on_pythonpath
 
-   
+
     def add_pythonpath_dir(self, repo_path) :
         """
         Adds the repo object built from scanning repo_path to the list of local
@@ -124,7 +124,7 @@ class enstaller(easy_install):
                     self.debug("done.\n")
                     self.pythonpath.append(repo)
 
-    
+
     def read_repositories(self, repositories=[]) :
         """
         Reads the package repos (not pythonpath repos) and builds the list of
@@ -178,14 +178,14 @@ class enstaller(easy_install):
                 new_path.append(name)
         return new_path
 
-    
+
 
 def create_repository(url, verbose, prompting, logging_handle) :
     """
     Given a URL, returns an instance of the appropriate Repository object type.
     """
     repo = None
-    
+
     remote = [url.lower().startswith(p) for p in ["http:", "https:"]]
     if True in remote:
         # check if it is a pypi-style repo by trying to access it via an
@@ -213,9 +213,9 @@ def create_repository(url, verbose, prompting, logging_handle) :
             url = url[7:]
             if IS_WINDOWS:
                 url = url.strip( "/" )
-                    
+
         repo = LocalRepository(location=url,
                                verbose=verbose,
                                prompting=prompting,
-                               logging_handle=logging_handle ) 
+                               logging_handle=logging_handle )
     return repo

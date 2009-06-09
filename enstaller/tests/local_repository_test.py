@@ -12,9 +12,9 @@ class LocalRepositoryTest(unittest.TestCase):
         print ("Reading %s..." % dirname)
         repo.build_package_list()
         print ("done.\n")
-        
+
         print repo.pretty_packages()
-        
+
         #repo.pretty_print_packages(indent=4)
 
     def test_all_packages(self):
@@ -25,9 +25,9 @@ class LocalRepositoryTest(unittest.TestCase):
             print ("Reading %s..." % dirname)
             repo.build_package_list()
             print ("done.\n")
-            
+
             repos.append(repo)
-        
+
         for repo in repos:
             print repo.location
             for pkg in repo.active_packages:

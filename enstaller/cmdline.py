@@ -8,26 +8,26 @@
 # license.
 #------------------------------------------------------------------------------
 
-
 import datetime
 import os
 import sys
 import time
-
 from distutils import sysconfig
+
 from enstaller.config import get_configured_index, get_configured_repos
 from enstaller.proxy.api import setup_proxy
 from enstaller.repository import HTMLRepository, RepositoryUnion
-from enstaller.requirements import deactivate_requirement, get_local_repos, \
-    get_site_packages, install_requirement, remove_requirement
-from enstaller.rollback import parse_project_str, retrieve_states, rollback_state, save_state
+from enstaller.requirements import (deactivate_requirement, get_local_repos,
+                                    get_site_packages, install_requirement,
+                                    remove_requirement)
+from enstaller.rollback import (parse_project_str, retrieve_states,
+                                rollback_state, save_state)
 from enstaller.upgrade import get_upgrade_str
 from enstaller.utilities import rst_table, query_user, user_select
-from logging import basicConfig, error, warning, info, debug, DEBUG, INFO, \
-    WARNING, ERROR
+from logging import (basicConfig, error, warning, info, debug, DEBUG, INFO,
+                     WARNING, ERROR)
 from optparse import OptionParser
 from pkg_resources import Requirement
-
 
 
 try:
@@ -40,10 +40,11 @@ def upgrade_project(keys, local_repos=None, remote_repos=None,
     interactive=True, dry_run=False, term_width=0, verbose=False):
     """ Upgrade a project, if possible.
     """
-    # Before we do anything, save the current working state of the environment to a rollback point.
+    # Before we do anything, save the current working state of the
+    # environment to a rollback point.
     # TODO:  If the upgrade fails, we need to rollback to this save point.
     save_state(verbose=verbose)
-    
+
     if local_repos == None:
         local_repos = get_local_repos()
     local = RepositoryUnion(get_local_repos())
@@ -56,21 +57,22 @@ def upgrade_project(keys, local_repos=None, remote_repos=None,
             pkg = local.projects[project].active_package
             if pkg:
                 keys.append(project)
-    
+
     for key in keys:
         # All of the keys in the local.projects dictionary are lowercase, so
         # convert all of the user-specified keys to lowercase.
         key = key.lower()
-        
+
         # If the user specified a project which isn't installed, just skip it.
         try:
             active_local_projects = [project
                 for project in local.projects[key].projects
                     if project.active]
         except KeyError:
-            print "Skipping %s because it is not installed on your system." % key
+            print("Skipping %s because it is not installed on your system." %
+                  key)
             continue
-        
+
         if active_local_projects:
             pkg = active_local_projects[0].active_package
 
@@ -95,12 +97,13 @@ def upgrade_project(keys, local_repos=None, remote_repos=None,
     install_requirement(requirements, local_repos=local_repos,
         remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
         term_width=term_width)
-        
+
     # After we have finished the upgrade, we save the new state.
-    # TODO:  If the upgrade failed, we should instead revert to the previous state.
+    # TODO:  If the upgrade failed, we should instead revert to the
+    #        previous state.
     save_state(verbose=verbose)
 
-    
+
 def update_project(projects, local_repos=None, remote_repos=None,
     interactive=True, dry_run=False, term_width=0, verbose=False):
     """\
@@ -111,7 +114,7 @@ def update_project(projects, local_repos=None, remote_repos=None,
     # to a rollback point.
     # TODO:  If the upgrade fails, we need to rollback to this save point.
     save_state(verbose=verbose)
-   
+
     # Ensure we know what our local repository consists of.
     if local_repos == None:
         local_repos = get_local_repos()
@@ -130,11 +133,11 @@ def update_project(projects, local_repos=None, remote_repos=None,
     # sake.
     else:
         projects = [name.lower() for name in projects]
-   
+
     # Determine the requirement specification needed for each project.
     requirements = []
     for name in projects:
-        
+
         # If the user specified a project which isn't installed, just skip it.
         try:
             active_local_projects = [project
@@ -145,7 +148,7 @@ def update_project(projects, local_repos=None, remote_repos=None,
                 print ("Skipping %s because it is not installed on your "
                     "system.") % name
             continue
-   
+
         # If we have a current version active, then we use it's version to
         # to determine what a valid update would be.
         if active_local_projects:
@@ -178,30 +181,34 @@ def update_project(projects, local_repos=None, remote_repos=None,
     install_requirement(requirements, local_repos=local_repos,
         remote_repos=remote_repos, interactive=interactive, dry_run=dry_run,
         term_width=term_width, verbose=verbose)
-        
+
     # After we have finished the update, we save the new state.
-    # TODO:  If the update failed, we should instead revert to the previous state.
+    # TODO:  If the update failed, we should instead revert to the
+    #        previous state.
     save_state(verbose=verbose)
-        
+
 
 def date_display_diff(recent, old):
     """
     The two inputs are time tuples for dates and this function will return a simple date
     display difference between the two time tuples.
     """
-    # Construct simple datetime.date objects which only contain year/month/day and from this we can
-    # subtact these objects, which yields a datetime.timedelta object.  The datetime.timedelta object
-    # only keeps track of days in difference so we need to calculate the years, months, weeks and days
-    # difference.
-    # Note: This makes an assumption based on the average number of days in a month being 30.  We don't
-    # need to be exactly precise since this display date is just meant to offer a simple display.
-    date_diff = datetime.date(recent[0], recent[1], recent[2]) - datetime.date(old[0], old[1], old[2])
+    # Construct simple datetime.date objects which only contain year/month/day
+    # and from this we can subtact these objects, which yields a
+    # datetime.timedelta object.  The datetime.timedelta object only keeps
+    # track of days in difference so we need to calculate the years, months,
+    # weeks and day difference.
+    # Note: This makes an assumption based on the average number of days
+    #       in a month being 30.  We don't need to be exactly precise since
+    #       this display date is just meant to offer a simple display.
+    date_diff = (datetime.date(recent[0], recent[1], recent[2])
+                 - datetime.date(old[0], old[1], old[2]))
     years, days = divmod(date_diff.days, 365)
     months, days = divmod(days, 30)
     weeks, days = divmod(days, 7)
-    
-    # Determine the simple display date based on the years, months, weeks, and days difference that
-    # was calculated.
+
+    # Determine the simple display date based on the years, months, weeks,
+    # and days difference that was calculated.
     date_display = ""
     if years:
         if years == 1:
@@ -225,11 +232,11 @@ def date_display_diff(recent, old):
             date_display = "%s days ago" % days
     else:
         date_display = "Today"
-        
+
     # Finally, return the calculated display date.
     return date_display
-    
-    
+
+
 def rollback_menu(remote_repos=None, interactive=True,
     dry_run=False, term_width=0, show_all=False, num_entries=5,
     show_dates=False):
@@ -251,22 +258,26 @@ def rollback_menu(remote_repos=None, interactive=True,
     metadata = []
     local_time = time.localtime()
     for i, state in enumerate(cached_states):
-        # Create a date display from the difference between the timestamp of the rollback point
-        # and the current time.  The difference we retrieve is the time sine the epoch
-        # (i.e. January 1, 1970), so we make our calculations from that.
+        # Create a date display from the difference between the timestamp of
+        # the rollback point and the current time.  The difference we retrieve
+        # is the time sine the epoch (i.e. January 1, 1970), so we make our
+        # calculations from that.
         timestamp = state[0]
         time_tuple = time.strptime(timestamp, "%Y%m%d%H%M%S")
         date_display = date_display_diff(local_time, time_tuple)
-        
-        # If the user specified to display the full date/timestamp with the rollback points,
-        # then tack it onto the simple display.
+
+        # If the user specified to display the full date/timestamp with the
+        # rollback points, then tack it onto the simple display.
         if show_dates:
-            date_display = "%s (%s)" % (date_display, time.strftime("%Y/%m/%d %H:%M:%S", time_tuple))
-        
-        # Find the differences between two rollback points(i.e. packages added, removed,
-        # or modified) and calculate a nice diff that can be displayed in the table.
-        # We need to stop calculating these diffs once we reach the last item though
-        # because there are no entries after it.
+            date_display = "%s (%s)" % (date_display,
+                                        time.strftime("%Y/%m/%d %H:%M:%S",
+                                                      time_tuple))
+
+        # Find the differences between two rollback points (i.e. packages
+        # added, removed, or modified) and calculate a nice diff that can
+        # be displayed in the table.
+        # We need to stop calculating these diffs once we reach the last
+        # item though because there are no entries after it.
         option_diff = ""
         if i < len(cached_states)-1:
             project_list_1 = cached_states[i][1]
@@ -317,13 +328,14 @@ def rollback_menu(remote_repos=None, interactive=True,
                     option_diff += "  [D] %s" % deactivated[0]
                     for deac_str in deactivated[1:]:
                         option_diff += "\n\t      %s" % deac_str
-                    
-        # Set the 'date' metadata according to the date display and the differene between
-        # rollback points.
+
+        # Set the 'date' metadata according to the date display and
+        # the differene between rollback points.
         metadata.append({"date": date_display + "\n\t" + option_diff})
-        
-    # If a user selects to view more information about a specific rollback point, keep
-    # prompting the user to choose a rollback point after displaying that information.
+
+    # If a user selects to view more information about a specific rollback
+    # point, keep prompting the user to choose a rollback point after
+    # displaying that information.
     while True:
         selection = user_select(["date"],
             metadata, ("Select a restore point to rollback your "
@@ -355,10 +367,10 @@ def rollback_menu(remote_repos=None, interactive=True,
     # If the user selected option '0', then there's nothing to do.
     if selection == '0':
         return
-            
-    # Now that the user has selected a rollback point, perform the action to rollback
-    # to that state.  Once the rollback has been completed successfully, let the user
-    # know.
+
+    # Now that the user has selected a rollback point, perform the action
+    # to rollback to that state.  Once the rollback has been completed
+    # successfully, let the user know.
     state_index = int(selection)-1
     project_list = cached_states[state_index][1]
     rollback_state(project_list, remote_repos, interactive, dry_run, term_width)
@@ -391,7 +403,8 @@ def list_installed(interactive=True, term_width=0):
 def setup_parser():
     description = """\
 Utility for managing packages in the site-packages directory.
-The command needs to be one of the following: install, upgrade, update, rollback, remove, list, save_state
+The command needs to be one of the following: install, upgrade, update,
+rollback, remove, list, save_state
 """
 
     parser = OptionParser(usage="usage: enpkg command [options]",
@@ -424,23 +437,23 @@ The command needs to be one of the following: install, upgrade, update, rollback
         action="store_true", dest="interactive",
         help="prompt user for choices")
     parser.add_option("-n", "--num-entries",
-        action="store", type="int", dest="num_entries", 
+        action="store", type="int", dest="num_entries",
         help="number of rollback point entries to show")
     parser.add_option("--proxy",
-        action="store", type="string", dest="proxy", 
+        action="store", type="string", dest="proxy",
         help="use a proxy for downloads")
     parser.add_option("-q", "--quiet",
         action="store_const", const=WARNING, dest="logging")
     parser.add_option("--show-dates",
-        action="store_true", dest="show_dates", 
+        action="store_true", dest="show_dates",
         help="show the dates and timestamps for rollback entries")
     #parser.add_option("-u", "--allow-unstable",
     #    action="store_true", dest="allow_unstable",
     #    help="search unstable repositories")
-    parser.add_option("-v", "--verbose", 
+    parser.add_option("-v", "--verbose",
         action="store_const", const=DEBUG, dest="logging")
     parser.add_option("-w", "--width",
-        action="store", type="int", dest="term_width", 
+        action="store", type="int", dest="term_width",
         help="set the width of the terminal window")
     return parser
 
@@ -453,7 +466,8 @@ def main():
     options, args = parser.parse_args()
     if len(args) < 1:
         parser.error("Must call enpkg with one of 'install', 'upgrade', "
-            "'update', 'rollback', 'remove', 'save_state', or 'list', see -h for more details")
+                     "'update', 'rollback', 'remove', 'save_state', or "
+                     "'list', see -h for more details")
 
     # Set up logging
     basicConfig(level=options.logging, format="%(message)s")

@@ -28,9 +28,9 @@ entry_patt = re.compile( "^([\w\-_]+):\ .*" )
 def get_platform():
     """ Return finer-grained platform names, corresponding to supported EPD
     versions."""
-    
+
     (PLAT, PLAT_VER) = platform.dist()[0:2]
-    
+
     # Map RedHat to Enthought repo names
     if PLAT.lower().startswith("redhat"):
         PLAT = "redhat"
@@ -67,7 +67,7 @@ def get_platform():
     # setuptools get_platform() finds the right info for OSX
     elif sys.platform.lower().startswith("darwin"):
         (PLAT, PLAT_VER) = pkg_resources.get_platform().split( "-" )[0:2]
-    
+
     return (PLAT, PLAT_VER)
 
 
@@ -85,25 +85,25 @@ def remove_eggs_from_path(search_path, fix_names=False):
         if not (os.path.splitext(name)[-1].lower() in [".egg", ".zip"]
                 or glob.glob(os.path.join(name, "*.egg-info"))):
             new_path.append(name)
-            
-    # If for some reason the main site-packages has .egg-info files in it, be sure to add it
-    # to our path, because otherwise it would not be added.
+
+    # If for some reason the main site-packages has .egg-info files in it,
+    # be sure to add it to our path, because otherwise it would not be added.
     site_packages = sysconfig.get_python_lib()
     if site_packages not in new_path:
         new_path.append(site_packages)
-    
+
     return new_path
 
 
 def rst_table(fields, data, sorted=True, key=None, indent=0, max_width=0):
     """Print a restructured text simple table
-    
+
         fields : a tuple of items from the data which are the column headers
             of the table
         data : a list of dictionaries, each of which will be a row in the table
         key : a sort key for the data
     """
-    
+
     data = [tuple([str(row.get(field, '')) for field in fields])
             for row in data]
     if sorted:
@@ -111,14 +111,14 @@ def rst_table(fields, data, sorted=True, key=None, indent=0, max_width=0):
     for i in reversed(range(1,len(data))):
         if data[i][0] == data[i-1][0]:
             data[i] = ("",) + data[i][1:]
-            
+
     field_sizes = [max([len(field)] + [len(row[i]) for row in data])
                    for i, field in enumerate(fields)]
     template = ' '*indent + '  '.join(["%s" for field in fields]) + '\n'
     line = template % tuple(["="*size for size in field_sizes])
     pretty_headers = tuple([field.ljust(size).replace("_", " ").title()
                             for field, size in zip(fields, field_sizes)])
-    
+
     table = line + (template % pretty_headers) + line + \
         ''.join([template % tuple([field.ljust(size)
                                    for field, size in zip(row, field_sizes)])
@@ -134,12 +134,12 @@ cache = {}
 
 def find_eggs_in_url(url):
     """Read a URL and find any links to egg files
-    
+
     Parameters
     ----------
     url : string
         the url to search
-    
+
     Returns
     -------
     dists : a list of pkg_resources.Distribution objects
@@ -235,8 +235,9 @@ def run_scripts(dist, phase, dry_run=False):
                             % (phase.capitalize(), script, dist.project_name,
                                exc))
             else:
-                print "Run script '%s' in package %s'" % (script, dist.project_name)
-    
+                print "Run script '%s' in package %s'" % (script,
+                                                          dist.project_name)
+
 
 def rmtree_error(operation, filename, exception):
     if operation == os.remove:
@@ -244,8 +245,9 @@ def rmtree_error(operation, filename, exception):
     elif operation == os.rmdir:
         error("Could not remove directory %s: %s" % (filename, exception))
     elif operation == os.listdir:
-        error("Could not list files in directory %s: %s" % (filename, exception))
-        
+        error("Could not list files in directory %s: %s" % (filename,
+                                                            exception))
+
 
 def query_user(msg, default=""):
     """Present a yes/no question to the user and return a response
@@ -259,7 +261,7 @@ def query_user(msg, default=""):
         if response == "" and default:
             response = default
     return response[0] == "y"
-    
+
 
 def user_select(header, data, prompt, default="1", extra_char=None,
     max_width=0):
@@ -291,4 +293,3 @@ def user_select(header, data, prompt, default="1", extra_char=None,
             return int(response)-1
     else:
         return None
-    

@@ -12,16 +12,17 @@ import os
 import re
 import subprocess
 import urllib2
-
-from distutils.errors import DistutilsError
-from enstaller.utilities import rmtree_error, run_scripts, get_egg_specs_from_info
 from glob import glob
 from logging import debug, info, warning
+from shutil import rmtree, copyfile
+
+from distutils.errors import DistutilsError
+from enstaller.utilities import (rmtree_error, run_scripts,
+                                 get_egg_specs_from_info)
 from pkg_resources import Requirement, Distribution
 from setuptools.archive_util import unpack_archive
-from setuptools.package_index import distros_for_url, find_distributions, \
-    ensure_directory, open_any_url
-from shutil import rmtree, copyfile
+from setuptools.package_index import (distros_for_url, find_distributions,
+                                      ensure_directory, open_any_url)
 
 
 EGG_INFO_RE = re.compile(r".*EGG-INFO")
@@ -32,9 +33,9 @@ class Package(object):
     A Package is a particular installable.
 
     """
-    
+
     active = False
-    
+
     def __init__(self, project, version, verbose=False):
         self.project = project
         self.version = version
@@ -44,14 +45,14 @@ class Package(object):
     @property
     def repository(self):
         return self.project.repository
-    
+
     @property
     def metadata(self):
         return {
             'project_name': self.project.name,
             'version': self.version
         }
-    
+
     def match(self, combiner='and', **kwargs):
         if not kwargs: return True
         matches = []
@@ -67,11 +68,11 @@ class Package(object):
 
 class PkgResourcesPackage(Package):
     """\
-    A PkgResourcesPackage is an installable wrapping a 
+    A PkgResourcesPackage is an installable wrapping a
     pkg_resources.Distribution object.
 
     """
-    
+
     inherited_metadata = ["location", "project_name", "key", "extras",
         "version", "parsed_version", "py_version", "platform", "precedence"]
 
@@ -79,33 +80,33 @@ class PkgResourcesPackage(Package):
         self.project = project
         self.distribution = distribution
         self.verbose = verbose
-    
+
     @property
     def requirement(self):
         return Requirement.parse("%s == %s" % (self.project.name,
             self.version))
-    
+
     @property
     def name(self):
         return "%s %s" % (self.distribution.project_name,
             self.distribution.version)
-    
+
     @property
     def key(self):
         return self.distribution.key
-    
+
     @property
     def location(self):
         return self.distribution.location
-    
+
     @property
     def version(self):
         return self.distribution.version
-    
+
     @property
     def parsed_version(self):
         return self.distribution.parsed_version
-    
+
     @property
     def precedence(self):
         return self.distribution.precedence
@@ -144,16 +145,16 @@ class EasyInstallPackage(PkgResourcesPackage):
 
     @property
     def active(self):
-        return self.distribution in set(self.project.repository.active[
-            self.project.name])
-    
+        return self.distribution in set(
+            self.project.repository.active[self.project.name])
+
     def requires(self):
         return self.distribution.requires()
-    
+
     def depends_on(self, package):
-        """\
+        """
         Does a given package depend on this package?
-        
+
         Parameters
         ----------
         package : a PkgResource package.
@@ -162,10 +163,10 @@ class EasyInstallPackage(PkgResourcesPackage):
         matches = [package.distribution in requirement for requirement in
             self.distribution.requires()]
         return reduce(lambda x,y: x or y, matches, False)
-    
+
     @property
     def dependent_packages(self):
-        """\
+        """
         Find active packages which immediately depend on this package.
 
         """
@@ -175,10 +176,10 @@ class EasyInstallPackage(PkgResourcesPackage):
                 package.depends_on(self)]
         else:
             return []
-    
+
     @property
     def full_dependent_packages(self):
-        """\
+        """
         Recursively find all active packages which depend on this package.
 
         """
@@ -189,7 +190,7 @@ class EasyInstallPackage(PkgResourcesPackage):
             return packages
         else:
             return set()
-            
+
     #@property
     #def reversed_reqs(self):
     #    """ Find all local packages which depend on this package
@@ -201,10 +202,10 @@ class EasyInstallPackage(PkgResourcesPackage):
     #        if dependencies:
     #            projects[key] = dependencies
     #    return projects
-    
+
     def activate(self, save=True, dependencies=True, dry_run=False,
-        verbose=True):
-        """\
+                 verbose=True):
+        """
         Activate the package, adding it to the Python import path.
 
         Parameters
@@ -235,11 +236,11 @@ class EasyInstallPackage(PkgResourcesPackage):
         else:
             if verbose:
                 warning("Package %s is already active." % (self.name))
-    
+
     def deactivate(self, save=True, dependencies=False, dry_run=True):
-        """\
+        """
         Deactivate the package, removing it from the Python import path.
-        
+
         Parameters
         ----------
         save : boolean
@@ -271,9 +272,9 @@ class EasyInstallPackage(PkgResourcesPackage):
                     print "Save .pth file."
         else:
             warning("Package %s is already inactive." % (self.name))
-    
+
     def remove(self, dry_run=False):
-        """\
+        """
         Uninstall the package, removing all files and attempting to
         restore to the pre-installed state.
 
@@ -281,15 +282,15 @@ class EasyInstallPackage(PkgResourcesPackage):
         # FIXME: we would like to replace most of this with a call out to
         # our patched version of setuptools.  For the time being I'm leaving
         # this in here, since we don't have the interface set yet.
-        
+
         if self.active:
             # deactivate self and anything which depends on this package
             self.deactivate(dry_run=dry_run)
         run_scripts(self.distribution, "pre-uninstall", dry_run=dry_run)
-        
+
         # FIXME: this isn't working properly, but I'm not going to fight it
         # since we're replacing this with patched setuptools
-        
+
         # if we have a files file
         files_file = self.location + ".files"
         if os.path.exists(files_file):
@@ -299,7 +300,7 @@ class EasyInstallPackage(PkgResourcesPackage):
                 file_list = [filename.strip() for filename in
                     fp.read().split('\n')]
             finally:
-                fp.close()    
+                fp.close()
             # and try to remove each file from the list
             for filename in file_list:
                 if os.path.exists(filename):
@@ -336,10 +337,10 @@ class EasyInstallPackage(PkgResourcesPackage):
                 os.remove(self.location)
             except:
                 rmtree_error(os.remove, self.location, sys.exec_info())
-       
-    
-class RemotePackage(PkgResourcesPackage): 
-    """\
+
+
+class RemotePackage(PkgResourcesPackage):
+    """
     An RemotePackage represents an egg that can be installed from a remote
     repository.
 
@@ -349,12 +350,12 @@ class RemotePackage(PkgResourcesPackage):
         self._local_dist = None
         self.source = False
         self.develop = False
-    
+
     @property
     def tmpdir(self):
         return os.path.join(self.repository.tmpdir, self.project.name,
             self.version)
-    
+
     @property
     def local_distribution(self):
         if self._local_dist is None:
@@ -385,15 +386,16 @@ class RemotePackage(PkgResourcesPackage):
                     else:
                         self._local_dist = Distribution.from_filename(location)
         return self._local_dist
-    
+
     def requires(self):
         if self.metadata.has_key("depends"):
             print self.metadata["depends"]
             return self.metadata["depends"]
         return self.local_distribution.requires()
-    
-    def install(self, target_repo, source=False, develop=False, dry_run=False, *args):
-        """\
+
+    def install(self, target_repo, source=False, develop=False,
+                dry_run=False, *args):
+        """
         Install a package by fetching it into a temporary directory and then
         calling easy_install with the appropriate args.
 
@@ -402,7 +404,7 @@ class RemotePackage(PkgResourcesPackage):
         files_file = os.path.join(self.tmpdir, "files")
         #if "--location" not in args:
         #    args += ["--install-dir=%s" % target_repo.location]
-        
+
         # XXX this option should become the default when we patch setuptools
         # wo we can remove these two lines
         if "--record" not in args:
@@ -414,14 +416,14 @@ class RemotePackage(PkgResourcesPackage):
             location = self.local_distribution.location
         else:
             print "Download egg file to temporary directory"
-        
+
         # XXX more sophistication here?
         info("Installing %s" % str(self.distribution))
         if not dry_run:
             subprocess.call(["easy_install"] + args + [location])
         else:
             print "Execute", " ".join(["easy_install"] + args + ["<location>"])
-            
+
         # want to copy the files file
         # XXX Don't worry about this when we start to use patched setuptools
         if not dry_run:
@@ -456,7 +458,7 @@ class RemotePackage(PkgResourcesPackage):
 
 
 def retrieve_metadata_from_egginfo(package, verbose=False):
-    """\
+    """
     Return the metadata from an associated .egg.info file.
 
     Returns an empty dict if an .egg.info couldn't be found.
@@ -489,7 +491,7 @@ def retrieve_metadata_from_egginfo(package, verbose=False):
 
 
 class HTMLPackage(RemotePackage):
-    """\
+    """
     An RemotePackage represents an egg that can be installed from a remote
     HTML-style repository.
 
@@ -502,12 +504,12 @@ class HTMLPackage(RemotePackage):
             self._metadata['active'] = ""
             self._metadata.update(retrieve_metadata_from_egginfo(self),
                 verbose=self.verbose)
-            
+
         return self._metadata
 
 
 class XMLRPCPackage(RemotePackage):
-    """\
+    """
     An RemotePackage represents an egg that can be installed from a remote
     PyPI-style XMLRPC repository.
 
@@ -520,6 +522,5 @@ class XMLRPCPackage(RemotePackage):
             self._metadata['active'] = ""
             self._metadata.update(retrieve_metadata_from_egginfo(self),
                 verbose=self.verbose)
-        
-        return self._metadata
 
+        return self._metadata

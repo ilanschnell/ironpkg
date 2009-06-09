@@ -14,7 +14,8 @@ import sys
 
 from distutils import sysconfig
 from enstaller.package import EasyInstallPackage, RemotePackage
-from enstaller.repository import EasyInstallRepository, HTMLRepository, RepositoryUnion
+from enstaller.repository import (EasyInstallRepository, HTMLRepository,
+                                  RepositoryUnion)
 from enstaller.upgrade import upgrade
 from enstaller.utilities import remove_eggs_from_path, user_select, query_user
 from logging import error, warning, info
@@ -29,7 +30,7 @@ def get_local_repos():
             repo = EasyInstallRepository(location=dirname)
             repos.append(repo)
     return repos
-    
+
 
 def get_site_packages():
     """Find the site-packages directory
@@ -39,14 +40,14 @@ def get_site_packages():
         return EasyInstallRepository(location=site_packages)
     else:
         error("Can't locate site-packages directory in path.")
-        
+
 
 def install_requirement(requirements, target_repo=None, local_repos=None,
         remote_repos=None, interactive=True, dry_run=False, verbose=False,
         term_width=0):
     """\
     Find and install packages which match the requirements.
-    
+
     This may either upgrade or downgrade packages when needed.
 
     """
@@ -68,7 +69,7 @@ def install_requirement(requirements, target_repo=None, local_repos=None,
     to_install = []
     for requirement in requirements:
 
-        # Ensure we can find at least one distribution matching the 
+        # Ensure we can find at least one distribution matching the
         # requirement.
         try:
             packages = [package

@@ -36,11 +36,11 @@ def default_config():
 
     """
     cp = ConfigParser.SafeConfigParser()
-    
+
     # By default, set the index url to the pypi index in the 'repos' section.
     cp.add_section('repos')
     cp.set('repos', '1', "http://pypi.python.org/simple,index")
-    
+
     # Also set the 'unstable_repos' section to its previous default.
     cp.add_section('unstable_repos')
     cp.set('unstable_repos', '1', "# these should be repo URLs")
@@ -146,7 +146,7 @@ def get_configured_repos(unstable=False, verbose=False):
                 results.append(value)
 
     return results
-    
+
 
 def get_configured_index(verbose=True):
     """\
@@ -160,7 +160,7 @@ def get_configured_index(verbose=True):
         value = value.strip()
         if value.endswith(',index'):
             results.append(value[:-6])
-    
+
     # If there was only one index url found, then just return it.
     # If the user specified more than one index url in the config file,
     # then we print a warning.  And if no index url was found, then
@@ -190,7 +190,7 @@ def _get_config_name():
         name = ".enstallerrc"
     return name
 
-    
+
 def _get_default_config_path():
     """\
     Return the path to the default config file in a user's HOME directory.
@@ -202,11 +202,11 @@ def _get_default_config_path():
 def _get_system_config_path():
     """\
     Return the path to the config file in the system site-packages.
-    
+
     """
     return abspath(join(sysconfig.get_python_lib(), _get_config_name()))
 
-    
+
 def _get_config_path():
     """\
     Return the absolute path to our config file.
@@ -217,7 +217,7 @@ def _get_config_path():
     file_path = _get_default_config_path()
     if exists(file_path):
         return file_path
-        
+
     # If a config file can't be found in the user's HOME directory,
     # then look for one in the system site-packages.  Also, the name of
     # the config file in site-packages is different on non-Windows platforms
@@ -225,9 +225,8 @@ def _get_config_path():
     file_path = _get_system_config_path()
     if exists(file_path):
         return file_path
-    
+
     # If we reach this point, it means that we couldn't locate a config
     # file in the user's HOME directory or the system site-packages,
     # so just return None.
     return None
-

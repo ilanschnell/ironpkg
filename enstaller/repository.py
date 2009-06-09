@@ -8,61 +8,61 @@
 # license.
 #------------------------------------------------------------------------------
 
-
 import os
-
-from distutils.errors import DistutilsError
-from enstaller.project import Project, ProjectUnion, PkgResourcesProject, \
-        EasyInstallProject, HTMLProject, XMLRPCProject
-from enstaller.utilities import rst_table, rmtree_error
-from logging import debug, info, warning
-from os.path import abspath, exists, isdir
-from pkg_resources import Environment
-from setuptools.command.easy_install import PthDistributions
-from setuptools.package_index import PackageIndex, URL_SCHEME
 from shutil import rmtree
 from tempfile import mkdtemp
 from xmlrpclib import Server
+from distutils.errors import DistutilsError
+from os.path import abspath, exists, isdir
+
+from enstaller.project import (Project, ProjectUnion, PkgResourcesProject,
+                               EasyInstallProject, HTMLProject, XMLRPCProject)
+from enstaller.utilities import rst_table, rmtree_error
+from logging import debug, info, warning
+from pkg_resources import Environment
+from setuptools.command.easy_install import PthDistributions
+from setuptools.package_index import PackageIndex, URL_SCHEME
 
 
 class Repository(object):
     """\
     A repository represents a collection of projects which contain packages.
-    
+
     """
-    
+
     default_package_fields = ["project_name", "version", "location"]
-    
+
     def __init__(self, location, verbose=False):
         self.location = location
         self.verbose = verbose
-    
+
     def build_package_list(self):
         for project in self.projects.values():
             project.packages
-    
+
     def pretty_packages(self, fields=None, max_width=0):
         if fields == None:
             fields = self.default_package_fields
-        return rst_table(fields, [package.metadata for package in self.packages],
-            max_width=max_width)
-    
+        return rst_table(fields,
+                         [package.metadata for package in self.packages],
+                         max_width=max_width)
+
     @property
     def packages(self):
         packages = []
         for project in sorted(self.projects):
             packages += self.projects[project].packages
         return packages
-    
+
     def __getitem__(self, key):
         return self.projects[key]
-    
+
     def __setitem__(self, key, value):
         self.projects[key] = value
-    
+
     def __delitem__(self, key):
         del self.projects[key]
-    
+
     def __contains__(self, key):
         if isinstance(key, basestring):
             return key in self.projects
@@ -71,16 +71,16 @@ class Repository(object):
 class RepositoryUnion(Repository):
     """\
     A union of several repositories that acts as a single repository.
-    
+
     """
-    
+
     def __init__(self, repositories, verbose=False):
         # NOTE: Explicitly not calling the base class constructor.  We
         # don't have all the same attributes.
         self.repositories = repositories
         self._projects = None
         self.verbose = verbose
-    
+
     @property
     def projects(self):
         if not self._projects:
@@ -93,20 +93,20 @@ class RepositoryUnion(Repository):
                         projects[key] = ProjectUnion(self, key, [project])
             self._projects = projects
         return self._projects
-        
+
 
 class LocalRepository(Repository):
     """\
     A local repository is a repository on the host machine.
 
     """
-   
+
     def search(self, combiner='and', **kwargs):
         matches = []
         for project in self.projects:
             matches += self.projects[project].search(combiner, **kwargs)
         return matches
- 
+
 
 class EasyInstallRepository(LocalRepository):
     """\
@@ -115,7 +115,7 @@ class EasyInstallRepository(LocalRepository):
     """
     _pth = "easy-install.pth"
     default_package_fields = ["project_name", "version", "active", "location"]
-    
+
     def __init__(self, location, verbose=False):
         self._projects = None
         self.location = location
@@ -132,7 +132,7 @@ class EasyInstallRepository(LocalRepository):
             for key in self.environment:
                 self._projects[key] = EasyInstallProject(self, key)
         return self._projects
-    
+
     @property
     def active_packages(self):
         packages = []
@@ -141,13 +141,13 @@ class EasyInstallRepository(LocalRepository):
                 if package.active:
                     packages.append(package)
         return packages
-    
+
 
 class RemoteRepository(Repository):
     def __init__(self, *args, **kwargs):
         super(RemoteRepository, self).__init__(*args, **kwargs)
         self.tmpdir = mkdtemp(prefix="enstaller-")
-    
+
     def __del__(self):
         rmtree(self.tmpdir, onerror=rmtree_error)
 
@@ -175,7 +175,7 @@ def format_as_url(location):
 
     return 'file://' + location
 
-        
+
 class HTMLRepository(RemoteRepository):
     """\
     A remote repository which easy_install can cope with.
@@ -185,7 +185,8 @@ class HTMLRepository(RemoteRepository):
         self.location = format_as_url(location)
         self.index = index
         if index:
-            self.environment = PackageIndex(index_url=self.location, search_path=[])
+            self.environment = PackageIndex(index_url=self.location,
+                                            search_path=[])
         else:
             self.environment = PackageIndex(no_default_index=True)
             self.environment.add_find_links([self.location])
@@ -209,14 +210,15 @@ class HTMLRepository(RemoteRepository):
                         verbose=self.verbose)
                 self._projects[project].scan_needed = True
         return self._projects
-    
+
     def search(self, combiner='and', **kwargs):
         if 'project' not in kwargs:
             raise SearchError("EasyInstall-based remote repositories require"
                               " a 'project' search term.")
         if isinstance(kwargs['project'], basestring):
             return self.projects[kwargs['project']].match(combiner, **kwargs)
-        partial_match_names = set(project_name for project_name in self.projects
+        partial_match_names = set(project_name
+                                  for project_name in self.projects
                                   if kwargs['project'].match(project_name))
         matches = []
         for project in partial_match_names:
@@ -233,7 +235,7 @@ class XMLRPCRepository(RemoteRepository):
         self._projects = None
         self.tmpdir = mkdtemp(prefix="enstaller-")
         self.verbose = verbose
-   
+
     @property
     def projects(self):
         if self._projects == None:
@@ -241,18 +243,18 @@ class XMLRPCRepository(RemoteRepository):
             for project in self.server.list_packages():
                 self._projects[project] = XMLRPCProject(self, project)
         return self._projects
-    
+
     def search(self, combiner='and', **kwargs):
         precise_terms = dict((key, value) for key, value in kwargs
                              if isinstance(value, basestring))
         if precise_terms:
             partial_match_names = set(partial_match['name']
                                       for partial_match in
-                                      self.server.search(precise_terms, combiner))
+                                      self.server.search(precise_terms,
+                                                         combiner))
         else:
             partial_match_names = set(self.projects)
         matches = []
         for project in partial_match_names:
             matches += self.projects[project].search(combiner, **kwargs)
         return matches
-

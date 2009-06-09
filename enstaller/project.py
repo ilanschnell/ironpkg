@@ -19,16 +19,17 @@ from shutil import rmtree
 from pkg_resources import Requirement
 
 # local imports
-from package import Package, PkgResourcesPackage, EasyInstallPackage, \
-        HTMLPackage, XMLRPCPackage
+from package import (Package, PkgResourcesPackage, EasyInstallPackage,
+                     HTMLPackage, XMLRPCPackage)
 from utilities import rst_table
 
 class Project(object):
-    """A Project represents a collection of different versions of an installable
+    """
+    A Project represents a collection of different versions of an installable
     """
     active_package = None
     active = False
-    
+
     def __init__(self, repository, name, verbose=False):
         self.repository = repository
         self.name = name
@@ -38,27 +39,28 @@ class Project(object):
     def search(self, combiner='and', **kwargs):
         return [package for package in self.packages
                 if package.match(combiner, **kwargs)]
-    
+
     def current_version(self):
         return self.packages[0]
-    
+
     def pretty_packages(self, fields=None):
         if fields == None:
             fields = ["version", "location"]
-        return rst_table(fields, [package.metadata for package in self.packages])
+        return rst_table(fields,
+                         [package.metadata for package in self.packages])
 
 class ProjectUnion(Project):
     def __init__(self, repository, name, projects, verbose=False):
         super(ProjectUnion, self).__init__(repository, name, verbose=verbose)
         self.projects = projects
-    
+
     @property
     def active(self):
         active = False
         for project in self.projects:
             active = active or project.active
         return active
-    
+
     @property
     def active_package(self):
         for project in self.projects:
@@ -66,7 +68,7 @@ class ProjectUnion(Project):
                 return project.active_package
         else:
             return None
-    
+
     @property
     def packages(self):
         if self._packages == None:
@@ -76,8 +78,10 @@ class ProjectUnion(Project):
             self._packages = packages
         return self._packages
 
+
 class PkgResourcesProject(Project):
-    """A PkgResourcesProject is a project managed using the pkg_resource module
+    """
+    A PkgResourcesProject is a project managed using the pkg_resource module
     """
     @property
     def packages(self):
@@ -86,25 +90,27 @@ class PkgResourcesProject(Project):
             for dist in self.repository.environment[self.name]:
                 self._packages.append(self.PackageType(self, dist))
         return self._packages
-    
+
     @property
     def requirement(self):
         return Requirement.parse(self.name)
-    
+
     @property
     def environment(self):
         return self.repository.environment
 
+
 class EasyInstallProject(PkgResourcesProject):
-    """An EasyInstallProject is a local project managed by the pkg_resource and
+    """
+    An EasyInstallProject is a local project managed by the pkg_resource and
     easy_install.
     """
     PackageType = EasyInstallPackage
-    
+
     @property
     def active(self):
         return self.name in set(self.repository.active)
-    
+
     @property
     def active_package(self):
         active_packages = [package for package in self.packages
@@ -115,8 +121,9 @@ class EasyInstallProject(PkgResourcesProject):
             return active_packages[0]
         else:
             raise RepositoryConsistencyError("Project %s has multiple active "
-                    "packages: " + ", ".join(package.version for package in active_packages))
-   
+                    "packages: " + ", ".join(package.version
+                                             for package in active_packages))
+
     def activate(self, save=True):
         if not self.active:
             # add the most preferred package currently available
@@ -124,7 +131,7 @@ class EasyInstallProject(PkgResourcesProject):
             self.packages[0].activate(save=save)
         else:
             warn("Project %s is already active." % (self.name))
-    
+
     def deactivate(self, save=True, dependencies=True, dry_run=False):
         if self.active:
             for package in self.packages:
@@ -135,19 +142,21 @@ class EasyInstallProject(PkgResourcesProject):
                 self.repository.active.save()
         else:
             warn("Project %s is already inactive." % (self.name))
-    
+
 class RemoteProject(PkgResourcesProject):
-    """An RemoteProject is a project located in a remote repository.
     """
-    
+    An RemoteProject is a project located in a remote repository.
+    """
+
     def fetch(self, tmpdir, source=False, develop=False):
         info("Fetching %s from %s..." % (self.name, self.repository.location))
         dist = self.repository.environment.fetch_distribution(self.requirement,
                 tmpdir, source=source, develop_ok=develop)
         return dist.location
-    
+
     def install(self, *args):
-        """Install a package by fetching it into a temporary directory and then
+        """
+        Install a package by fetching it into a temporary directory and then
         calling easy_install with the appropriate args.
         """
         tmpdir = mkdtemp(prefix="enstaller-")
@@ -162,11 +171,12 @@ class RemoteProject(PkgResourcesProject):
 
 
 class HTMLProject(RemoteProject):
-    """An RemoteProject is a remote project located in a HTML-based repository.
+    """
+    An RemoteProject is a remote project located in a HTML-based repository.
     """
 
     PackageType = HTMLPackage
-    
+
     def __init__(self, repository, name, verbose=False):
         # FIXME: Are we really purposefully avoiding calling the base class's
         # __init__ method?   Why??
@@ -195,10 +205,11 @@ class HTMLProject(RemoteProject):
 
 
 class XMLRPCProject(RemoteProject):
-    """An XMLRPCProject is a remote project located in a PyPI-style
+    """
+    An XMLRPCProject is a remote project located in a PyPI-style
     XMLRPC-based repository.
     """
-    
+
     @property
     def packages(self):
         if self._packages == None:
@@ -221,12 +232,12 @@ class XMLRPCProject(RemoteProject):
                     distributions += find_eggs_in_url(metadata['downloads'])
             for dist in distributions:
                 self.repository.environment.add(dist)
-            
+
             # find the distributions which match - there will likely be some
             # spurious distributions added by find_eggs_in_url() and
             # distros_from_url()
             self._packages = []
             for package in self.repository.environment[self.name]:
-                self._packages.append(self.XMLRPCPackage(self, package.version, package))
+                self._packages.append(
+                    self.XMLRPCPackage(self, package.version, package))
         return self._packages
-

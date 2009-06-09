@@ -21,11 +21,11 @@ import logging
 class UpgradeTest(unittest.TestCase):
     def setUp(self):
         logging.basicConfig(level=logging.DEBUG)
-    
+
     def test_local_upgrade_proposal(self):
         dirname = os.path.join(sys.prefix, "lib", "python2.5", "site-packages")
         repo = EasyInstallRepository(location=dirname)
-        
+
         installed = dict((key, project.active_package)
                          for key, project in repo.projects.items()
                          if project.active_package != None)
@@ -33,7 +33,7 @@ class UpgradeTest(unittest.TestCase):
                          for key, project in repo.projects.items())
         packages = set([repo.projects["codetools"].packages[0]])
         print [package.name for package in packages]
-        
+
         upgrades = upgrade(packages, installed, repo)
         for proposal, reasoning in upgrades:
             print "Proposal:"
@@ -47,7 +47,7 @@ class UpgradeTest(unittest.TestCase):
         dirname = os.path.join(sys.prefix, "lib", "python2.5", "site-packages")
         repo = EasyInstallRepository(location=dirname)
         remote_repo = HTMLRepository(location="http://pypi.python.org/simple")
-        
+
         installed = dict((key, project.active_package)
                          for key, project in repo.projects.items()
                          if project.active_package != None)
@@ -59,7 +59,7 @@ class UpgradeTest(unittest.TestCase):
         print remote_repo.projects["zope.error"].packages[0].distribution.requires()
         packages = set([remote_repo.projects["codetools"].packages[0]])
         print [package.name for package in packages]
-        
+
         upgrades = upgrade(packages, installed, RepositoryUnion([repo, remote_repo]))
         for proposal, reasoning in upgrades:
             print "Proposal:"

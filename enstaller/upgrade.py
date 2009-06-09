@@ -24,7 +24,7 @@ def get_upgrade_str(name, version, upgrade=True):
     that would constitute an update (i.e. change in minor or patch version.)
 
     """
-    
+
     # FIXME: This is legacy code that probably isn't needed anymore.
     # Strip off any of Enthought's special tags representing distributions
     # with post-install scripts.
@@ -36,14 +36,14 @@ def get_upgrade_str(name, version, upgrade=True):
     # of what we consider the major part of the version.
     version_len = len(version.split('.'))
     major_len = len(version.split('.')) // 2
-    
+
     # Retrieve the version_parts from pkg_resources.parse_version.
     # Separate the major part from the version_parts, which signifies the
     # difference between the parts of the version that represent major/minor
     # level upgrades and patch/build level updates.
     version_parts = parse_version(version)
     major_part = version_parts[:major_len]
-    
+
     # Special case to handle when there is only a single version part.
     # In this case, only an upgrade can be performed because each version must
     # have at least 1 major version number.  However, if this single version is
@@ -62,7 +62,7 @@ def get_upgrade_str(name, version, upgrade=True):
             else:
                 req_str = "%s>%s, <%s" % (name, orig_version, upgrade_version)
         return req_str
-    
+
     # Retrieve the last entry of the major part so that we can increment it to
     # determine our upgrade version number.  Convert the end of the major part
     # to an integer or it's ASCII code and then increment it and convert it
@@ -73,7 +73,7 @@ def get_upgrade_str(name, version, upgrade=True):
     except:
         end_part = ord(end_part[-1])
     end_part = str(end_part+1)
-    
+
     # If there is only one item in the major_part tuple, then the upgrade
     # version is just the end_part, which is the major_part incremented.
     # Otherwise, we need to convert the major_part tuple into a list so that we
@@ -86,17 +86,17 @@ def get_upgrade_str(name, version, upgrade=True):
         major_parts.append(end_part)
         major_parts = tuple(major_parts)
         upgrade_version = compose_version_string(major_parts)
-        
+
     # Calculate the requirement string based on whether we are doing an upgrade
     # or an update.
     if upgrade:
         req_str = "%s>=%s" % (name, upgrade_version)
     else:
         req_str = "%s>%s, <%s" % (name, orig_version, upgrade_version)
-    
+
     return req_str
-    
-    
+
+
 def reason(reasons, project, message):
     reasons[project] = reasons.get(project, []) + [message]
 
@@ -105,10 +105,10 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
     reasoning):
     """\
     Recursively resolve a set of dependencies.
-    
+
     Parameters
     ----------
-    fixed : a dictionary consisting of project keys and corresponding 
+    fixed : a dictionary consisting of project keys and corresponding
         distributions that have been decided upon in the current scenario.
     flexible : a dictionary consisting of projects and a corresponding set of
         distributionss where we may have choice, but where we cannot use the
@@ -120,7 +120,7 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
     installed : a dictionary representing the current state of the system.
     available : a dictionary representing the available projects and their
         distributions.
-    
+
 
     Return
     ------
@@ -128,20 +128,20 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
         the required changes
     reasons : a dictionary of project keys and reasons for the selection of
             each package
-    
+
 
     Notes
     -----
     This function is in fact a generator, so if you don't need to have all
     possibilities generated, you can just grab the first one (which should be
     the most preferred).
-    
+
 
     Algorithm
     ---------
     If there are no flexible projects, we have a consistent set in the fixed
     variable, so we can yield that.
-    
+
     Otherwise, we chose one of the flexible projects, and for each possible
     choice, we look at what it depends on and what depends on it:
         * if these projects are fixed, we check that the current choice is
@@ -155,10 +155,10 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
     If at any point the set of choices for flexible or installed_flexible
     projects is empty, or we conflict with a fixed project, we rule the
     distribution out, and proceed to the next one.
-    
+
     If a distribution passes all the tests, then we make a recursive call and,
     presuming success, yield the results.
-    
+
     When trying distributions, the general strategy is that if we have to
     upgrade, then we should use the most up-to-date distribution that is
     compatible with the requirements.
@@ -245,7 +245,7 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
                        (package.name, str(req)))
             if not package_ok:
                 continue
-            
+
             # package satisfies all requirements
             active_projects = dict((key, pkg.project)
                                    for key, pkg in installed.items())
@@ -277,22 +277,22 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
                         if installed[reversed_reqs_key] in possible:
                             new_installed_flexible[reversed_reqs_key] = possible
                         else:
-                            new_flexible[reversed_reqs_key] = possible                            
+                            new_flexible[reversed_reqs_key] = possible
                     else:
                         if installed[reversed_reqs_key] in reversed_reqs_packages:
                             new_installed_flexible[reversed_reqs_key] = \
                                     set(reversed_reqs_packages)
                         else:
                             new_flexible[reversed_reqs_key] = \
-                                    set(reversed_reqs_packages)                            
-                        
+                                    set(reversed_reqs_packages)
+
                     reason(new_reasoning, reversed_reqs_key,
                            "  - %s satisfies requirements of %s version(s) %s\n" %
                            (package.name, reversed_reqs_key,
                             ", ".join(pkg.version for pkg in reversed_reqs_packages)))
             if not package_ok:
                 continue
-            
+
             for result in resolve_flexible(new_fixed, new_flexible,
                                            new_installed_flexible, installed,
                                            available, new_reasoning):
@@ -301,8 +301,8 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
         # if there are no flexible packages, then the fixed packages are a
         # consistent set of projects
         yield fixed, reasoning
-    
-                
+
+
 def upgrade(packages, installed, available):
     fixed = {}
     flexible = dict((pkg.key, set([pkg])) for pkg in packages)
