@@ -36,6 +36,7 @@ except ImportError:
     from __init__ import __version__
 
 
+
 def upgrade_project(keys, local_repos=None, remote_repos=None,
     interactive=True, dry_run=False, term_width=0, verbose=False):
     """ Upgrade a project, if possible.
@@ -244,10 +245,11 @@ def rollback_menu(remote_repos=None, interactive=True,
     Show a menu with possible rollback options and perform the appropriate
     action based on the user's input.
     """
-    # Create a list of metadata for the possible rollback dates so that we can create an
-    # auto-generated user selection layout.  Based on the command-line options, we can limit
-    # the list of rollback points that are shown.  If the enstaller.cache doesn't exist,
-    # let the user know why they can not do a rollback.
+    # Create a list of metadata for the possible rollback dates so that we
+    # can create an auto-generated user selection layout.  Based on the
+    # command-line options, we can limit the list of rollback points that
+    # are shown.  If the enstaller.cache doesn't exist, let the user know
+    # why they can not do a rollback.
     cached_states = retrieve_states()
     if not cached_states:
         print ("A rollback can not be performed because there are "
@@ -282,8 +284,10 @@ def rollback_menu(remote_repos=None, interactive=True,
         if i < len(cached_states)-1:
             project_list_1 = cached_states[i][1]
             project_list_2 = cached_states[i+1][1]
-            diff_list_1 = [project for project in project_list_1 if not project in project_list_2]
-            diff_list_2 = [project for project in project_list_2 if not project in project_list_1]
+            diff_list_1 = [project for project in project_list_1
+                           if not project in project_list_2]
+            diff_list_2 = [project for project in project_list_2
+                           if not project in project_list_1]
             if len(diff_list_1) == 0 and len(diff_list_2) == 0:
                 option_diff = "  There are no changes between these points."
             else:
@@ -291,27 +295,37 @@ def rollback_menu(remote_repos=None, interactive=True,
                 modified = []
                 deactivated = []
                 for project in diff_list_1:
-                    (project_name_1, project_version_1) = parse_project_str(project)
+                    (project_name_1,
+                     project_version_1) = parse_project_str(project)
                     found = False
+
                     for project2 in diff_list_2:
-                        (project_name_2, project_version_2) = parse_project_str(project2)
+                        (project_name_2,
+                         project_version_2) = parse_project_str(project2)
                         if project_name_1 == project_name_2:
                             found = True
-                            modified.append("%s-%s to %s" % (project_name_1, project_version_2,
+                            modified.append("%s-%s to %s" % (
+                                    project_name_1, project_version_2,
                                 project_version_1))
                             break
+
                     if not found:
-                        added.append("%s-%s" % (project_name_1, project_version_1))
+                        added.append("%s-%s" % (project_name_1,
+                                                project_version_1))
                 for project2 in diff_list_2:
-                    (project_name_2, project_version_2) = parse_project_str(project2)
+                    (project_name_2,
+                     project_version_2) = parse_project_str(project2)
                     found = False
                     for project in diff_list_1:
-                        (project_name_1, project_version_1) = parse_project_str(project)
+                        (project_name_1,
+                         project_version_1) = parse_project_str(project)
                         if project_name_2 == project_name_1:
                             found = True
                             break
+
                     if not found:
-                        deactivated.append("%s-%s" % (project_name_2, project_version_2))
+                        deactivated.append("%s-%s" % (project_name_2,
+                                                      project_version_2))
                 if len(added) > 0:
                     option_diff += "  [A] %s" % added[0]
                     for add_str in added[1:]:
@@ -458,7 +472,6 @@ rollback, remove, list, save_state
     return parser
 
 
-#def real_main():
 def main():
 
     # Get and validate our options and arguments
@@ -499,50 +512,62 @@ def main():
     # Do the user's requested command.
     command = args[0]
     args = args[1:]
+
     if command == "install":
         install_requirement([Requirement.parse(arg) for arg in args],
             remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width)
+
     elif command == "upgrade":
         upgrade_project(args,
             remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width, verbose=options.verbose)
+
     elif command == "update":
         update_project(args,
             remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width, verbose=options.verbose)
+
     elif command == "rollback":
         rollback_menu(remote_repos=remote_repos,
             interactive=options.interactive, dry_run=options.dry_run,
             term_width=options.term_width, show_all=options.show_all,
             num_entries=options.num_entries, show_dates=options.show_dates)
+
     elif command == "save_state":
         save_state(verbose=options.verbose)
+
     elif sys.argv[1] == "activate":
-        # Before we do anything, save the current working state of the environment to a rollback point.
+        # Before we do anything, save the current working state of the
+        # environment to a rollback point.
         save_state(verbose=options.verbose)
         install_requirement([Requirement.parse(arg) for arg in args],
             remote_repos=[], interactive=options.interactive,
             dry_run=options.dry_run, term_width=options.term_width)
         # After we have finished the activate, we save the new state.
         save_state(verbose=options.verbose)
+
     elif sys.argv[1] == "deactivate":
-        # Before we do anything, save the current working state of the environment to a rollback point.
+        # Before we do anything, save the current working state of
+        # the environment to a rollback point.
         save_state(verbose=options.verbose)
         deactivate_requirement([Requirement.parse(arg) for arg in args],
             interactive=options.interactive, dry_run=options.dry_run)
         # After we have finished the deactivate, we save the new state.
         save_state(verbose=options.verbose)
+
     elif command == "remove":
-        # Before we do anything, save the current working state of the environment to a rollback point.
+        # Before we do anything, save the current working state of
+        # the environment to a rollback point.
         save_state(verbose=options.verbose)
         remove_requirement([Requirement.parse(arg) for arg in args],
             interactive=options.interactive, dry_run=options.dry_run)
         # After we have finished the remove, we save the new state.
         save_state(verbose=options.verbose)
+
     elif command == "list":
         list_installed(interactive=options.interactive,
             term_width=options.term_width)

@@ -8,7 +8,6 @@
 # license.
 #------------------------------------------------------------------------------
 
-
 import os
 import sys
 
@@ -21,8 +20,10 @@ from enstaller.utilities import remove_eggs_from_path, user_select, query_user
 from logging import error, warning, info
 
 
+
 def get_local_repos():
-    """Find all easy_install repositories on sys.path
+    """
+    Find all easy_install repositories on sys.path
     """
     repos = []
     for dirname in remove_eggs_from_path(sys.path):
@@ -33,7 +34,8 @@ def get_local_repos():
 
 
 def get_site_packages():
-    """Find the site-packages directory
+    """
+    Find the site-packages directory
     """
     site_packages = sysconfig.get_python_lib()
     if site_packages:
@@ -45,7 +47,7 @@ def get_site_packages():
 def install_requirement(requirements, target_repo=None, local_repos=None,
         remote_repos=None, interactive=True, dry_run=False, verbose=False,
         term_width=0):
-    """\
+    """
     Find and install packages which match the requirements.
 
     This may either upgrade or downgrade packages when needed.
@@ -64,8 +66,9 @@ def install_requirement(requirements, target_repo=None, local_repos=None,
     available = RepositoryUnion(local_repos+remote_repos)
 
     # Generate proposals
-    installed = dict((key, project.active_package) for key, project in \
-        local.projects.items() if project.active_package != None)
+    installed = dict((key, project.active_package)
+                     for key, project in local.projects.items()
+                     if project.active_package is not None)
     to_install = []
     for requirement in requirements:
 
@@ -176,7 +179,8 @@ def install_requirement(requirements, target_repo=None, local_repos=None,
 
 def remove_requirement(requirements, repos=None, interactive=False,
         dry_run=False):
-    """Remove all installed packages which match the requirements
+    """
+    Remove all installed packages which match the requirements
     """
     if repos is None:
         repos = get_local_repos()
@@ -224,4 +228,3 @@ def deactivate_requirement(requirements, repos=None, interactive=False,
                     package.deactivate(dry_run=dry_run)
         if not deactivated:
             warning("Found no requirement which matches %s" % requirement)
-

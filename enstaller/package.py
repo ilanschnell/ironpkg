@@ -29,9 +29,8 @@ EGG_INFO_RE = re.compile(r".*EGG-INFO")
 
 
 class Package(object):
-    """\
+    """
     A Package is a particular installable.
-
     """
 
     active = False
@@ -67,10 +66,9 @@ class Package(object):
 
 
 class PkgResourcesPackage(Package):
-    """\
+    """
     A PkgResourcesPackage is an installable wrapping a
     pkg_resources.Distribution object.
-
     """
 
     inherited_metadata = ["location", "project_name", "key", "extras",
@@ -112,9 +110,8 @@ class PkgResourcesPackage(Package):
         return self.distribution.precedence
 
     def reversed_reqs(self, active_projects):
-        """\
+        """
         Find all local packages which depend on this package.
-
         """
         projects = {}
         for key, project in active_projects.items():
@@ -126,9 +123,8 @@ class PkgResourcesPackage(Package):
 
 
 class EasyInstallPackage(PkgResourcesPackage):
-    """\
+    """
     An EasyInstallPackage represents a locally installed egg.
-
     """
     @property
     def metadata(self):
@@ -181,7 +177,6 @@ class EasyInstallPackage(PkgResourcesPackage):
     def full_dependent_packages(self):
         """
         Recursively find all active packages which depend on this package.
-
         """
         if self.active:
             packages = set(self.dependent_packages)

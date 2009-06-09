@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2008, Enthought, Inc.
+# Copyright (c) 2008-2009, Enthought, Inc.
 # All rights reserved.
 #
 # This software is provided without warranty under the terms of the BSD license
@@ -48,16 +48,17 @@ def retrieve_states():
     element is the list of package_name-versions.  If the enstaller.cache is
     empty or does not exist, return None.
     """
-    # Check if enstaller.cache exists.  If it doesn't, print out an error message and
-    # return None.
+    # Check if enstaller.cache exists.  If it doesn't, print out an error
+    # message and return None.
     site_packages = sysconfig.get_python_lib()
     enstaller_cache = os.path.join(site_packages, 'enstaller.cache')
     if not os.path.exists(enstaller_cache):
         print "The enstaller.cache does not exist."
         return None
 
-    # Read in all of the lines from the enstaller.cache.  If the enstaller.cache can not be
-    # read, print an error message and return None.  If there are no lines in the
+    # Read in all of the lines from the enstaller.cache.
+    # If the enstaller.cache can not be read, print an error message and
+    # return None.  If there are no lines in the
     # enstaller.cache for some reason, print an error message as well.
     file_lines = None
     try:
@@ -72,12 +73,14 @@ def retrieve_states():
             "rollback can not be performed.")
         return None
 
-    # Iterate through the lines from the enstaller.cache and from this generate the 2D
-    # array of timestamps/project_name-versions and then return it after reversing the
+    # Iterate through the lines from the enstaller.cache and from this
+    # generate the 2D array of timestamps/project_name-versions and then
+    # return it after reversing the
     # list so that it is in descending order by timestamp.
     cached_states = []
     for line in file_lines:
-        # If for some reason the length of entry_parts is not 2(i.e. a blank line, etc...),
+        # If for some reason the length of entry_parts is
+        # not 2(i.e. a blank line, etc...),
         # then just ignore that line assuming it is erroneous.
         entry_parts = line.strip().split(':')
         if len(entry_parts) != 2:
@@ -95,8 +98,8 @@ def save_state(verbose=False):
     Adds an entry of the current working configuration of packages to the
     enstaller.cache file.
     """
-    # Determine the current local repository and from that build a list of the current
-    # active packages.
+    # Determine the current local repository and from that build a list
+    # of the current active packages.
     site_packages = sysconfig.get_python_lib()
     local = get_site_packages()
     active_local_packages = []
@@ -113,8 +116,8 @@ def save_state(verbose=False):
     project_list.sort()
 
     # Retrieve the most recently saved state and compare it to the current
-    # state of the system.  If there have been no changes, then don't bother saving
-    # a entry to the enstaller.cache.
+    # state of the system.  If there have been no changes, then don't
+    # bother saving a entry to the enstaller.cache.
     stored_states = retrieve_states()
     if stored_states:
         recent_state = stored_states[0]
@@ -126,9 +129,10 @@ def save_state(verbose=False):
                     'the current state does not need to be saved.')
             return
 
-    # Save the current state to an entry in the enstaller.cache file.  Each entry begins
-    # with a timestamp, followed by a colon, and then a comma separated list of the
-    # project_name-versions for the currently active packages.
+    # Save the current state to an entry in the enstaller.cache file.
+    # Each entry begins with a timestamp, followed by a colon, and then
+    # a comma separated list of the project_name-versions for the
+    # currently active packages.
     enstaller_cache = os.path.join(site_packages, 'enstaller.cache')
     timestamp = strftime("%Y%m%d%H%M%S")
     pkg_list = ','.join(project_list)
@@ -160,14 +164,18 @@ def rollback_state(project_list, remote_repos=None, interactive=True,
         try:
             pkgs = local.projects[project_name].packages
         except KeyError:
-            # If we can't find a project key in the local.projects, that means that it was removed
-            # from the system(not just deactivated), so we try to re-install it.
+            # If we can't find a project key in the local.projects, that
+            # means that it was removed from the system (not just
+            # deactivated), so we try to re-install it.
             req_str = "%s==%s" % (project_name, project_version)
             requirement = Requirement.parse(req_str)
-            if project_name.endswith('.dev') and project_version.startswith('r'):
-                # If we found a package that was installed by a 'setup.py develop', try to activate
-                # it by finding it's location ignoring the specific revision number, since we can't
-                # control if someone has done an 'svn up' on their checkouts.
+            if (project_name.endswith('.dev') and
+                project_version.startswith('r')):
+                # If we found a package that was installed by
+                # a 'setup.py develop', try to activate it by finding it's
+                # location ignoring the specific revision number, since we
+                # can't control if someone has done an 'svn up' on their
+                # checkouts.
                 name = project_name.split('-')[0]
                 pkgs = local.projects[name].packages
             else:
@@ -178,7 +186,8 @@ def rollback_state(project_list, remote_repos=None, interactive=True,
             if pkg.version == project_version:
                 pkg.activate(verbose=False)
                 break
-            if project_name.endswith('.dev') and project_version.startswith('r'):
+            if (project_name.endswith('.dev') and
+                project_version.startswith('r')):
                 if '.dev-r' in pkg.version:
                     pkg.activate(verbose=False)
                     break
@@ -199,4 +208,3 @@ def rollback_state(project_list, remote_repos=None, interactive=True,
         if new_package:
             pkg = local.projects[package].active_package
             pkg.deactivate(dry_run=False)
-

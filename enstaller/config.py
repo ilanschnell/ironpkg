@@ -8,7 +8,6 @@
 # license.
 #------------------------------------------------------------------------------
 
-
 import ConfigParser
 import os
 import stat
@@ -18,8 +17,9 @@ from distutils import sysconfig
 from os.path import abspath, exists, expanduser, join
 
 
+
 def default_config():
-    """\
+    """
     Return the default state of this project's config file.
 
     We expect the config to consist of the following sections:
@@ -49,7 +49,7 @@ def default_config():
 
 
 def get_config(verbose=False):
-    """\
+    """
     Return the current configuration.
 
     """
@@ -76,7 +76,7 @@ def get_config(verbose=False):
 
 
 def init_config(path, verbose=True):
-    """\
+    """
     Initialize the config file at the specified path.
 
     This will fail silently if the user can not write to the specified path.
@@ -119,7 +119,7 @@ def init_config(path, verbose=True):
 
 
 def get_configured_repos(unstable=False, verbose=False):
-    """\
+    """
     Return the set of repository urls in our config file.
 
     The config file allows for a declaration of unstable repos as well, but
@@ -149,7 +149,7 @@ def get_configured_repos(unstable=False, verbose=False):
 
 
 def get_configured_index(verbose=True):
-    """\
+    """
     Return the index that is set in our config file.
 
     """
@@ -180,7 +180,7 @@ def get_configured_index(verbose=True):
 
 
 def _get_config_name():
-    """\
+    """
     Return the name of the configuration file based on what platform we are on.
 
     """
@@ -192,7 +192,7 @@ def _get_config_name():
 
 
 def _get_default_config_path():
-    """\
+    """
     Return the path to the default config file in a user's HOME directory.
 
     """
@@ -200,7 +200,7 @@ def _get_default_config_path():
 
 
 def _get_system_config_path():
-    """\
+    """
     Return the path to the config file in the system site-packages.
 
     """
@@ -208,7 +208,7 @@ def _get_system_config_path():
 
 
 def _get_config_path():
-    """\
+    """
     Return the absolute path to our config file.
 
     """

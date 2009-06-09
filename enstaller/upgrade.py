@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2008, Enthought, Inc.
+# Copyright (c) 2008-2009, Enthought, Inc.
 # All rights reserved.
 #
 # This software is provided without warranty under the terms of the BSD license
@@ -8,12 +8,12 @@
 # license.
 #------------------------------------------------------------------------------
 
-
 from pkg_resources import compose_version_string, parse_version
 
 
+
 def get_upgrade_str(name, version, upgrade=True):
-    """\
+    """
     Return a requirement string that defines an upgrade to a project spec.
 
     Given a package name and version, return a requirement string in
@@ -22,7 +22,6 @@ def get_upgrade_str(name, version, upgrade=True):
     the string returned would be an upgrade (i.e. change in major version)
     but if 'upgrade' is set to False, it will return a string
     that would constitute an update (i.e. change in minor or patch version.)
-
     """
 
     # FIXME: This is legacy code that probably isn't needed anymore.
@@ -103,7 +102,7 @@ def reason(reasons, project, message):
 
 def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
     reasoning):
-    """\
+    """
     Recursively resolve a set of dependencies.
 
     Parameters
@@ -170,7 +169,8 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
         # pick one
         project = list(flexible)[0]
         packages = flexible.pop(project)
-        for package in sorted(packages, key=lambda p: p.distribution, reverse=True):
+        for package in sorted(packages,
+                              key=lambda p: p.distribution, reverse=True):
             new_fixed = fixed.copy()
             new_flexible = flexible.copy()
             new_installed_flexible = installed_flexible.copy()
@@ -182,18 +182,23 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
             for req in package.requires():
                 if req.key in fixed:
                     if new_fixed[req.key].distribution not in req:
-                        # failure: package requirement conflicts with fixed project
+                        # failure: package requirement conflicts with fixed
+                        #          project
                         package_ok = False
                         break
+
                 elif req.key in flexible:
                     new_flexible[req.key] = set(v for v in new_flexible[req.key]
                                             if v.distribution in req)
                     if not new_flexible[req.key]:
-                        # failure: package requirement conflicts with flexible project
+                        # failure: package requirement conflicts with
+                        #          flexible project
                         package_ok = False
-                        reason(new_reasoning, req.key, "  - %s can't satisfy %s\n"
+                        reason(new_reasoning,
+                               req.key, "  - %s can't satisfy %s\n"
                                % (package.name, str(req)))
                         break
+
                 elif req.key in new_installed_flexible:
                     if installed[req.key] in installed:
                         new_installed_flexible[req.key] = set(v
@@ -205,11 +210,14 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
                                 if v.distribution in req)
                         del new_installed[req.key]
                         if not new_flexible[req.key]:
-                            # failure: package requirement conflicts with flexible project
+                            # failure: package requirement conflicts with
+                            #          flexible project
                             package_ok = False
-                            reason(new_reasoning, req.key, "  - %s can't satisfy %s\n"
+                            reason(new_reasoning, req.key,
+                                   "  - %s can't satisfy %s\n"
                                    % (package.name, str(req)))
                             break
+
                 elif req.key in installed:
                     if installed[req.key] in req:
                         new_installed_flexible[req.key] = set(v
@@ -220,11 +228,14 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
                                 for v in available[req.key].packages
                                 if v.distribution in req)
                         if not new_flexible[req.key]:
-                            # failure: package requirement conflicts with flexible project
+                            # failure: package requirement conflicts
+                            #          with flexible project
                             package_ok = False
-                            reason(new_reasoning, req.key, "  - %s can't satisfy %s\n"
+                            reason(new_reasoning, req.key,
+                                   "  - %s can't satisfy %s\n"
                                    % (package.name, str(req)))
                             break
+
                 else:
                     if req.key in available:
                         new_flexible[req.key] = set(v
@@ -235,10 +246,13 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
                         reason(new_reasoning, req.key, "  - can't find" +
                             " project %s to satisfy %s\n" % (req.key, str(req)))
                         break
+
                     if not new_flexible[req.key]:
-                        # failure: package requirement conflicts with flexible project
+                        # failure: package requirement conflicts with
+                        #          flexible project
                         package_ok = False
-                        reason(new_reasoning, req.key, "  - %s can't satisfy %s\n"
+                        reason(new_reasoning, req.key,
+                               "  - %s can't satisfy %s\n"
                                % (package.name, str(req)))
                         break
                 reason(new_reasoning, req.key, "  - %s requires %s\n" %
@@ -253,25 +267,36 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
                     package.reversed_reqs(active_projects).items():
                 if reversed_reqs_key in installed:
                     if reversed_reqs_key in new_fixed:
-                        if new_fixed[reversed_reqs_key] not in reversed_reqs_packages:
-                            # failure: package reversed requirement conflicts with fixed project
+                        if (new_fixed[reversed_reqs_key]
+                            not in reversed_reqs_packages):
+                            # failure: package reversed requirement conflicts
+                            #          with fixed project
                             package_ok = False
                             reason(new_reasoning, reversed_reqs_key,
-                                   "  - %s fails to satisfy %s version(s) %s\n" %
+                                   "  - %s fails to satisfy %s version(s) %s\n"
+                                   %
                                    (package.name, reversed_reqs_key,
-                                    ", ".join(pkg.version for pkg in reversed_reqs_packages)))
+                                    ", ".join(pkg.version for pkg
+                                              in reversed_reqs_packages)))
                             break
+
                     elif reversed_reqs_key in new_flexible:
                         new_flexible[reversed_reqs_key] = \
-                                new_flexible[reversed_reqs_key].intersection(reversed_reqs_packages)
+                                new_flexible[reversed_reqs_key].intersection(
+                                           reversed_reqs_packages)
+
                         if not new_flexible[reversed_reqs_key]:
-                            # failure: package reversed requirement conflicts with flexible project
+                            # failure: package reversed requirement conflicts
+                            #          with flexible project
                             package_ok = False
                             reason(new_reasoning, reversed_reqs_key,
-                                   "  - %s fails to satisfy %s version(s) %s\n" %
+                                   "  - %s fails to satisfy %s version(s) %s\n"
+                                   %
                                    (package.name, reversed_reqs_key,
-                                    ", ".join(pkg.version for pkg in reversed_reqs_packages)))
+                                    ", ".join(pkg.version for pkg in
+                                              reversed_reqs_packages)))
                             break
+
                     elif reversed_reqs_key in new_installed_flexible:
                         possible = new_installed_flexible[reversed_reqs_key].intersection(reversed_reqs_packages)
                         if installed[reversed_reqs_key] in possible:
@@ -279,7 +304,8 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
                         else:
                             new_flexible[reversed_reqs_key] = possible
                     else:
-                        if installed[reversed_reqs_key] in reversed_reqs_packages:
+                        if (installed[reversed_reqs_key] in
+                            reversed_reqs_packages):
                             new_installed_flexible[reversed_reqs_key] = \
                                     set(reversed_reqs_packages)
                         else:
@@ -287,9 +313,10 @@ def resolve_flexible(fixed, flexible, installed_flexible, installed, available,
                                     set(reversed_reqs_packages)
 
                     reason(new_reasoning, reversed_reqs_key,
-                           "  - %s satisfies requirements of %s version(s) %s\n" %
-                           (package.name, reversed_reqs_key,
-                            ", ".join(pkg.version for pkg in reversed_reqs_packages)))
+                        "  - %s satisfies requirements of %s version(s) %s\n" %
+                        (package.name, reversed_reqs_key,
+                         ", ".join(pkg.version
+                                   for pkg in reversed_reqs_packages)))
             if not package_ok:
                 continue
 
@@ -309,4 +336,3 @@ def upgrade(packages, installed, available):
     installed_flexible = {}
     return resolve_flexible(fixed, flexible, installed_flexible, installed,
         available, {})
-
