@@ -15,9 +15,9 @@ from utils import canonical, is_valid_eggname
 
 def parse_index(data):
     """
-    Given the bz2 compressed data of an index file, return a dictionary
-    mapping the distribution names to the content of the cooresponding
-    section.
+    Given the data of an index file, such as index-depend.txt, return a
+    dictionary mapping the distribution names to the content of the
+    cooresponding section.
     """
     d = defaultdict(list)
     sep_pat = re.compile(r'==>\s*(\S+)\s*<==')
