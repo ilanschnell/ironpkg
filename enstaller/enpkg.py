@@ -97,6 +97,9 @@ def main():
         os.mkdir(ir.local)
 
     req = Req(req_string)
+    if req.strictness == 0:
+        p.error("Requirement missing")
+
     if opts.verbose:
         print "==================== %r ====================" % req
 

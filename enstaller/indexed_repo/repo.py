@@ -1,5 +1,6 @@
 import bz2
 import string
+import sys
 import zipfile
 from collections import defaultdict
 from os.path import basename, join, isfile
@@ -130,8 +131,8 @@ class IndexedRepo(object):
         matches = self.get_matches(req)
         if not matches:
             # no matching distributions were found in any repo
-            print 'Warning: No distribution found for', req
-            return None
+            print 'Error: No distribution found for requirement:', req
+            sys.exit(1)
         # found matches, return the one with largest (version, build)
         lst = list(matches)
         lst.sort(key=get_version_build)
