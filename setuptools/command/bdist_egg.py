@@ -3,7 +3,7 @@
 Build .egg distributions"""
 
 # This module should be kept compatible with Python 2.3
-import sys, os, marshal
+import sys, os, marshal, re
 from setuptools import Command
 from distutils.dir_util import remove_tree, mkpath
 from distutils.sysconfig import get_python_version, get_python_lib
@@ -21,6 +21,41 @@ def strip_module(filename):
     if filename.endswith('module'):
         filename = filename[:-6]
     return filename
+
+
+def write_spec_depend(egg_info):
+    """
+    egg_info is the path to the EGG-INFO directory
+    """
+    from enstaller.indexed_repo.metadata import data_from_spec
+
+    pkg_info = open(os.path.join(egg_info, 'PKG-INFO')).read()
+
+    spec = {'build': 1, 'arch':None, 'platform':None, 'osdist':None,
+            'python': '%i.%i' % sys.version_info[:2],
+            'packages': []
+            }
+    for var in ['name', 'version']:
+        pat = re.compile(r'^%s:\s*(\S+)' % var, re.M | re.I)
+        spec[var] = pat.search(pkg_info).group(1)
+
+    requires_txt = os.path.join(egg_info, 'requires.txt')
+    pat = re.compile(r'[\w\-.]+')
+    if os.path.isfile(requires_txt):
+        for line in open(requires_txt):
+            m = pat.match(line.strip())
+            if m:
+                spec['packages'].append(m.group())
+
+    spec_dir = os.path.join(egg_info, 'spec')
+    if not os.path.isdir(spec_dir):
+        log.info("creating dir %r" % spec_dir)
+        os.mkdir(spec_dir)
+    path = os.path.join(spec_dir, 'depend')
+    log.info("writing %r" % path)
+    fo = open(path, 'w')
+    fo.write(data_from_spec(spec))
+    fo.close()
 
 
 def write_stub(resource, pyfile):
@@ -178,7 +213,7 @@ class bdist_egg(Command):
 
         # Make the EGG-INFO directory
         archive_root = self.bdist_dir
-        egg_info = os.path.join(archive_root,'EGG-INFO')
+        egg_info = os.path.join(archive_root, 'EGG-INFO')
         self.mkpath(egg_info)
         if self.distribution.scripts:
             script_dir = os.path.join(egg_info, 'scripts')
@@ -212,6 +247,9 @@ class bdist_egg(Command):
 
         if self.exclude_source_files:
             self.zap_pyfiles()
+
+        # Create spec/depend
+        write_spec_depend(egg_info)
 
         # Make the archive
         make_zipfile(self.egg_output, archive_root, verbose=self.verbose,
