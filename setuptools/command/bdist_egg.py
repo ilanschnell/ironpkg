@@ -41,11 +41,13 @@ def write_spec_depend(egg_info):
 
     requires_txt = os.path.join(egg_info, 'requires.txt')
     pat = re.compile(r'[\w\-.]+')
+    pkgs = set()
     if os.path.isfile(requires_txt):
         for line in open(requires_txt):
             m = pat.match(line.strip())
             if m:
-                spec['packages'].append(m.group())
+                pkgs.add(m.group())
+    spec['packages'] = list(pkgs)
 
     spec_dir = os.path.join(egg_info, 'spec')
     if not os.path.isdir(spec_dir):
