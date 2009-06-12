@@ -283,11 +283,11 @@ class EasyInstallPackage(PkgResourcesPackage):
             self.deactivate(dry_run=dry_run)
         run_scripts(self.distribution, "pre-uninstall", dry_run=dry_run)
 
-        # FIXME: this isn't working properly, but I'm not going to fight it
-        # since we're replacing this with patched setuptools
+        files_file = os.path.join(self.location, "EGG-INFO",
+            "installed_files.log")
+        file_list = []
 
-        # if we have a files file
-        files_file = self.location + ".files"
+        # If the file exists then the package was installed as a directory
         if os.path.exists(files_file):
             # extract the list of files
             fp = open(files_file)
@@ -296,42 +296,59 @@ class EasyInstallPackage(PkgResourcesPackage):
                     fp.read().split('\n')]
             finally:
                 fp.close()
-            # and try to remove each file from the list
-            for filename in file_list:
-                if os.path.exists(filename):
-                    if os.path.isdir(filename):
-                        try:
-                            os.rmdir(filename)
-                        except Exception, exc:
-                            rmtree_error(os.rmdir, filename, exc)
-                    elif os.path.isfile(filename) or os.path.islink(filename):
-                        try:
-                            os.remove(filename)
-                        except Exception, exc:
-                            rmtree_error(os.remove, filename, exc)
+
+        # Otherwise this package may have been installed as a zipped egg
+        elif os.path.isfile(self.location):
+            import zipimport
+            egg_zip = zipimport.zipimporter(self.location)
+            try:
+                file_list = [filename.strip() for filename in
+                    egg_zip.get_data('EGG-INFO/installed_files.log'
+                    ).split('\n')]
+                file_list.remove('')
+            except IOError:
+                info("installed_files.log not found in %s" % self.location)
+
+        # Otherwise the package was installed as a directory but is missing
+        # the installed files log
         else:
-            info("Could not find installed file list for '%s' at %s" %
-                (self.name, files_file))
+            info("installed_files.log not found for %s" % self.name)
+
+        # Now try to remove every element in the list
+        for filename in file_list:
+            if os.path.exists(filename):
+                if os.path.isdir(filename):
+                    try:
+                        os.rmdir(filename)
+                    except Exception, exc:
+                        rmtree_error(os.rmdir, filename, exc)
+                elif os.path.isfile(filename) or os.path.islink(filename):
+                    try:
+                        os.remove(filename)
+                    except Exception, exc:
+                        rmtree_error(os.remove, filename, exc)
+
         # now remove the egg dir or file
         if os.path.exists(self.location):
-            info("Removing egg at %s" % self.location)
             if os.path.isdir(self.location):
                 # I think the best thing to do here is to blow away the whole
                 # directory
                 rmtree(self.location, onerror=rmtree_error)
-            elif os.path.isfile(self.location) or os.path.islink(self.location):
+            elif os.path.isfile(self.location) or \
+                 os.path.islink(self.location):
                 try:
                     os.remove(self.location)
                 except:
                     rmtree_error(os.remove, self.location, sys.exec_info())
-        else:
-            warning("Egg not found.  Already removed?")
+
         # finally remove the files file
         if os.path.exists(files_file):
             try:
                 os.remove(self.location)
             except:
                 rmtree_error(os.remove, self.location, sys.exec_info())
+
+        info("Removed egg: %s" % self.location)
 
 
 class RemotePackage(PkgResourcesPackage):
