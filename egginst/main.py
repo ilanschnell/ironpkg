@@ -7,12 +7,18 @@ import os
 import sys
 import re
 import shutil
+import string
 import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
 from utils import on_win, bin_dir, rmdir_er, rm_rf, human_bytes
 import scripts
+
+
+# This is the directory which contains the EGG-INFO directories of all
+# installed packages
+EGG_INFO_DIR = join(sys.prefix, 'EGG-INFO')
 
 
 class EggInst(object):
@@ -22,7 +28,7 @@ class EggInst(object):
     def __init__(self, fpath, verbose=False):
         self.fpath = fpath
         self.project = basename(fpath).split('-')[0]
-        self.meta_dir = join(sys.prefix, 'EGG-INFO', self.project)
+        self.meta_dir = join(EGG_INFO_DIR, self.project)
         self.files_txt = join(self.meta_dir, '__files__.txt')
         self.files = []
         self.verbose = verbose
@@ -130,12 +136,13 @@ class EggInst(object):
         raise Exception("Didn't expect to get here")
 
     py_pat = re.compile(r'^(.+)\.py(c|o)?$')
+    so_pat = re.compile(r'^lib.+\.so')
     py_obj = '.pyd' if on_win else '.so'
     def write_arcname(self, arcname):
         if arcname.endswith('/') or arcname.startswith('.unused'):
             return
         m = self.py_pat.match(arcname)
-        if m and m.group(1) + self.py_obj in self.arcnames:
+        if m and (m.group(1) + self.py_obj) in self.arcnames:
             # .py, .pyc, .pyo next to .so are not written
             return
         path = self.get_dst(arcname)
@@ -148,7 +155,9 @@ class EggInst(object):
         fo.write(self.z.read(arcname))
         fo.close()
         if (arcname.startswith('EGG-INFO/usr/bin/') or
-                fn.endswith(('.dylib', '.pyd')) or '.so' in fn):
+                fn.endswith(('.dylib', '.pyd', '.so')) or
+                (arcname.startswith('EGG-INFO/usr/lib/') and
+                 self.so_pat.match(fn))):
             os.chmod(path, 0755)
 
     def install_app(self, remove=False):
@@ -207,10 +216,21 @@ class EggInst(object):
         shutil.rmtree(self.meta_dir)
 
 
+def list_installed():
+    """
+    Returns a sorted list of all installed project names, i.e. the names
+    of all directories in EGG_INFO_DIR.
+    """
+    res = [fn for fn in os.listdir(EGG_INFO_DIR)
+           if isdir(join(EGG_INFO_DIR, fn))]
+    res.sort(key=string.lower)
+    return res
+
+
 def main():
     from optparse import OptionParser
 
-    usage = "usage: %prog [options] EGG [EGG ...]"
+    usage = "usage: %prog [options] [EGG ...]"
 
     description = __doc__
 
@@ -218,25 +238,33 @@ def main():
                      description = description,
                      prog = basename(sys.argv[0]))
 
+    p.add_option('-l', "--list",
+                 action="store_true",
+                 help="list installed package names and exit")
+
     p.add_option('-r', "--remove",
                  action="store_true",
-                 help="Removing (requires the EGG filenames which were used "
-                      "during the install)")
+                 help="remove packages, requires the egg or project names")
 
     p.add_option('-v', "--verbose", action="store_true")
 
     opts, args = p.parse_args()
 
-    if len(args) < 1:
-        parser.error("EGGs missing")
+    if opts.list:
+        if args:
+            p.error("--list takes no arguments")
+        for name in list_installed():
+            print name
+        return
 
-    for fpath in args:
-        ei = EggInst(fpath, opts.verbose)
+    for name in args:
+        ei = EggInst(name, opts.verbose)
         if opts.remove:
-            print "Removing:", fpath
+            print "Removing:", name
             ei.remove()
-        else:
-            print "Installing:", fpath
+
+        else: # default is always install
+            print "Installing:", name
             ei.install()
 
 

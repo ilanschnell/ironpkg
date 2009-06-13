@@ -84,6 +84,7 @@ def write_script(fpath, entry_pt, egg_name):
     fo = open(fpath, 'w')
     fo.write('''\
 #!%(python)s
+# This entry point script was created when installing:
 #
 #   %(egg_name)s
 #

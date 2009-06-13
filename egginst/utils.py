@@ -29,17 +29,17 @@ def rm_rf(path, verbose=False):
         # exists('/path/to/dead-link') will return False, although
         # islink('/path/to/dead-link') is True.
         if verbose:
-            print "Warning: %r (link) already exists, unlinking" % path
+            print "Removing: %r (link)" % path
         os.unlink(path)
 
     if isfile(path):
         if verbose:
-            print "Warning: %r (file) already exists, unlinking" % path
+            print "Removing: %r (file)" % path
         os.unlink(path)
 
     if isdir(path):
         if verbose:
-            print "Warning: %r (directory) already exists, rmtree" % path
+            print "Removing: %r (directory)" % path
         shutil.rmtree(path)
 
 

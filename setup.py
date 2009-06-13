@@ -77,7 +77,7 @@ setup(
                 % sys.version[:3],
              "enpkg = enstaller.cmdline:main",
              "new-enpkg = enstaller.enpkg:main",
-             "egginst = egginst.egginst:main",
+             "egginst = egginst.main:main",
         ],
 
         "setuptools.file_finders":

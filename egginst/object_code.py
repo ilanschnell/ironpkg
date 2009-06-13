@@ -28,7 +28,7 @@ _targets = []
 def get_object_type(fpath):
     """
     Return the object file type of the specified file (not link).
-    Otherwise, if the file is not an object file return False.
+    Otherwise, if the file is not an object file, return False.
     """
     if fpath.endswith(NO_OBJ) or islink(fpath) or not isfile(fpath):
         return False
