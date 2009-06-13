@@ -1,3 +1,8 @@
+"""
+enpkg install
+  -e, --egg-dir   Local egg repo directory
+
+"""
 import os
 import sys
 import string
