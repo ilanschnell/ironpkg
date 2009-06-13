@@ -5,8 +5,6 @@ import sys
 import re
 from os.path import abspath, basename, join, islink, isfile, exists
 
-from utils import rel_prefix
-
 
 verbose = False
 
@@ -66,7 +64,7 @@ def fix_object_code(fpath):
         return
 
     if verbose:
-        print "Fixing placeholders in:", rel_prefix(fpath)
+        print "Fixing placeholders in:", fpath
     for m in matches:
         gr1 = m.group(1)
         if obj_type.startswith('MachO'):

@@ -1,8 +1,8 @@
 import os
 import sys
-from os.path import basename, dirname, exists, islink, join
+from os.path import dirname, isdir, join
 
-from utils import rel_prefix
+from utils import rm_rf
 
 
 verbose = False
@@ -15,19 +15,12 @@ def create_link(arcname, link):
 
     # Create the destination directory if it does not exist.  In most cases
     # it will exist, but you never know.
-    if not exists(dirname(dst)):
+    if not isdir(dirname(dst)):
         os.makedirs(dirname(dst))
 
-    # Note that we have to check if the destination is a link because
-    # exists('/path/to/dead-link') will return False, although
-    # islink('/path/to/dead-link') is True.
-    if islink(dst) or exists(dst):
-        if verbose:
-            print "Warning: %r already exists, unlinking" % rel_prefix(dst)
-        os.unlink(dst)
-
+    rm_rf(dst, verbose)
     if verbose:
-        print "Creating: %s (link to %s)" % (rel_prefix(dst), link)
+        print "Creating: %s (link to %s)" % (dst, link)
     os.symlink(link, dst)
     return dst
 

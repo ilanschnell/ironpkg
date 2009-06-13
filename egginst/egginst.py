@@ -11,7 +11,7 @@ import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from utils import rmdir_er, on_win, bin_dir, human_bytes
+from utils import on_win, bin_dir, rmdir_er, rm_rf, human_bytes
 import scripts
 
 
@@ -127,7 +127,7 @@ class EggInst(object):
         for start, cond, dst_dir in dispatch:
             if arcname.startswith(start) and cond:
                 return abspath(join(dst_dir, arcname[len(start):]))
-        raise Exception("Hmm, didn't expect to get here")
+        raise Exception("Didn't expect to get here")
 
     py_pat = re.compile(r'^(.+)\.py(c|o)?$')
     py_obj = '.pyd' if on_win else '.so'
@@ -136,14 +136,14 @@ class EggInst(object):
             return
         m = self.py_pat.match(arcname)
         if m and m.group(1) + self.py_obj in self.arcnames:
-            # .py, .pyc, .pyo next to .so are not written, they contain
-            # useless setuptools code
+            # .py, .pyc, .pyo next to .so are not written
             return
         path = self.get_dst(arcname)
         dn, fn = os.path.split(path)
         self.files.append(path)
         if not isdir(dn):
             os.makedirs(dn)
+        rm_rf(path, self.verbose)
         fo = open(path, 'wb')
         fo.write(self.z.read(arcname))
         fo.close()
@@ -159,7 +159,7 @@ class EggInst(object):
         try:
             import appinst
         except ImportError:
-            print("Warning: importing appinst failed.  Can't %sinstall "
+            print("Error: importing appinst failed.  Can't %sinstall "
                   "application (skipping)" % 'un' if remove else '')
             return
 
@@ -177,7 +177,7 @@ class EggInst(object):
 
     def remove(self):
         if not isdir(self.meta_dir):
-            print "Warning: Can't find meta data for:", self.project
+            print "Error: Can't find meta data for:", self.project
             return
 
         self.run('pre_uninstall.py')
@@ -214,23 +214,24 @@ def main():
 
     description = __doc__
 
-    parser = OptionParser(usage = usage,
-                          description = description,
-                          prog = basename(sys.argv[0]))
+    p = OptionParser(usage = usage,
+                     description = description,
+                     prog = basename(sys.argv[0]))
 
-    parser.add_option(
-        "-r", "--remove",
-        action = "store_true",
-        help   = "Removing (requires the EGG filenames which were used "
-                 "during the install)")
+    p.add_option('-r', "--remove",
+                 action="store_true",
+                 help="Removing (requires the EGG filenames which were used "
+                      "during the install)")
 
-    opts, args = parser.parse_args()
+    p.add_option('-v', "--verbose", action="store_true")
+
+    opts, args = p.parse_args()
 
     if len(args) < 1:
         parser.error("EGGs missing")
 
     for fpath in args:
-        ei = EggInst(fpath)
+        ei = EggInst(fpath, opts.verbose)
         if opts.remove:
             print "Removing:", fpath
             ei.remove()

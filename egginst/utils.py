@@ -1,18 +1,13 @@
 import sys
 import os
+import shutil
 import hashlib
-from os.path import abspath, basename, dirname, exists, isdir, join
+from os.path import abspath, basename, dirname, isdir, isfile, islink, join
 
 
 on_win = sys.platform.startswith('win')
 
 bin_dir = join(sys.prefix, 'Scripts' if on_win else 'bin')
-
-
-def rel_prefix(path):
-    if path.startswith(sys.prefix + '/'):
-        return path[len(sys.prefix) + 1:]
-    return path
 
 
 def rmdir_er(dn):
@@ -26,6 +21,26 @@ def rmdir_er(dn):
 
     if not os.listdir(dn):
         os.rmdir(dn)
+
+
+def rm_rf(path, verbose=False):
+    if not on_win and islink(path):
+        # Note that we have to check if the destination is a link because
+        # exists('/path/to/dead-link') will return False, although
+        # islink('/path/to/dead-link') is True.
+        if verbose:
+            print "Warning: %r (link) already exists, unlinking" % path
+        os.unlink(path)
+
+    if isfile(path):
+        if verbose:
+            print "Warning: %r (file) already exists, unlinking" % path
+        os.unlink(path)
+
+    if isdir(path):
+        if verbose:
+            print "Warning: %r (directory) already exists, rmtree" % path
+        shutil.rmtree(path)
 
 
 def md5_file(path):

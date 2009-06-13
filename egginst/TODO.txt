@@ -1,9 +1,8 @@
 TODO:
 -----
 
-  * bug: dead links
   * -a, --activate
-  * -d, --deactocate
+  * -d, --deactivate
     Move files and directories into backup directory:
     ... backup/numpy-1.2.1/numpy  (dir)
                           /bin/f2py
@@ -14,5 +13,3 @@ TODO:
         /tmp/bin/f2py
             /lib/libg2c.so
             /numpy  (dir)
-
-  * -r, --remove

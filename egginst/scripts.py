@@ -2,9 +2,9 @@ import os
 import sys
 import re
 import shutil
-from os.path import abspath, basename, exists, join, islink, isfile
+from os.path import abspath, basename, join, islink, isfile
 
-from utils import on_win, bin_dir
+from utils import on_win, bin_dir, rm_rf
 
 
 verbose = False
@@ -12,13 +12,6 @@ verbose = False
 
 def cp_exe(dst):
     shutil.copyfile(join(bin_dir, 'easy_install.exe'), dst)
-
-
-def unlink(fpath):
-    if exists(fpath):
-        if verbose:
-            print "Warning: %r already exists, unlinking" % fpath
-        os.unlink(fpath)
 
 
 def create_proxy(src):
@@ -31,11 +24,11 @@ def create_proxy(src):
         dst_name = dst_name[4:]
 
     dst = join(bin_dir, dst_name)
-    unlink(dst)
+    rm_rf(dst)
     cp_exe(dst)
 
     dst_script = dst[:-4] + '-script.py'
-    unlink(dst_script)
+    rm_rf(dst_script)
     fo = open(join(bin_dir, dst_script), 'w')
     fo.write('''\
 #!"%(python)s"
@@ -70,7 +63,7 @@ def create_proxies(egg):
             dst = abspath(join(sys.prefix, action, basename(arcname)))
             if verbose:
                 print "     dst: %r" % dst
-            unlink(dst)
+            rm_rf(dst)
             fo = open(dst, 'wb')
             fo.write(data)
             fo.close()
@@ -87,12 +80,12 @@ def write_script(fpath, entry_pt, egg_name):
     if on_win:
         python = '"%s"' % python
 
-    unlink(fpath)
+    rm_rf(fpath)
     fo = open(fpath, 'w')
     fo.write('''\
 #!%(python)s
 #
-#     %(egg_name)s
+#   %(egg_name)s
 #
 from %(module)s import %(func)s
 
@@ -107,7 +100,7 @@ def create(egg, conf):
         fname = name
         if on_win:
             exe_path = join(bin_dir, name + '.exe')
-            unlink(exe_path)
+            rm_rf(exe_path)
             cp_exe(exe_path)
             egg.files.append(exe_path)
 
