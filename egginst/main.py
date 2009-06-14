@@ -224,6 +224,10 @@ class EggInst(object):
         rm_rf(self.meta_dir)
 
     def deactivate(self):
+        """
+        Deactivate a package, i.e. move the files belonging to the package
+        into the special folder.
+        """
         if not isdir(self.meta_dir):
             print "Error: Can't find meta data for:", self.name
             return
@@ -248,6 +252,12 @@ class EggInst(object):
 
 
 def activate(dn):
+    """
+    Activate a package which was previously deactivated.  'dn' is the
+    directory name inside the deactive folder, which is simply the egg
+    name, without the .egg extension, of the egg which was used to install
+    the package in the first place.
+    """
     deact_dir = join(DEACTIVE_DIR, dn)
     if not isdir(deact_dir):
         print "Error: Can't find stored data for:", dn
