@@ -4,14 +4,15 @@ import re
 import shutil
 from os.path import abspath, basename, join, islink, isfile
 
-from utils import on_win, bin_dir, rm_rf
+from utils import on_win, rm_rf
 
 
 verbose = False
+bin_dir = join(sys.prefix, 'Scripts' if on_win else 'bin')
 
 
 def cp_exe(dst):
-    shutil.copyfile(join(bin_dir, 'easy_install.exe'), dst)
+    shutil.copyfile(join(bin_dir, 'egginst.exe'), dst)
 
 
 def create_proxy(src):
@@ -29,7 +30,7 @@ def create_proxy(src):
 
     dst_script = dst[:-4] + '-script.py'
     rm_rf(dst_script)
-    fo = open(join(bin_dir, dst_script), 'w')
+    fo = open(dst_script, 'w')
     fo.write('''\
 #!"%(python)s"
 # Proxy created by egginst
@@ -100,16 +101,16 @@ def create(egg, conf):
     for name, entry_pt in conf.items("console_scripts"):
         fname = name
         if on_win:
-            exe_path = join(bin_dir, name + '.exe')
+            exe_path = join(sys.prefix, r'Scripts\%s.exe' % name)
             rm_rf(exe_path)
             cp_exe(exe_path)
             egg.files.append(exe_path)
 
             fname += '-script.py'
 
-        fpath = join(bin_dir, fname)
-        write_script(fpath, entry_pt, egg_name=basename(egg.fpath))
-        egg.files.append(fpath)
+        path = join(bin_dir, fname)
+        write_script(path, entry_pt, egg_name=basename(egg.fpath))
+        egg.files.append(path)
 
 
 _hashbang_pat = re.compile(r'#!.+$', re.M)
@@ -141,7 +142,6 @@ def fix_script(path):
 
 
 def fix_scripts(egg):
-    hashbang_pat = re.compile(r'#!(.+)$', re.M)
     for fpath in egg.files:
         if fpath.startswith(bin_dir):
             fix_script(fpath)

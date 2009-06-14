@@ -1,6 +1,7 @@
 # Author: Ilan Schnell <ischnell@enthought.com>
 """\
 egginst is a simple tool for installing eggs into a Python environment.
+By default the eggs (provided as arguments) are installed.
 """
 
 import os
@@ -12,13 +13,15 @@ import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from utils import on_win, bin_dir, rmdir_er, rm_rf, human_bytes
+from utils import on_win, rel_prefix, rmdir_er, rm_rf, human_bytes
 import scripts
 
 
 # This is the directory which contains the EGG-INFO directories of all
 # installed packages
 EGG_INFO_DIR = join(sys.prefix, 'EGG-INFO')
+
+DEACTIVE_DIR = join(sys.prefix, 'DEACTIVE')
 
 
 class EggInst(object):
@@ -27,9 +30,9 @@ class EggInst(object):
 
     def __init__(self, fpath, verbose=False):
         self.fpath = fpath
-        self.project = basename(fpath).split('-')[0]
-        self.meta_dir = join(EGG_INFO_DIR, self.project)
-        self.files_txt = join(self.meta_dir, '__files__.txt')
+        self.name = basename(fpath).split('-')[0]
+        self.meta_dir = join(EGG_INFO_DIR, self.name)
+        self.meta_txt = join(self.meta_dir, '__egginst__.txt')
         self.files = []
         self.verbose = verbose
 
@@ -59,7 +62,7 @@ class EggInst(object):
         self.z.close()
         scripts.fix_scripts(self)
         self.install_app()
-        self.write_files()
+        self.write_meta()
 
         self.run('post_install.py')
 
@@ -82,14 +85,24 @@ class EggInst(object):
                 scripts.verbose = True
             scripts.create(self, conf)
 
-    def write_files(self):
-        fo = open(self.files_txt, 'w')
-        fo.write('\n'.join(self.files) + '\n')
+    def write_meta(self):
+        fo = open(self.meta_txt, 'w')
+        fo.write('# egginst metadata\n')
+        fo.write('egg_name = %r\n' % basename(self.fpath))
+        fo.write('prefix = %r\n' % sys.prefix)
+        fo.write('rel_files = [\n')
+        fo.write('  %r,\n' % rel_prefix(self.meta_txt))
+        for f in self.files:
+            fo.write('  %r,\n' % rel_prefix(f))
+        fo.write(']\n')
         fo.close()
 
-    def read_files(self):
-        for line in open(self.files_txt):
-            self.files.append(line.strip())
+    def read_meta(self):
+        d = {}
+        execfile(self.meta_txt, d)
+        for name in ['egg_name', 'prefix', 'rel_files']:
+            setattr(self, name, d[name])
+        self.files = [join(self.prefix, f) for f in d['rel_files']]
 
     def lines_from_arcname(self, arcname,
                            ignore_empty=True,
@@ -126,7 +139,7 @@ class EggInst(object):
         dispatch = [
             ('EGG-INFO/prefix/',  True,       sys.prefix),
             ('EGG-INFO/usr/',     not on_win, sys.prefix),
-            ('EGG-INFO/scripts/', True,       bin_dir),
+            ('EGG-INFO/scripts/', True,       scripts.bin_dir),
             ('EGG-INFO/',         True,       self.meta_dir),
             ('',                  True,       self.site_packages),
         ]
@@ -161,8 +174,8 @@ class EggInst(object):
             os.chmod(path, 0755)
 
     def install_app(self, remove=False):
-        fpath = join(self.meta_dir, 'EGG-INFO', 'inst', 'appinst.dat')
-        if not isfile(fpath):
+        path = join(self.meta_dir, 'EGG-INFO', 'inst', 'appinst.dat')
+        if not isfile(path):
             return
 
         try:
@@ -173,64 +186,120 @@ class EggInst(object):
             return
 
         if remove:
-            appinst.uninstall_from_dat(fpath)
+            appinst.uninstall_from_dat(path)
         else:
-            appinst.install_from_dat(fpath)
+            appinst.install_from_dat(path)
 
     def run(self, fn):
-        fpath = join(self.meta_dir, 'inst', fn)
-        if not isfile(fpath):
+        path = join(self.meta_dir, 'inst', fn)
+        if not isfile(path):
             return
         from subprocess import call
-        call([sys.executable, fpath], cwd=dirname(fpath))
+        call([sys.executable, path], cwd=dirname(path))
 
-    def remove(self):
-        if not isdir(self.meta_dir):
-            print "Error: Can't find meta data for:", self.project
-            return
-
-        self.run('pre_uninstall.py')
-        self.install_app(remove=True)
-        self.read_files()
-
-        # After the loop, dirs will be a set of directories in which to
-        # be removed (if empty, recursively).
-        dirs = set()
-
-        for p in self.files:
-            ps = p.replace('\\', '/').split('/')
-            if 'site-packages' in ps:
-                spi = ps.index('site-packages')
-                if len(ps) > spi + 2:
-                    dirs.add(join(self.site_packages, ps[spi + 1]))
-            elif not 'EGG-INFO' in ps:
-                dirs.add(dirname(p))
-            if islink(p) or isfile(p):
-                os.unlink(p)
-
-        # Remove empty directories recursively
-        for path in dirs:
+    def rmdirs(self):
+        """
+        Remove empty directories for the files in self.files recursively
+        """
+        for path in set(dirname(p) for p in self.files):
             if isdir(path):
                 rmdir_er(path)
 
-        shutil.rmtree(self.meta_dir)
+    def remove(self):
+        if not isdir(self.meta_dir):
+            print "Error: Can't find meta data for:", self.name
+            return
+
+        self.read_meta()
+        self.run('pre_uninstall.py')
+        self.install_app(remove=True)
+
+        for p in self.files:
+            if islink(p) or isfile(p):
+                os.unlink(p)
+        self.rmdirs()
+        rm_rf(self.meta_dir)
+
+    def deactivate(self):
+        if not isdir(self.meta_dir):
+            print "Error: Can't find meta data for:", self.name
+            return
+        self.read_meta()
+        dn = self.egg_name[:-4]
+        deact_dir = join(DEACTIVE_DIR, dn)
+        if isdir(deact_dir):
+            print "Error: Deactive data already exists for:", dn
+            return
+        os.makedirs(deact_dir)
+
+        for rel_src in self.rel_files:
+            src = join(self.prefix, rel_src)
+            if islink(src) or isfile(src):
+                dst = join(deact_dir, rel_src)
+                dst_dir = dirname(dst)
+                if not isdir(dst_dir):
+                    os.makedirs(dst_dir)
+                os.rename(src, dst)
+        self.rmdirs()
+        rm_rf(self.meta_dir)
 
 
-def list_installed():
+def activate(dn):
+    deact_dir = join(DEACTIVE_DIR, dn)
+    if not isdir(deact_dir):
+        print "Error: Can't find stored data for:", dn
+        return
+    for root, dirs, files in os.walk(deact_dir):
+        for fn in files:
+            src = join(root, fn)
+            rel_src = src[len(deact_dir) + 1:]
+            dst = join(sys.prefix, rel_src)
+            dst_dir = dirname(dst)
+            if not isdir(dst_dir):
+                os.makedirs(dst_dir)
+            rm_rf(dst)
+            os.rename(src, dst)
+    shutil.rmtree(deact_dir)
+
+
+def list_active():
     """
-    Returns a sorted list of all installed project names, i.e. the names
-    of all directories in EGG_INFO_DIR.
+    Returns a sorted list of all installed (active) packages.
     """
-    res = [fn for fn in os.listdir(EGG_INFO_DIR)
-           if isdir(join(EGG_INFO_DIR, fn))]
+    if not isdir(EGG_INFO_DIR):
+        return []
+
+    res = []
+    for fn in os.listdir(EGG_INFO_DIR):
+        meta_txt = join(EGG_INFO_DIR, fn, '__egginst__.txt')
+        if isfile(meta_txt):
+            d = {}
+            execfile(meta_txt, d)
+            res.append(d['egg_name'][:-4])
     res.sort(key=string.lower)
     return res
+
+
+def list_deactive():
+    """
+    Returns a sorted list of all deactivated projects.
+    """
+    if not isdir(DEACT_DIR):
+        return []
+
+    res = [fn for fn in os.listdir(DEACT_DIR) if isdir(join(DEACT_DIR, fn))]
+    res.sort(key=string.lower)
+    return res
+
+
+def print_list():
+    pass
 
 
 def main():
     from optparse import OptionParser
 
-    usage = "usage: %prog [options] [EGG ...]"
+    usage = "usage: %prog [options] [ARGS ...]"
 
     description = __doc__
 
@@ -238,23 +307,35 @@ def main():
                      description = description,
                      prog = basename(sys.argv[0]))
 
+    p.add_option('-a', "--activate",
+                 action="store_true",
+                 help="activate deactivated package(s)")
+
+    p.add_option('-d', "--deactivate",
+                 action="store_true",
+                 help="deactives installed package(s)")
+
     p.add_option('-l', "--list",
                  action="store_true",
-                 help="list installed package names and exit")
+                 help="list packages, both active and deactive")
 
     p.add_option('-r', "--remove",
                  action="store_true",
-                 help="remove packages, requires the egg or project names")
+                 help="remove package(s), requires the egg or project name(s)")
 
     p.add_option('-v', "--verbose", action="store_true")
 
     opts, args = p.parse_args()
 
+    if opts.activate:
+        for name in args:
+            activate(name)
+        return
+
     if opts.list:
         if args:
             p.error("--list takes no arguments")
-        for name in list_installed():
-            print name
+        print_list()
         return
 
     for name in args:
@@ -262,6 +343,10 @@ def main():
         if opts.remove:
             print "Removing:", name
             ei.remove()
+
+        elif opts.deactivate:
+            print "Deactivating:", name
+            ei.deactivate()
 
         else: # default is always install
             print "Installing:", name

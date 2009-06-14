@@ -7,7 +7,10 @@ from os.path import abspath, basename, dirname, isdir, isfile, islink, join
 
 on_win = sys.platform.startswith('win')
 
-bin_dir = join(sys.prefix, 'Scripts' if on_win else 'bin')
+
+def rel_prefix(path):
+    assert abspath(path).startswith(sys.prefix)
+    return path[len(sys.prefix) + 1:]
 
 
 def rmdir_er(dn):
