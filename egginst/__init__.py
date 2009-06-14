@@ -1,7 +1,7 @@
 import os
 from os.path import dirname, basename
 
-from main import EGG_INFO_DIR, EggInst
+from main import EggInst, activate, get_active, get_deactive, print_list
 
 
 def bootstrap(verbose=False):

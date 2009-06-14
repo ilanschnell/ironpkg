@@ -13,7 +13,8 @@ import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from utils import on_win, rel_prefix, rmdir_er, rm_rf, human_bytes
+from utils import (on_win, site_packages, rel_prefix, rmdir_er, rm_rf,
+                   human_bytes)
 import scripts
 
 
@@ -24,13 +25,15 @@ EGG_INFO_DIR = join(sys.prefix, 'EGG-INFO')
 DEACTIVE_DIR = join(sys.prefix, 'DEACTIVE')
 
 
-class EggInst(object):
+def projname(fn):
+    return fn.split('-')[0]
 
-    site_packages = join(dirname(os.__file__), 'site-packages')
+
+class EggInst(object):
 
     def __init__(self, fpath, verbose=False):
         self.fpath = fpath
-        self.name = basename(fpath).split('-')[0]
+        self.name = projname(basename(fpath))
         self.meta_dir = join(EGG_INFO_DIR, self.name)
         self.meta_txt = join(self.meta_dir, '__egginst__.txt')
         self.files = []
@@ -141,7 +144,7 @@ class EggInst(object):
             ('EGG-INFO/usr/',     not on_win, sys.prefix),
             ('EGG-INFO/scripts/', True,       scripts.bin_dir),
             ('EGG-INFO/',         True,       self.meta_dir),
-            ('',                  True,       self.site_packages),
+            ('',                  True,       site_packages),
         ]
         for start, cond, dst_dir in dispatch:
             if arcname.startswith(start) and cond:
@@ -262,13 +265,12 @@ def activate(dn):
     shutil.rmtree(deact_dir)
 
 
-def list_active():
+def get_active():
     """
-    Returns a sorted list of all installed (active) packages.
+    return a sroted list of all installed (active) packages
     """
     if not isdir(EGG_INFO_DIR):
         return []
-
     res = []
     for fn in os.listdir(EGG_INFO_DIR):
         meta_txt = join(EGG_INFO_DIR, fn, '__egginst__.txt')
@@ -280,20 +282,41 @@ def list_active():
     return res
 
 
-def list_deactive():
+def get_deactive():
     """
-    Returns a sorted list of all deactivated projects.
+    returns the set of all deactivated projects
     """
-    if not isdir(DEACT_DIR):
+    if not isdir(DEACTIVE_DIR):
         return []
-
-    res = [fn for fn in os.listdir(DEACT_DIR) if isdir(join(DEACT_DIR, fn))]
+    res = [fn for fn in os.listdir(DEACTIVE_DIR)
+           if isdir(join(DEACTIVE_DIR, fn))]
     res.sort(key=string.lower)
     return res
 
 
 def print_list():
-    pass
+    fmt = '%-20s %-20s %s'
+    print fmt % ('Project name', 'Version', 'Active')
+    print 50 * '='
+
+    active = get_active()
+    deactive = get_deactive()
+    names = set(projname(fn) for fn in active + deactive)
+    output = []
+    for name in sorted(names, key=string.lower):
+        for lst, act in [(active, 'Yes'), (deactive, '')]:
+            for fn in lst:
+                if projname(fn) != name:
+                    continue
+                name, vers = fn.split('-', 1)
+                output.append([name, vers, act])
+
+    names = set()
+    for row in output:
+        if row[0] in names:
+            row[0] = ''
+        print fmt % tuple(row)
+        names.add(row[0])
 
 
 def main():

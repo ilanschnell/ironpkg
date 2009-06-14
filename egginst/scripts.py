@@ -4,7 +4,7 @@ import re
 import shutil
 from os.path import abspath, basename, join, islink, isfile
 
-from utils import on_win, rm_rf
+from utils import on_win, site_packages, rm_rf
 
 
 verbose = False
@@ -12,7 +12,8 @@ bin_dir = join(sys.prefix, 'Scripts' if on_win else 'bin')
 
 
 def cp_exe(dst):
-    shutil.copyfile(join(bin_dir, 'egginst.exe'), dst)
+    src = join(site_packages, 'setuptools', 'cli.exe')
+    shutil.copyfile(src, dst)
 
 
 def create_proxy(src):
