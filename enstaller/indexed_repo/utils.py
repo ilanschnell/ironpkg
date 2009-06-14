@@ -65,12 +65,12 @@ def split_eggname(eggname):
     assert m, eggname
     return m.group(1), m.group(2), int(m.group(3))
 
-def get_version_build(eggname):
+def get_version_build(dist):
     """
-    Return the version and build number of an distribution, as a
+    Return the version and build number of a distribution, as a
     tuple(version, build), where version is a string and build is an integer.
     """
-    return split_eggname(eggname)[1:]
+    return  split_eggname(filename_dist(dist))[1:]
 
 
 

@@ -1,19 +1,25 @@
-"""
-enpkg install
-  -e, --egg-dir   Local egg repo directory
-
-"""
 import os
 import sys
 import string
 from os.path import basename, isdir, isfile, join
-from optparse import OptionParser
 
-from enstaller.indexed_repo import Platforms, IndexedRepo, Req, fetch
-from enstaller.indexed_repo.utils import filename_dist
-from egginst import egginst
+from enstaller.config import _get_config_path
+from enstaller.indexed_repo import (IndexedRepo, Req, fetch, filename_dist,
+                                    dist_as_req)
+import egginst
 
-from epd_repo.fetch import EGG_ROOT_URL
+
+def get_config():
+    path = _get_config_path()
+    res = {}
+    if isfile(path):
+        execfile(path, res)
+    if 'repos' not in res:
+        res['repos'] = []
+    return res
+
+
+config = get_config()
 
 
 def fn_action(fn, action):
@@ -21,19 +27,12 @@ def fn_action(fn, action):
 
 
 def main():
-    platform_map = Platforms(EGG_ROOT_URL)
-    if '-h' in sys.argv or '--help' in sys.argv:
-        print "Platforms:"
-        print platform_map.txt
+    from optparse import OptionParser
 
     p = OptionParser(
         usage="usage: %prog [options] Requirement",
         prog=basename(sys.argv[0]),
-        description=("fetches eggs from the EPD egg repository"))
-
-    p.add_option('-i', "--install",
-                 action="store_true",
-                 default=False)
+        description=("download and install eggs ..."))
 
     p.add_option('-n', "--dry-run",
                  action="store_true",
@@ -42,12 +41,8 @@ def main():
     p.add_option('-l', "--list",
                  action="store_true",
                  default=False,
-                 help="list all packages (with thier versions) available")
-
-    p.add_option('-p', "--platform-id",
-                 action="store",
-                 default=0,
-                 help="platform ID for repo, see -l option")
+                 help="list all packages (with their versions) available "
+                      "on the repo (chain), and exit")
 
     p.add_option('-v', "--verbose",
                  action="store_true",
@@ -56,57 +51,47 @@ def main():
     p.add_option('-N', "--no-deps",
                  action="store_true",
                  default=False,
-                 help="don't download dependencies")
-
-    p.add_option('-t', "--test",
-                 action="store_true",
-                 default=False,
-                 help="test the index for consistency and exit")
+                 help="don't download (or install) dependencies")
 
     opts, args = p.parse_args()
 
-    if not opts.platform_id:
-        if sys.platform == 'win32':
-            opts.platform_id = 1
-        elif sys.platform == 'darwin':
-            opts.platform_id = 2
-
-    subdir = platform_map.data[int(opts.platform_id)]['subdir']
-    repo = EGG_ROOT_URL + subdir + '/'
-    req_string = ' '.join(args)
+    req = Req(' '.join(args))
 
     if opts.verbose:
-        print "repo = %r" % repo
-        print "req_string = %r" % req_string
+        print "req = %r" % req
 
     ir = IndexedRepo(verbose=opts.verbose)
-    if opts.install:
-        ir.local = join(sys.prefix, 'LOCAL-REPO')
-    ir.add_repo(repo)
+
+    for url in config['repos']:
+        # add a repo from the config file to the chain
+        ir.add_repo(url)
 
     if opts.list:
         names = set(spec['name'] for spec in ir.index.itervalues())
         for name in sorted(names, key=string.lower):
-            req = Req(name)
+            r = Req(name)
             versions = set()
-            for dist in ir.get_matches(req):
-                versions.add(ir.index[dist]['version'])
-            print "%-20s %s" % (name, ', '.join(sorted(versions)))
+            for dist in ir.get_matches(r):
+                if str(dist_as_req(dist)).startswith(str(req)):
+                    versions.add(ir.index[dist]['version'])
+            if versions:
+                print "%-20s %s" % (name, ', '.join(sorted(versions)))
         return
 
-    if opts.test:
-        ir.test()
-        return
-
-    if opts.install and not isdir(ir.local):
+    # This is a local directory, which is always first in the chain,
+    # and the distributions are referenced by local:/<distname>
+    if 'local_repo' in config:
+        ir.local = config['local_repo']
+    else:
+        ir.local = join(sys.prefix, 'LOCAL-REPO')
+    if not isdir(ir.local):
         os.mkdir(ir.local)
+    # Add all distributions in the local repo to the index (without writing
+    # any index files)
+    ir.index_local_repo()
 
-    req = Req(req_string)
     if req.strictness == 0:
         p.error("Requirement missing")
-
-    if opts.verbose:
-        print "==================== %r ====================" % req
 
     if opts.no_deps:
         dists = [ir.get_dist(req)]
@@ -125,21 +110,19 @@ def main():
         if isfile(join(ir.local, fn)):
             fn_action(fn, 'already exists')
         else:
-            fn_action(fn, 'download')
+            fn_action(fn, 'copy' if dist.startswith('file://') else 'download')
             if opts.dry_run:
                 continue
             ir.fetch_dist(dist)
-
-    if not opts.install:
-        return
 
     print 77 * '='
     for dist in dists:
         fn = filename_dist(dist)
         egg_path = join(ir.local, fn)
-        assert isfile(egg_path)
         fn_action(fn, 'installing')
-        egginst(egg_path)
+        if opts.dry_run:
+            continue
+        egginst.EggInst(egg_path, opts.verbose).install()
 
 
 if __name__ == '__main__':

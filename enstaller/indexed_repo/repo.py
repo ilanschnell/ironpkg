@@ -1,3 +1,4 @@
+import os
 import bz2
 import string
 import sys
@@ -6,7 +7,7 @@ from collections import defaultdict
 from os.path import basename, join, isfile
 
 from utils import (get_data_from_url, canonical, get_version_build,
-                   split_eggname, repo_dist, filename_dist)
+                   split_eggname, repo_dist, filename_dist, is_valid_eggname)
 from metadata import parse_depend_index, parse_data
 from requirement import Req
 
@@ -240,6 +241,19 @@ class IndexedRepo(object):
         z.close()
         add_Reqs_to_spec(spec)
         self.index['local:/' + filename] = spec
+
+    def index_local_repo(self):
+        """
+        Add all distributions, which must already exist in the local
+        repository, to the index, in memory, i.e. no index file is written
+        to disk.
+        """
+        for fn in os.listdir(self.local):
+            if not fn.endswith('.egg'):
+                continue
+            if not is_valid_eggname(fn):
+                print("WARNING: %r invalid egg_name" % join(self.local, fn))
+            self.add_to_local(fn)
 
     def test(self, assert_files_exist=False):
         """
