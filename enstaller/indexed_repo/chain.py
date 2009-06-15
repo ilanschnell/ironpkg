@@ -11,18 +11,22 @@ import utils
 from requirement import Req, add_Reqs_to_spec, dist_as_req
 
 
-verbose = False
 
-# Path to the local repository, must be set, if functions accessing the
-# local repository (see below) are called.
-local = None
+def init():
+    global verbose, local, repos, index
 
-# Chain of repository, either local or remote, from which distributions
-# may be fetched, the local directory is always first.
-chain = ['local:/']
+    verbose = False
 
-# maps distributions to specs
-index = {}
+    # Path to the local repository, must be set, if functions accessing the
+    # local repository (see below) are called.
+    local = None
+
+    # Chain of repository, either local or remote, from which distributions
+    # may be fetched, the local directory is always first.
+    repos = ['local:/']
+
+    # maps distributions to specs
+    index = {}
 
 
 def add_repo(repo, index_fn='index-depend.bz2'):
@@ -43,7 +47,7 @@ def add_repo(repo, index_fn='index-depend.bz2'):
     for spec in new_index.itervalues():
         add_Reqs_to_spec(spec)
 
-    chain.append(repo)
+    repos.append(repo)
 
     for distname, spec in new_index.iteritems():
         index[repo + distname] = spec
@@ -66,7 +70,7 @@ def get_matches(req):
     Return the set of distributions which match the requirement from the
     first repository in the chain which contains at least one match.
     """
-    for repo in chain:
+    for repo in repos:
         matches = get_matches_repo(req, repo)
         if matches:
             return matches

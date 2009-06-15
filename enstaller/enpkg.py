@@ -4,26 +4,25 @@ import string
 from os.path import basename, isdir, isfile, join
 
 from config import get_configured_repos
-from indexed_repo import chain, Req, filename_dist, dist_as_req
+from indexed_repo import (resolve, filename_dist, pprint_distname_action,
+                          pprint_repo)
 import egginst
 
 
 
-def init_chain_from_config():
+def get_config():
+    local = None
+    repos = []
     for url in get_configured_repos():
         if url.startswith('local:'):
             # This is a local directory, which is always first in the chain,
             # and the distributions are referenced by local:/<distname>
-            path = url[6:]
-            if not isdir(path):
-                os.mkdir(path)
-            chain.local = path
+            local = url[6:]
         else:
-            chain.add_repo(url)
+            # These are indexed repos, url will start with file:// or http://
+            repos.append(url)
 
-
-def fn_action(fn, action):
-    print "%-56s %20s" % (fn, '[%s]' % action)
+    return local, repos
 
 
 def main():
@@ -55,66 +54,35 @@ def main():
 
     opts, args = p.parse_args()
 
-    req = Req(' '.join(args))
+    req_string = ' '.join(args)
+
+    local, repos = get_config()
 
     if opts.verbose:
-        print "req = %r" % req
-
-    chain.verbose = opts.verbose
-    init_chain_from_config()
-
-    if opts.verbose:
-        print "chain.local = %r" % chain.local
-        for url in chain.chain:
+        print "local = %r" % local
+        for url in repos:
             print '\turl = %r' % url
 
-    if opts.list:
-        names = set(spec['name'] for spec in chain.index.itervalues())
-        for name in sorted(names, key=string.lower):
-            r = Req(name)
-            versions = set()
-            for dist in chain.get_matches(r):
-                if str(dist_as_req(dist)).startswith(str(req)):
-                    versions.add(chain.index[dist]['version'])
-            if versions:
-                print "%-20s %s" % (name, ', '.join(sorted(versions)))
+    if opts.list: # --list
+        pprint_repo(repos, req_string)
         return
 
-    # Add all distributions in the local repo to the index (without writing
-    # any index files)
-    chain.index_all_local_files()
-
-    if req.strictness == 0:
+    if not args:
         p.error("Requirement missing")
 
-    if opts.no_deps:
-        dists = [chain.get_dist(req)]
-    else:
-        dists = chain.install_order(req)
+    dists = resolve(req_string, local, repos,
+                    recur=not opts.no_deps,
+                    fetch=not opts.dry_run,
+                    verbose=opts.verbose)
 
-    if opts.verbose:
-        print "Distributions:"
-        for d in dists:
-            print '\t', filename_dist(d)
-
-    for dist in dists:
-        fn = filename_dist(dist)
-        if opts.verbose:
-            print 70 * '='
-            print dist
-        if isfile(join(chain.local, fn)):
-            fn_action(fn, 'already exists')
-        else:
-            fn_action(fn, 'copy' if dist.startswith('file://') else 'download')
-            if opts.dry_run:
-                continue
-            chain.fetch_dist(dist)
+    if opts.dry_run:
+        return
 
     print 77 * '='
     for dist in dists:
         fn = filename_dist(dist)
-        egg_path = join(chain.local, fn)
-        fn_action(fn, 'installing')
+        egg_path = join(local, fn)
+        pprint_distname_action(fn, 'installing')
         if opts.dry_run:
             continue
         egginst.EggInst(egg_path, opts.verbose).install()
