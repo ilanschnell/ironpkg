@@ -54,8 +54,6 @@ def main():
 
     opts, args = p.parse_args()
 
-    req_string = ' '.join(args)
-
     local, repos = get_config()
 
     if opts.verbose:
@@ -63,6 +61,7 @@ def main():
         for url in repos:
             print '\turl = %r' % url
 
+    req_string = ' '.join(args)
     if opts.list: # --list
         pprint_repo(repos, req_string)
         return
@@ -79,10 +78,15 @@ def main():
         return
 
     print 77 * '='
+    active = egginst.get_active()
     for dist in dists:
-        fn = filename_dist(dist)
-        egg_path = join(local, fn)
-        pprint_distname_action(fn, 'installing')
+        egg_name = filename_dist(dist)
+        assert egg_name.endswith('.egg')
+        if egg_name[:-4] in active:
+            pprint_distname_action(egg_name, 'already active')
+            continue
+        egg_path = join(local, egg_name)
+        pprint_distname_action(egg_name, 'installing')
         if opts.dry_run:
             continue
         egginst.EggInst(egg_path, opts.verbose).install()

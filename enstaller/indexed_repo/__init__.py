@@ -2,7 +2,7 @@
 This is the indexed_repo API
 ============================
 
-This file contains wrapper functions for common tasks, which can be
+This file contains higher level functions for common tasks, which can be
 invoked in a single function call, i.e. the user does not have to
 worry about all the little details involved to set up the correct
 objects.
@@ -16,7 +16,7 @@ from repo import IndexedRepo # to be removed later
 from requirement import Req, dist_as_req
 from platforms import Platforms
 from metadata import spec_from_dist
-from utils import filename_dist
+from utils import filename_dist, canonical
 
 
 
@@ -116,8 +116,9 @@ def pprint_repo(repos=[], start=""):
     repo made of a chain of (indexed) repos.
 
     start:
-        print only items which start with this string.
+        print only items which start with this string (case insensitive).
     """
+    start = canonical(start)
     chain.init()
     for url in repos:
         # These are indexed repos (either local or http)
