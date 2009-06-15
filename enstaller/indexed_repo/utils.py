@@ -70,7 +70,11 @@ def get_version_build(dist):
     Return the version and build number of a distribution, as a
     tuple(version, build), where version is a string and build is an integer.
     """
-    return  split_eggname(filename_dist(dist))[1:]
+    if '/' in dist:
+        eggname = filename_dist(dist)
+    else:
+        eggname = dist
+    return split_eggname(eggname)[1:]
 
 
 

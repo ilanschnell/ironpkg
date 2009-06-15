@@ -1,4 +1,4 @@
-from utils import canonical
+from utils import canonical, split_eggname, filename_dist
 
 
 
@@ -80,3 +80,26 @@ class Req(object):
             return '%s >=%s' % (self.name, ver)
         assert self.strictness == 3
         return '%s ==%s' % (self.name, ver.replace('-', 'n'))
+
+
+def add_Reqs_to_spec(spec):
+    """
+    Add the 'Reqs' key, which maps to a set of requirement objects,
+    to a spec dictionary.
+    """
+    spec['Reqs'] = set(Req(s) for s in spec['packages'])
+
+
+def dist_as_req(dist, strictness=3):
+    """
+    Return the distribution in terms of the a requirement object.
+    That is: What requirement gives me the distribution?
+    """
+    assert strictness >= 1
+    name, version, build = split_eggname(filename_dist(dist))
+    req_string = name
+    if strictness >= 2:
+        req_string += ' %s' % version
+    if strictness >= 3:
+        req_string += '-%s' % build
+    return Req(req_string)
