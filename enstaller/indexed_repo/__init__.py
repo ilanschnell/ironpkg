@@ -9,9 +9,7 @@ import string
 from os.path import join, isfile
 
 from chain import Chain
-from repo import IndexedRepo # to be removed later
 from requirement import Req, dist_as_req
-from platforms import Platforms
 from metadata import spec_from_dist
 from utils import filename_dist, canonical
 
@@ -22,7 +20,7 @@ def pprint_distname_action(fn, action):
 
 
 def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
-            verbose=False):
+            fetch_force=False, verbose=False):
     """
     Resolves a requirement in a chain of indexed repositories.  An optional
     local repository, which is not indexed, can be specified.  This local
@@ -56,6 +54,9 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
     fetch:
         Download (http://) of copy (file://) the resolved distributions into
         the local repository.
+
+    fetch_force:
+        allow force when fetching
     """
     req = Req(req_string)
 
@@ -69,6 +70,14 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
         for url in c.repos:
             print '\turl = %r' % url
 
+    if fetch_force:
+        # When using force, remove all entries from the local repo.
+        # Otherwise, the resolution will contain entries from the local repo.
+        for dist in c.index.keys():
+            if dist.startswith('local:'):
+                del c.index[dist]
+
+    # resolve the dependencies
     if recur:
         dists = c.install_order(req)
     else:
@@ -87,12 +96,12 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
         if verbose:
             print 70 * '='
             print dist
-        if isfile(join(c.local, fn)):
-            pprint_distname_action(fn, 'already exists')
-        else:
+        if fetch_force or not isfile(join(c.local, fn)):
             action = ['copying', 'downloading'][dist.startswith('http://')]
             pprint_distname_action(fn, action)
-            c.fetch_dist(dist)
+            c.fetch_dist(dist, force=fetch_force)
+        else:
+            pprint_distname_action(fn, 'already exists')
 
     return dists
 
@@ -120,5 +129,3 @@ def pprint_repo(local=None, repos=[], start=""):
                 versions.add(c.index[dist]['version'])
         if versions:
             print "%-20s %s" % (name, ', '.join(sorted(versions)))
-
-    #c.test()
