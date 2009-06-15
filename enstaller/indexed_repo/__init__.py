@@ -2,16 +2,13 @@
 This is the indexed_repo API
 ============================
 
-This file contains higher level functions for common tasks, which can be
-invoked in a single function call, i.e. the user does not have to
-worry about all the little details involved to set up the correct
-objects.
+This file contains higher level functions.
 
 """
 import string
 from os.path import join, isfile
 
-import chain
+from chain import Chain
 from repo import IndexedRepo # to be removed later
 from requirement import Req, dist_as_req
 from platforms import Platforms
@@ -65,27 +62,17 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
     if verbose:
         print "req = %r" % req
 
-    chain.init()
-    chain.verbose = verbose
-    chain.local = local
-    for url in repos:
-        # These are indexed repos (either local or http)
-        chain.add_repo(url)
-
+    c = Chain(local, repos, verbose)
     if verbose:
-        print "chain.local = %r" % chain.local
-        print 'repos:'
-        for url in chain.repos:
+        print "c.local = %r" % c.local
+        print 'c.repos:'
+        for url in c.repos:
             print '\turl = %r' % url
 
-    # Add all distributions in the local repo to the index (without writing
-    # any index files)
-    chain.index_all_local_files()
-
     if recur:
-        dists = chain.install_order(req)
+        dists = c.install_order(req)
     else:
-        dists = [chain.get_dist(req)]
+        dists = [c.get_dist(req)]
 
     if verbose:
         print "Distributions:"
@@ -100,17 +87,20 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
         if verbose:
             print 70 * '='
             print dist
-        if isfile(join(chain.local, fn)):
+        if isfile(join(c.local, fn)):
             pprint_distname_action(fn, 'already exists')
         else:
             action = ['copying', 'downloading'][dist.startswith('http://')]
             pprint_distname_action(fn, action)
-            chain.fetch_dist(dist)
+            c.fetch_dist(dist)
 
     return dists
 
 
-def pprint_repo(repos=[], start=""):
+#print Chain(repos=['file:///Users/ilan/repo-test/eggs/MacOSX/10.4_x86/']).index
+
+
+def pprint_repo(local=None, repos=[], start=""):
     """
     Pretty print the distributions available in a repo, i.e. a "virtual"
     repo made of a chain of (indexed) repos.
@@ -118,18 +108,17 @@ def pprint_repo(repos=[], start=""):
     start:
         print only items which start with this string (case insensitive).
     """
+    c = Chain(local, repos)
     start = canonical(start)
-    chain.init()
-    for url in repos:
-        # These are indexed repos (either local or http)
-        chain.add_repo(url)
+    names = set(spec['name'] for spec in c.index.itervalues())
 
-    names = set(spec['name'] for spec in chain.index.itervalues())
     for name in sorted(names, key=string.lower):
         r = Req(name)
         versions = set()
-        for dist in chain.get_matches(r):
+        for dist in c.get_matches(r):
             if str(dist_as_req(dist)).startswith(start):
-                versions.add(chain.index[dist]['version'])
+                versions.add(c.index[dist]['version'])
         if versions:
             print "%-20s %s" % (name, ', '.join(sorted(versions)))
+
+    #c.test()

@@ -63,7 +63,7 @@ def main():
 
     req_string = ' '.join(args)
     if opts.list: # --list
-        pprint_repo(repos, req_string)
+        pprint_repo(local, repos, req_string)
         return
 
     if not args:
