@@ -13,6 +13,11 @@ bin_dir = join(sys.prefix, 'Scripts' if on_win else 'bin')
 
 def cp_exe(dst):
     src = join(site_packages, 'setuptools', 'cli.exe')
+    if isfile(src):
+        shutil.copyfile(src, dst)
+        return
+
+    src = join(bin_dir, 'egginst.exe')
     shutil.copyfile(src, dst)
 
 
