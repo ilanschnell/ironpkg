@@ -7,7 +7,7 @@ import platform
 
 
 #    name           platform   osdist
-_DATA = {
+DATA = {
     'xp-32':       'win32      XP',
     'os10.4-32':   'darwin     MacOS_10.4',
     'rh3-32':      'linux2     RedHat_3',
@@ -52,6 +52,12 @@ class EnForm(object):
         print 'osdist:', self.osdist
         print 'bits:', self.bits
 
+    def as_spec(self):
+        spec = {}
+        for var in ['arch', 'platform', 'osdist']:
+            spec[var] = getattr(self, var)
+        return spec
+
     def matches(self, spec):
         for var in ['arch', 'platform', 'osdist']:
             if (var in spec and
@@ -62,17 +68,12 @@ class EnForm(object):
 
 
 
-def init_enforms():
-    global ENFORMS
-
-    ENFORMS = {}
-    for k, v in _DATA.iteritems():
-        ENFORMS[k] = EnForm(k, v)
-
-init_enforms()
+ENFORMS = {}
+for k, v in DATA.iteritems():
+    ENFORMS[k] = EnForm(k, v)
 
 
-def get_current_enform():
+def current_enform():
     """
     returns the Enform of the current platform
     """
@@ -118,12 +119,27 @@ def get_names(spec):
     return res
 
 
+def repo_subdir(root_url, enform):
+    """
+    Returns the sub-directory (e.g. 'Windows/x86'), from an
+    enform (e.g. 'rh3-32'), in a repository with platform.txt
+    """
+    from indexed_repo.platforms import Platforms
+
+    p = Platforms(root_url)
+    res = []
+    for pid in p.get_IDs(ENFORMS[enform].as_spec()):
+        res.append(p.data[pid]['subdir'])
+
+    if len(res) == 0:
+        raise Exception("Did not find sub-directory for %r in %r" %
+                        (enform, root_url))
+    assert len(res) == 1
+    return res[0]
+
+
 if __name__ == '__main__':
     #for x in ENFORMS.itervalues():
     #    x.print_details()
-    #print get_names({})
-    #  print get_names({'arch': 'amd64', 'osdist': None});
-
-    enform = get_current_enform()
-    print enform
-    assert enform in ENFORMS
+    print get_names({})
+    print get_names({'arch': 'amd64', 'osdist': None})
