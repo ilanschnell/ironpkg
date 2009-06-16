@@ -31,7 +31,7 @@ class TestUtils(unittest.TestCase):
     def test_get_version_build(self):
         for fn, tu in [
             ('file:///zope.interface-3.4.1-1.egg', ('3.4.1', 1)),
-            ('local:/MySQL_python-1.2.2-3.egg', ('1.2.2', 3)),
+            ('local:MySQL_python-1.2.2-3.egg', ('1.2.2', 3)),
             ('Reportlab-2.1-4.egg', ('2.1', 4)),
             ('hdf5-1.8.1-13.egg', ('1.8.1', 13)),
             ('pytz-2008c-3.egg', ('2008c', 3)),

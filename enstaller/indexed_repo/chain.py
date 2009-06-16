@@ -27,14 +27,14 @@ class Chain(object):
         if local is not None:
             # Add all distributions in the local repo to the index (without
             # writing any index files)
-            self.index_all_local_files()
+            self.index_all_files('local:')
 
         # Chain of repository, either local or remote, from which
         # distributions may be fetched, the local directory is always first.
-        self.repos = ['local:/']
-        for url in repos:
+        self.repos = ['local:']
+        for repo in repos:
             # These are indexed repos (either file://... or http://...)
-            self.add_repo(url)
+            self.add_repo(repo)
 
 
     def add_repo(self, repo, index_fn='index-depend.bz2'):
@@ -46,12 +46,19 @@ class Chain(object):
             print "Adding repository:", repo
         assert repo.endswith('/'), repo
 
-        data = utils.get_data_from_url(repo + index_fn, verbose=False)
+        index_url = repo + index_fn
+
+        if index_url.startswith('file://') and not isfile(index_url[7:]):
+            # A local url with no index file
+            self.index_all_files(repo)
+            return
+
+        index_data = utils.get_data_from_url(index_url, verbose=False)
 
         if index_fn.endswith('.bz2'):
-            data = bz2.decompress(data)
+            index_data = bz2.decompress(index_data)
 
-        new_index = metadata.parse_depend_index(data)
+        new_index = metadata.parse_depend_index(index_data)
         for spec in new_index.itervalues():
             add_Reqs_to_spec(spec)
 
@@ -187,7 +194,8 @@ class Chain(object):
 
     def fetch_dist(self, dist, force=False):
         """
-        Get a distribution, i.e. copy the distribution into the local repo.
+        Get a distribution, i.e. copy or download the distribution into
+        the local repo.
         """
         if dist not in self.index:
             raise Exception("distribution not found: %r" % dist)
@@ -211,23 +219,29 @@ class Chain(object):
         fo.write(data)
         fo.close()
 
+    def dirname_repo(self, repo):
+        if repo == 'local:':
+            return self.local
+        else:
+            assert repo.startswith('file://')
+            return repo[7:].rstrip(r'\/')
 
-    def index_local_file(self, filename):
+    def index_file(self, filename, repo):
         """
-        Add an unindexed distribution (which must already exist in the local
-        repository) to the index (in memory).  Note that the index file on
-        disk remains unchanged.
+        Add an unindexed distribution, which must already exist in the
+        repository, (which is either the local repository or a repository
+        of the filesystem) to the index (in memory).  Note that the index
+        file on disk remains unchanged.
         """
+        dist = repo + filename
         if self.verbose:
-            print "Adding %r to index" % filename
-
-        assert isdir(self.local), self.local
+            print "Adding %r to index" % dist
 
         if filename != basename(filename):
             raise Exception("base filename expected, got %r" % filename)
 
         arcname = 'EGG-INFO/spec/depend'
-        z = zipfile.ZipFile(join(self.local, filename))
+        z = zipfile.ZipFile(join(self.dirname_repo(repo), filename))
         if arcname not in z.namelist():
             z.close()
             raise Exception("arcname=%r does not exist in %r" %
@@ -236,20 +250,20 @@ class Chain(object):
         spec = metadata.parse_data(z.read(arcname), index=False)
         z.close()
         add_Reqs_to_spec(spec)
-        self.index['local:/' + filename] = spec
+        self.index[dist] = spec
 
 
-    def index_all_local_files(self):
+    def index_all_files(self, repo):
         """
-        Add all distributions to the index, see index_local_file() above.
+        Add all distributions to the index, see index_file() above.
         Note that no index file is written to disk.
         """
-        for fn in os.listdir(self.local):
+        for fn in os.listdir(self.dirname_repo(repo)):
             if not fn.endswith('.egg'):
                 continue
             if not utils.is_valid_eggname(fn):
                 print("WARNING: %r invalid egg_name" % join(self.local, fn))
-            self.index_local_file(fn)
+            self.index_file(fn, repo)
 
     # ------------- testing
 

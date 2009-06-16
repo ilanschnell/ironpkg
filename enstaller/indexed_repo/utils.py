@@ -6,7 +6,7 @@ from os.path import basename
 from egginst.utils import human_bytes
 
 
-_dist_pat = re.compile(r'(.+/)([^/]+)')
+_dist_pat = re.compile(r'(http://.+/|file://.*/|local:)([^/]+)')
 def split_dist(dist):
     """
     splits a distribution, e.g. 'http://www.example.com/repo/foo.egg', into
@@ -22,6 +22,7 @@ def repo_dist(dist):
 
 def filename_dist(dist):
     return split_dist(dist)[1]
+
 
 
 def canonical(s):
@@ -70,7 +71,7 @@ def get_version_build(dist):
     Return the version and build number of a distribution, as a
     tuple(version, build), where version is a string and build is an integer.
     """
-    if '/' in dist:
+    if ':' in dist:
         eggname = filename_dist(dist)
     else:
         eggname = dist

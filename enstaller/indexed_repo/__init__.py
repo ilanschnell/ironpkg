@@ -106,9 +106,6 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
     return dists
 
 
-#print Chain(repos=['file:///Users/ilan/repo-test/eggs/MacOSX/10.4_x86/']).index
-
-
 def pprint_repo(local=None, repos=[], start=""):
     """
     Pretty print the distributions available in a repo, i.e. a "virtual"
