@@ -48,11 +48,18 @@ class Chain(object):
 
         index_url = repo + index_fn
 
-        if index_url.startswith('file://') and not isfile(index_url[7:]):
-            # A local url with no index file
-            self.index_all_files(repo)
-            return
+        if index_url.startswith('file://'):
+            if isfile(index_url[7:]):
+                # A local url with index file
+                if self.verbose:
+                    print "\tfound index", index_url
+            else:
+                # A local url without index file
+                self.index_all_files(repo)
+                return
 
+        if self.verbose:
+            print "\treading:", index_url
         index_data = utils.get_data_from_url(index_url, verbose=False)
 
         if index_fn.endswith('.bz2'):

@@ -66,9 +66,11 @@ def main():
     local, repos = get_config()
 
     if opts.verbose:
-        print "local = %r" % local
-        for url in repos:
-            print '\turl = %r' % url
+        print "configuration:"
+        print "\tlocal = %r" % local
+        print "\trepos:"
+        for repo in repos:
+            print '\t    %r' % repo
 
     req_string = ' '.join(args)
     if opts.list: # --list
