@@ -44,7 +44,8 @@ class Chain(object):
         """
         if self.verbose:
             print "Adding repository:", repo
-        assert repo.endswith('/'), repo
+        if not repo.endswith('/'):
+            repo += '/'
 
         index_url = repo + index_fn
 
