@@ -132,10 +132,11 @@ def repo_subdir(root_url, enform):
         res.append(p.data[pid]['subdir'])
 
     if len(res) == 0:
-        raise Exception("Did not find sub-directory for %r in %r" %
-                        (enform, root_url))
-    assert len(res) == 1
-    return res[0]
+        return "unknown/unknown"
+    elif len(res) == 1:
+        return res[0]
+    else:
+        raise Exception("Found: %r" % res)
 
 
 if __name__ == '__main__':
