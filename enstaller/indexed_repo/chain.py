@@ -205,7 +205,7 @@ class Chain(object):
                 # see if all required packages were added already
                 if all(bool(n in names_inst) for n in rns[dist]):
                     res.append(dist)
-                    names_inst.add(self.index[dist]['name'])
+                    names_inst.add(utils.canonical(self.index[dist]['name']))
                     assert len(names_inst) == len(res)
             if len(res) == n:
                 # nothing was added
