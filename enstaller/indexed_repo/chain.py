@@ -237,11 +237,11 @@ class Chain(object):
         else:
             md5 = size = None
 
-        data = utils.get_data_from_url(dist, md5, size,
-                                       verbose=self.verbose)
         if self.verbose:
             print "Copying: %r" % dist
             print "     to: %r" % dst
+
+        data = utils.get_data_from_url(dist, md5, size, verbose=self.verbose)
         fo = open(dst, 'wb')
         fo.write(data)
         fo.close()
