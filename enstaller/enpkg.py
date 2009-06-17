@@ -30,6 +30,8 @@ def get_config():
 
     if local is None:
         local = join(sys.prefix, 'LOCAL-REPO')
+        if not isdir(local):
+            os.mkdir(local)
 
     return local, repos
 
