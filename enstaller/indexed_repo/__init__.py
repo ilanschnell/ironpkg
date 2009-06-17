@@ -64,11 +64,6 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
         print "req = %r" % req
 
     c = Chain(local, repos, verbose)
-    if verbose:
-        print "c.local = %r" % c.local
-        print 'c.repos:'
-        for repo in c.repos:
-            print '\t%r' % repo
 
     if fetch_force:
         # When using force, remove all entries from the local repo.

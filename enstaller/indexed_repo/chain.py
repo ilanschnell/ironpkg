@@ -36,6 +36,15 @@ class Chain(object):
             # These are indexed repos (either file://... or http://...)
             self.add_repo(repo)
 
+        if self.verbose:
+            self.print_repos()
+
+
+    def print_repos(self):
+        print 'Repositories: (local=%r)' % self.local
+        for r in self.repos:
+            print '\t%r' % r
+
 
     def add_repo(self, repo, index_fn='index-depend.bz2'):
         """
@@ -44,8 +53,8 @@ class Chain(object):
         """
         if self.verbose:
             print "Adding repository:", repo
-        if not repo.endswith('/'):
-            repo += '/'
+
+        repo = utils.cleanup_repo(repo)
 
         self.repos.append(repo)
 
@@ -120,10 +129,9 @@ class Chain(object):
         if not matches:
             # no matching distributions were found in any repo
             print 'Error: No distribution found for requirement:', req
-            print 'Repositories searched:'
-            for r in self.repos:
-                print '\t%r' % r
+            self.print_repos()
             sys.exit(1)
+
         # found matches, return the one with largest (version, build)
         lst = list(matches)
         lst.sort(key=self.get_version_build)

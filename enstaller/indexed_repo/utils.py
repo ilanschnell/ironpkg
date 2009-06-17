@@ -66,6 +66,33 @@ def split_dist(dist):
     return repo, filename
 
 
+def cleanup_repo(repo):
+    """
+    Cleanup a repo string
+    """
+    if repo.startswith('local:'):
+        assert repo == 'local:'
+
+    elif repo.startswith('http://'):
+        if not repo.endswith('/'):
+            repo += '/'
+
+    elif repo.startswith('file://'):
+        dir_path = repo[7:]
+        if dir_path.startswith('/'):
+            # Unix filename
+            if not repo.endswith('/'):
+                repo += '/'
+        else:
+            # Windows filename
+            if not repo.endswith('\\'):
+                repo += '\\'
+    else:
+        raise Exception("Invalid repo string: %r" % repo)
+
+    return repo
+
+
 def repo_dist(dist):
     return split_dist(dist)[0]
 
@@ -180,8 +207,8 @@ def get_data_from_url(url, md5=None, size=None, verbose=True):
     Get data from a url and check optionally check the MD5.
     """
     if url.startswith('file://'):
-        index_path = url[7:]
-        data = open(index_path).read()
+        path = url[7:]
+        data = open(path, 'rb').read()
 
     elif url.startswith('http://'):
         data = download_data(url, size, verbose)
