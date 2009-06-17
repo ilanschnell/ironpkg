@@ -246,12 +246,16 @@ class Chain(object):
         fo.write(data)
         fo.close()
 
+
     def dirname_repo(self, repo):
         if repo == 'local:':
             return self.local
-        else:
-            assert repo.startswith('file://')
+
+        if repo.startswith('file://'):
             return repo[7:].rstrip(r'\/')
+
+        raise Exception("No directory for repo=%r" % repo)
+
 
     def index_file(self, filename, repo):
         """
@@ -285,11 +289,13 @@ class Chain(object):
         Add all distributions to the index, see index_file() above.
         Note that no index file is written to disk.
         """
-        for fn in os.listdir(self.dirname_repo(repo)):
+        dir_path = self.dirname_repo(repo)
+        assert isdir(dir_path), dir_path
+        for fn in os.listdir(dir_path):
             if not fn.endswith('.egg'):
                 continue
             if not utils.is_valid_eggname(fn):
-                print("WARNING: %r invalid egg_name" % join(self.local, fn))
+                print("WARNING: %r invalid egg_name" % join(dir_path, fn))
             self.index_file(fn, repo)
 
     # ------------- testing

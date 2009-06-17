@@ -88,7 +88,7 @@ def parse_data(data, index):
     the variables to their values.
     """
     spec = {}
-    exec data in spec
+    exec data.replace('\r', '') in spec
     assert spec['metadata_version'] in ('1.0', '1.1'), spec
 
     var_names = [ # these must be present

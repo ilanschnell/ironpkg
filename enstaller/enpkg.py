@@ -14,12 +14,12 @@ def get_config():
     local = None
     repos = []
     for url in get_configured_repos():
-        if not url.endswith('/'):
-           url += '/'
+        if isdir(url):
+            url = 'file://' + url
+
         if not url.startswith(('local:', 'file://', 'http://')):
             print "Invalid repo in configuration:", url
             sys.exit(1)
-
         if url.startswith('local:'):
             # This is a local directory, which is always first in the chain,
             # and the distributions are referenced by local:<distname>

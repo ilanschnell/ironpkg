@@ -9,12 +9,18 @@ from requirement import Req
 class TestUtils(unittest.TestCase):
 
     def test_split_dist(self):
-        self.assertEqual(
-            split_dist('http://www.example.com/repo/foo.egg'),
-            ('http://www.example.com/repo/', 'foo.egg'))
-        self.assertEqual(
-            split_dist('file:///home/repo/numpy-1.1.1-5.egg'),
-            ('file:///home/repo/', 'numpy-1.1.1-5.egg'))
+        for repo, fn in [
+            ('local:', 'foo.egg'),
+            ('http://www.example.com/repo/', 'foo.egg'),
+            ('file:///home/repo/', 'numpy-1.1.1-5.egg'),
+            ('file://E:\\eggs\\', 'numpy-1.1.1-5.egg'),
+            ('file://C:\\Desk and Top\\', 'with space.egg'),
+            ]:
+            dist = repo + fn
+            self.assertEqual(split_dist(dist), (repo, fn))
+
+        for dist in ['local:/foo.egg', '', 'foo.egg', 'file:///usr/']:
+            self.assertRaises(AssertionError, split_dist, dist)
 
     def test_split_old_version(self):
         self.assertEqual(split_old_version('1.1.0n3'), ('1.1.0', 3))
