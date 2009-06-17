@@ -106,6 +106,9 @@ def parse_data(data, index):
 
         assert spec['filename'].endswith('.egg')
         n, v, b = spec['filename'][:-4].split('-')
+        print("Deprecation warning: found metadata version 1.0 for: %s %s-%s"
+              % (n, v, b))
+
         assert canonical(n) == canonical(spec['name'])
         assert v == spec['version']
         assert b >= 1

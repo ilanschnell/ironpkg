@@ -58,7 +58,7 @@ def split_dist(dist):
 
     Note that, since we always have dist = repo + filename, the file:// repo
     name has to end with a forward slash (backslash on Windows), and the
-    http:// always ends with a forward slash.    
+    http:// always ends with a forward slash.
     """
     m = DIST_PAT.match(dist)
     assert m is not None, dist

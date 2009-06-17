@@ -33,7 +33,7 @@ class Chain(object):
         # distributions may be fetched, the local directory is always first.
         self.repos = ['local:']
         for repo in repos:
-            # These are indexed repos (either file://... or http://...)
+            # These are file:// (optionally indexed) or http:// (indexed)
             self.add_repo(repo)
 
         if self.verbose:
