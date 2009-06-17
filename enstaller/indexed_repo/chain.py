@@ -8,7 +8,7 @@ from os.path import basename, join, isfile, isdir
 
 import metadata
 import utils
-from requirement import Req, add_Reqs_to_spec, dist_as_req
+from requirement import Req, add_Reqs_to_spec
 
 
 
@@ -101,6 +101,16 @@ class Chain(object):
         return set()
 
 
+    def get_version_build(self, dist):
+        """
+        Returns a tuple(version, build) for a distribution.  This method is
+        used below for determining the distribution with the largest version
+        and build number.
+        """
+        spec = self.index[dist]
+        return spec['version'], spec['build']
+
+
     def get_dist(self, req):
         """
         Return the distributions with the largest version and build number
@@ -116,7 +126,7 @@ class Chain(object):
             sys.exit(1)
         # found matches, return the one with largest (version, build)
         lst = list(matches)
-        lst.sort(key=utils.get_version_build)
+        lst.sort(key=self.get_version_build)
         return lst[-1]
 
 
@@ -173,9 +183,11 @@ class Chain(object):
         """
         # all requirements necessary for install
         reqs = self.get_reqs(req)
+
         # the corresponding distributions (sorted because the output of this
         # function is otherwise not deterministic)
         dists = sorted(self.get_dist(r) for r in reqs)
+
         # maps dist -> set of required (project) names
         rns = {}
         for dist in dists:
@@ -193,7 +205,7 @@ class Chain(object):
                 # see if all required packages were added already
                 if all(bool(n in names_inst) for n in rns[dist]):
                     res.append(dist)
-                    names_inst.add(dist_as_req(dist).name)
+                    names_inst.add(self.index[dist]['name'])
                     assert len(names_inst) == len(res)
             if len(res) == n:
                 # nothing was added
@@ -219,9 +231,13 @@ class Chain(object):
                 print "Not forcing refetch, %r already exists" % dst
             return
 
-        data = utils.get_data_from_url(dist,
-                                       self.index[dist]['md5'],
-                                       self.index[dist]['size'],
+        if dist.startswith('http://'):
+            md5 = self.index[dist]['md5']
+            size = self.index[dist]['size']
+        else:
+            md5 = size = None
+
+        data = utils.get_data_from_url(dist, md5, size,
                                        verbose=self.verbose)
         if self.verbose:
             print "Copying: %r" % dist
@@ -303,7 +319,6 @@ class Chain(object):
                 assert d in self.index
 
             r = Req('%(name)s %(version)s' % spec)
-            assert dist_as_req(fn, strictness=2) == r
             assert self.get_dist(r)
             if self.verbose:
                 print
