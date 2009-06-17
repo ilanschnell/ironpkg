@@ -47,6 +47,8 @@ class Chain(object):
         if not repo.endswith('/'):
             repo += '/'
 
+        self.repos.append(repo)
+
         index_url = repo + index_fn
 
         if index_url.startswith('file://'):
@@ -69,8 +71,6 @@ class Chain(object):
         new_index = metadata.parse_depend_index(index_data)
         for spec in new_index.itervalues():
             add_Reqs_to_spec(spec)
-
-        self.repos.append(repo)
 
         for distname, spec in new_index.iteritems():
             self.index[repo + distname] = spec
@@ -110,6 +110,9 @@ class Chain(object):
         if not matches:
             # no matching distributions were found in any repo
             print 'Error: No distribution found for requirement:', req
+            print 'Repositories searched:'
+            for r in self.repos:
+                print '\t%r' % r
             sys.exit(1)
         # found matches, return the one with largest (version, build)
         lst = list(matches)
