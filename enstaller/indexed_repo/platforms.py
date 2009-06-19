@@ -1,3 +1,4 @@
+from os.path import isdir, join
 from setuptools.package_index import open_with_auth
 
 
@@ -8,19 +9,21 @@ def to_list(s):
 class Platforms(object):
     """
     An instance represents the list of platforms which are available in a
-    repository.
+    repository.  An instance in instantiated by either a local directory
+    or a URL which points to an HTTP server.
     """
 
     def __init__(self, url):
-        self.url = url + 'platforms.txt'
-        self.set_txt()
+        fn = 'platforms.txt'
+        if isdir(url):
+            self.txt = open(join(url, fn)).read()
+        else:
+            handle = open_with_auth(url + fn)
+            self.txt = handle.read()
+            handle.close()
+
         self.set_data()
-
-    def set_txt(self):
-        handle = open_with_auth(self.url)
-        self.txt = handle.read()
-        handle.close()
-
+  
     def set_data(self):
         self.data = {}
         for line in self.txt.splitlines():
