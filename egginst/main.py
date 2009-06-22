@@ -170,7 +170,7 @@ class EggInst(object):
         fo = open(path, 'wb')
         fo.write(self.z.read(arcname))
         fo.close()
-        if (arcname.startswith('EGG-INFO/usr/bin/') or
+        if (arcname.startswith(('EGG-INFO/usr/bin/', 'EGG-INFO/scripts/')) or
                 fn.endswith(('.dylib', '.pyd', '.so')) or
                 (arcname.startswith('EGG-INFO/usr/lib/') and
                  self.so_pat.match(fn))):
