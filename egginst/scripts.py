@@ -95,9 +95,10 @@ def write_script(fpath, entry_pt, egg_name):
 #
 #   %(egg_name)s
 #
+import sys
 from %(module)s import %(func)s
 
-%(func)s()
+sys.exit(%(func)s())
 ''' % dict(module=module, func=func, python=python, egg_name=egg_name))
     fo.close()
     os.chmod(fpath, 0755)
