@@ -2323,6 +2323,15 @@ def parse_requirements(strs):
         if not match:
             raise ValueError("Missing distribution spec", line)
         project_name = match.group(1)
+
+        # Enstaller needs special handling when a requirement is for
+        # 'setuptools' due to the fact that we completely replace that project
+        # and can't let it be installed due to incompatibilities when both
+        # are installed simultaneously.  So we convert a search for setuptools
+        # to be a search for Enstaller.
+        if project_name.lower() == 'setuptools':
+            project_name = 'Enstaller'
+
         p = match.end()
         extras = []
 
