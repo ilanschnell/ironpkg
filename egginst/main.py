@@ -67,7 +67,7 @@ class EggInst(object):
         self.install_app()
         self.write_meta()
 
-        self.run('post_install.py')
+        self.run('post_egginst.py')
 
     def entry_points(self):
         lines = list(self.lines_from_arcname('EGG-INFO/entry_points.txt',
@@ -194,7 +194,7 @@ class EggInst(object):
             appinst.install_from_dat(path)
 
     def run(self, fn):
-        path = join(self.meta_dir, 'inst', fn)
+        path = join(self.meta_dir, fn)
         if not isfile(path):
             return
         from subprocess import call
@@ -214,7 +214,7 @@ class EggInst(object):
             return
 
         self.read_meta()
-        self.run('pre_uninstall.py')
+        self.run('pre_egguninst.py')
         self.install_app(remove=True)
 
         for p in self.files:
