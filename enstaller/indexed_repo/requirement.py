@@ -103,3 +103,41 @@ def dist_as_req(dist, strictness=3):
     if strictness >= 3:
         req_string += '-%s' % build
     return Req(req_string)
+
+
+def strictest(reqs):
+    """
+    Given a some requirements, returns the strictest.
+    The function also makes sure that the requirements are consistent:
+    Examples:
+
+    >>> strictest([Req('vtk 5.4.0'), Req('vtk'), Req('vtk 5.4.0-2')])
+    Req('vtk 5.4.0-2')
+
+    >>> strictest([Req('vtk 5.4.0'), Req('vtk'), Req('vtk 5.2.0')])
+    Traceback (most recent call last):
+       ...
+    Exception: Inconsitent requirements: [Req('vtk 5.4.0'), Req('vtk 5.2.0')]
+
+    """
+    # FIXME:
+    #     add handling multiple version, as well as cases like:
+    #     strictest([Req('bar'), Req('foo 1.0'), Req('foo 1.4-2')])
+
+    # For each strictness, make sure we have 0 or 1 requirements
+    for strict in [1, 2, 3]:
+        # The requirements with strictness s
+        rss = [r for r in reqs if r.strictness == strict]
+        if len(rss) > 1:
+            raise Exception("Inconsitent requirements: %r" % rss)
+
+    # sort by strictness
+    reqs.sort(key=lambda r: r.strictness)
+
+    # return the requirement with greatest strictness
+    return reqs[-1]
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

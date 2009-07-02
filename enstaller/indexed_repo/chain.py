@@ -8,7 +8,7 @@ from os.path import basename, join, isfile, isdir
 
 import metadata
 import utils
-from requirement import Req, add_Reqs_to_spec
+from requirement import Req, add_Reqs_to_spec, strictest
 
 
 
@@ -176,9 +176,8 @@ class Chain(object):
         for name in names:
             # get all requirements for the name
             rs = [r for r in reqs if r.name == name]
-            rs.sort(key=lambda r: r.strictness)
             # add the requirement with greatest strictness
-            res.add(rs[-1])
+            res.add(strictest(rs))
         return res
 
 

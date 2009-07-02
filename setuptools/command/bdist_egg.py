@@ -28,6 +28,7 @@ def write_spec_depend(egg_info):
     egg_info is the path to the EGG-INFO directory
     """
     from enstaller.indexed_repo.metadata import data_from_spec
+    from enstaller.indexed_repo.utils import split_old_version
 
     pkg_info = open(os.path.join(egg_info, 'PKG-INFO')).read()
 
@@ -40,13 +41,25 @@ def write_spec_depend(egg_info):
         spec[var] = pat.search(pkg_info).group(1)
 
     requires_txt = os.path.join(egg_info, 'requires.txt')
-    pat = re.compile(r'[\w\-.]+')
+    pat = re.compile(r'''([\w\-.]+)              # name
+                         (?:[\s=<>]*([\w.]+))?   # version
+                      ''', re.X)
     pkgs = set()
     if os.path.isfile(requires_txt):
         for line in open(requires_txt):
-            m = pat.match(line.strip())
+            line = line.strip()
+            m = pat.match(line)
             if m:
-                pkgs.add(m.group())
+                # Construct the new requirement string
+                r = m.group(1)
+                if m.lastindex == 2:
+                    version, build = split_old_version(m.group(2))
+                    r += ' %s' % version
+                    if build is not None:
+                        r += '-%i' % build
+                pkgs.add(r)
+            else:
+                print "WARNING: requirement %r not recognized" % line
     spec['packages'] = list(pkgs)
 
     spec_dir = os.path.join(egg_info, 'spec')
