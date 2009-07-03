@@ -71,9 +71,9 @@ def fix_object_code(fpath):
             r = find_lib(basename(gr1))
 
         elif obj_type == 'ELF':
-            rpaths = [p for p in gr1.split(os.pathsep)
-                      if not p.startswith('/PLACEHOLD')]
-            rpaths.extend(_targets)
+            rpaths = list(_targets)
+            rpaths.extend([p for p in gr1.split(os.pathsep)
+                           if not p.startswith('/PLACEHOLD')])
             r = os.pathsep.join(rpaths)
 
         padding = len(m.group(0)) - len(r)
