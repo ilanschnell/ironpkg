@@ -1,8 +1,7 @@
 import sys
 import os
 import shutil
-import hashlib
-from os.path import abspath, basename, dirname, isdir, isfile, islink, join
+from os.path import abspath, dirname, isdir, isfile, islink, join
 
 
 on_win = sys.platform.startswith('win')
@@ -46,15 +45,6 @@ def rm_rf(path, verbose=False):
         if verbose:
             print "Removing: %r (directory)" % path
         shutil.rmtree(path)
-
-
-def md5_file(path):
-    """
-    Returns the md5sum of the file (located at `path`) as a hexadecimal
-    string of length 32.
-    """
-    data = open(path, 'rb').read()
-    return hashlib.md5(data).hexdigest()
 
 
 def human_bytes(n):
