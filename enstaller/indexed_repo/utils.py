@@ -155,22 +155,28 @@ def get_version_build(dist):
     return split_eggname(eggname)[1:]
 
 
-
-def download_data(url, size, verbose=True):
+def write_data_from_url(fo, url, md5=None, size=None):
     """
-    Downloads data from the url, returns the data as a string.
+    Read data from the url and write to the file handle fo, which must be
+    open for writing.  Optionally check the MD5.  When the size in bytes
+    is provided, a progress bar is displayed using the download/copy.
     """
     from setuptools.package_index import open_with_auth
 
-    if verbose:
-        print "downloading data from: %r" % url
     if size:
         sys.stdout.write('%9s [' % human_bytes(size))
         sys.stdout.flush()
-        cur = 0
+        n = cur = 0
 
-    handle = open_with_auth(url)
-    data = []
+    if url.startswith('file://'):
+        path = url[7:]
+        fi = open(path, 'rb')
+    elif url.startswith('http://'):
+        fi = open_with_auth(url)
+    else:
+        raise Exception("Invalid url: %r" % url)
+
+    h = hashlib.new('md5')
 
     if size and size < 16384:
         buffsize = 1
@@ -178,14 +184,16 @@ def download_data(url, size, verbose=True):
         buffsize = 256
 
     while True:
-        chunk = handle.read(buffsize)
+        chunk = fi.read(buffsize)
         if not chunk:
             break
-        data.append(chunk)
+        fo.write(chunk)
+        if md5:
+            h.update(chunk)
         if not size:
             continue
-        rat = float(buffsize) * len(data) / size
-        if rat * 64 >= cur:
+        n += len(chunk)
+        if float(n) / size * 64 >= cur:
             sys.stdout.write('.')
             sys.stdout.flush()
             cur += 1
@@ -194,32 +202,11 @@ def download_data(url, size, verbose=True):
         sys.stdout.write(']\n')
         sys.stdout.flush()
 
-    data = ''.join(data)
-    handle.close()
-    if verbose:
-        print "downloaded %i bytes" % len(data)
+    fi.close()
 
-    return data
-
-
-def get_data_from_url(url, md5=None, size=None, verbose=True):
-    """
-    Get data from a url and check optionally check the MD5.
-    """
-    if url.startswith('file://'):
-        path = url[7:]
-        data = open(path, 'rb').read()
-
-    elif url.startswith('http://'):
-        data = download_data(url, size, verbose)
-
-    else:
-        raise Exception("Not valid url: " + url)
-
-    if md5 is not None and hashlib.md5(data).hexdigest() != md5:
+    if md5 and h.hexdigest() != md5:
         sys.stderr.write("FATAL ERROR: Data received from\n\n"
                          "    %s\n\n"
                          "is corrupted.  MD5 sums mismatch.\n" % url)
+        fo.close()
         sys.exit(1)
-
-    return data

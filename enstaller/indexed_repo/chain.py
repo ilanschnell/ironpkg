@@ -1,7 +1,8 @@
 import os
+import sys
 import bz2
 import string
-import sys
+import StringIO
 import zipfile
 from collections import defaultdict
 from os.path import basename, join, isfile, isdir
@@ -72,7 +73,10 @@ class Chain(object):
 
         if self.verbose:
             print "\treading:", index_url
-        index_data = utils.get_data_from_url(index_url, verbose=False)
+
+        faux = StringIO.StringIO()
+        utils.write_data_from_url(faux, index_url)
+        index_data = faux.getvalue()
 
         if index_fn.endswith('.bz2'):
             index_data = bz2.decompress(index_data)
@@ -238,20 +242,17 @@ class Chain(object):
                 print "Not forcing refetch, %r already exists" % dst
             return
 
-        if dist.startswith('http://'):
-            md5 = self.index[dist]['md5']
-            size = self.index[dist]['size']
-        else:
-            md5 = size = None
+        md5 = self.index[dist].get('md5', None)
+        size = self.index[dist].get('size', None)
 
         if self.verbose:
             print "Copying: %r" % dist
             print "     to: %r" % dst
 
-        data = utils.get_data_from_url(dist, md5, size, verbose=self.verbose)
-        fo = open(dst, 'wb')
-        fo.write(data)
+        fo = open(dst + '.part', 'wb')
+        utils.write_data_from_url(fo, dist, md5, size)
         fo.close()
+        os.rename(dst + '.part', dst)
 
 
     def dirname_repo(self, repo):
