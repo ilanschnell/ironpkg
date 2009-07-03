@@ -48,6 +48,11 @@ def main():
                  action="store_true",
                  default=False)
 
+    p.add_option('-f', "--force",
+                 action="store_true",
+                 default=False,
+                 help="force download and install")
+
     p.add_option('-l', "--list",
                  action="store_true",
                  default=False,
@@ -85,6 +90,7 @@ def main():
     dists = resolve(req_string, local, repos,
                     recur=not opts.no_deps,
                     fetch=not opts.dry_run,
+                    fetch_force=opts.force,
                     verbose=opts.verbose)
 
     if opts.dry_run:
@@ -95,7 +101,7 @@ def main():
     for dist in dists:
         egg_name = filename_dist(dist)
         assert egg_name.endswith('.egg')
-        if egg_name[:-4] in active:
+        if not opts.force and egg_name[:-4] in active:
             pprint_distname_action(egg_name, 'already active')
             continue
         egg_path = join(local, egg_name)
