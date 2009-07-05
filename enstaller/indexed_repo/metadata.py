@@ -86,6 +86,9 @@ def parse_data(data, index):
     """
     Given the content of a dependency spec file, return a dictionary mapping
     the variables to their values.
+
+    index:  If set to True, makes sure an the md5 and size is also
+            contained in the data.
     """
     spec = {}
     exec data.replace('\r', '') in spec
@@ -144,23 +147,33 @@ def spec_from_dist(zip_path):
     return spec
 
 
-def get_index_section(zip_path):
+def index_section(zip_path):
     """
     Returns a section corresponding to the zip-file, which can be appended
     to an index.
     """
     spec = spec_from_dist(zip_path)
-    md5 = hashlib.md5(open(zip_path).read()).hexdigest()
+
+    h = hashlib.new('md5')
+    fi = open(zip_path, 'rb')
+    while True:
+        chunk = fi.read(4096)
+        if not chunk:
+            break
+        h.update(chunk)
+    fi.close()
 
     return ('==> %s <==\n' % basename(zip_path) +
             'size = %i\n'  % getsize(zip_path) +
-            'md5 = %r\n\n' % md5 +
+            'md5 = %r\n\n' % h.hexdigest() +
             data_from_spec(spec) + '\n')
 
 
 def compress_txt(src):
     """
-    reads 'src' and writes the bz2 compressed data to 'dst'
+    Reads the file 'src', which must end with '.txt' and writes the bz2
+    compressed data to a file alongside 'src', where the txt extension is
+    replaced by bz2.
     """
     assert src.endswith('.txt')
     dst = src[:-4] + '.bz2'
@@ -174,8 +187,8 @@ def compress_txt(src):
 
 def write_index(dir_path, compress=False):
     """
-    Updates index-depend.txt (and optionally index-depend.bz2)
-    in the directory specified.
+    Updates index-depend.txt (and optionally index-depend.bz2, if compress
+    ia set True) in the directory specified.
     """
     txt_path = join(dir_path, 'index-depend.txt')
     print "Updating:", txt_path
@@ -187,7 +200,7 @@ def write_index(dir_path, compress=False):
     for fn in sorted(os.listdir(dir_path), key=string.lower):
         if not is_valid_eggname(fn):
             continue
-        faux.write(get_index_section(join(dir_path, fn)))
+        faux.write(index_section(join(dir_path, fn)))
         sys.stdout.write('.')
         sys.stdout.flush()
         n += 1
@@ -209,7 +222,7 @@ def append_dist(zip_path, compress=False):
     txt_path = join(dirname(zip_path), 'index-depend.txt')
 
     f = open(txt_path, 'a')
-    f.write(get_index_section(zip_path))
+    f.write(index_section(zip_path))
     f.close()
 
     if compress:
