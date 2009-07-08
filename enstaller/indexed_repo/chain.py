@@ -252,6 +252,7 @@ class Chain(object):
         fo = open(dst + '.part', 'wb')
         utils.write_data_from_url(fo, dist, md5, size)
         fo.close()
+        utils.rm_rf(dst)
         os.rename(dst + '.part', dst)
 
 

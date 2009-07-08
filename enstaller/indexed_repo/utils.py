@@ -3,7 +3,7 @@ import re
 import hashlib
 from os.path import basename
 
-from egginst.utils import human_bytes
+from egginst.utils import human_bytes, rm_rf
 
 
 
