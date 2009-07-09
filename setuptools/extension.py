@@ -4,16 +4,21 @@ _Extension = _get_unpatched(_Extension)
 
 try:
     from Pyrex.Distutils.build_ext import build_ext
+    have_pyrex = True
 except ImportError:
     have_pyrex = False
-else:
-    have_pyrex = True
+
+try:
+    from Cython.Distutils.build_ext import build_ext
+    have_cython = True
+except ImportError:
+    have_cython = False
 
 
 class Extension(_Extension):
     """Extension that uses '.c' files in place of '.pyx' files"""
 
-    if not have_pyrex:
+    if not have_pyrex and not have_cython:
         # convert .pyx extensions to .c 
         def __init__(self,*args,**kw):
             _Extension.__init__(self,*args,**kw)
