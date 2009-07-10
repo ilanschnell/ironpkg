@@ -58,9 +58,14 @@ def write_spec_depend(egg_info):
     """    
     pkg_info = open(os.path.join(egg_info, 'PKG-INFO')).read()
 
-    spec = {'build': 1, 'arch':None, 'platform':None, 'osdist':None,
-            'python': '%i.%i' % sys.version_info[:2], 'packages': []
-            }
+    spec = {
+        'build': 1,
+        'arch': None,
+        'platform': sys.platform,
+        'osdist': None,
+        'python': '%i.%i' % sys.version_info[:2],
+        'packages': []
+        }
     for var in ['name', 'version']:
         pat = re.compile(r'^%s:\s*(\S+)' % var, re.M | re.I)
         spec[var] = pat.search(pkg_info).group(1)
