@@ -43,7 +43,7 @@ def write_spec_depend(egg_info):
     requires_txt = os.path.join(egg_info, 'requires.txt')
     pat = re.compile(r'''([\w\-.]+)              # name
                          (?:[\s=<>]*([\w.]+))?   # version
-                      ''', re.X)
+                     $''', re.X)
     pkgs = set()
     if os.path.isfile(requires_txt):
         for line in open(requires_txt):
@@ -59,7 +59,7 @@ def write_spec_depend(egg_info):
                         r += '-%i' % build
                 pkgs.add(r)
             else:
-                print "WARNING: requirement %r not recognized" % line
+                print "requirement %r not recognized" % line
     spec['packages'] = list(pkgs)
 
     spec_dir = os.path.join(egg_info, 'spec')
