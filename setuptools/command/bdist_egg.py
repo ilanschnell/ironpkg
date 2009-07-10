@@ -74,7 +74,7 @@ def write_spec_depend(egg_info):
     if os.path.isfile(requires_txt):
         for line in open(requires_txt):
             r = convert_requires_txt_line(line)
-            if r:
+            if r and r not in spec['packages']:
                 spec['packages'].append(r)
 
     spec_dir = os.path.join(egg_info, 'spec')
