@@ -14,6 +14,9 @@ from pkg_resources import EntryPoint
 from types import CodeType
 from setuptools.extension import Library
 
+from enstaller.indexed_repo.metadata import data_from_spec
+from enstaller.indexed_repo.utils import split_old_version
+
 
 def strip_module(filename):
     if '.' in filename:
@@ -23,44 +26,51 @@ def strip_module(filename):
     return filename
 
 
+REQ_PAT = re.compile(r'''([\w\-.]+)              # name
+                         (?:[\s=<>]*([\w.]+))?   # version
+                     $''', re.X)
+def convert_requires_txt_line(line):
+    """
+    parses a single line of the file requires.txt, and returns
+    the corresponding spec requirement string, or None.
+    """
+    line = line.strip()
+    if not line:
+        return None
+
+    m = REQ_PAT.match(line)
+    if m is None:
+        print "requirement %r not recognized" % line
+        return None
+
+    res = m.group(1)
+    if m.lastindex == 2:
+        version, build = split_old_version(m.group(2))
+        res += ' %s' % version
+        if build is not None:
+            res += '-%i' % build
+    return res
+
+
 def write_spec_depend(egg_info):
     """
     egg_info is the path to the EGG-INFO directory
-    """
-    from enstaller.indexed_repo.metadata import data_from_spec
-    from enstaller.indexed_repo.utils import split_old_version
-
+    """    
     pkg_info = open(os.path.join(egg_info, 'PKG-INFO')).read()
 
     spec = {'build': 1, 'arch':None, 'platform':None, 'osdist':None,
-            'python': '%i.%i' % sys.version_info[:2],
-            'packages': []
+            'python': '%i.%i' % sys.version_info[:2], 'packages': []
             }
     for var in ['name', 'version']:
         pat = re.compile(r'^%s:\s*(\S+)' % var, re.M | re.I)
         spec[var] = pat.search(pkg_info).group(1)
 
     requires_txt = os.path.join(egg_info, 'requires.txt')
-    pat = re.compile(r'''([\w\-.]+)              # name
-                         (?:[\s=<>]*([\w.]+))?   # version
-                     $''', re.X)
-    pkgs = set()
     if os.path.isfile(requires_txt):
         for line in open(requires_txt):
-            line = line.strip()
-            m = pat.match(line)
-            if m:
-                # Construct the new requirement string
-                r = m.group(1)
-                if m.lastindex == 2:
-                    version, build = split_old_version(m.group(2))
-                    r += ' %s' % version
-                    if build is not None:
-                        r += '-%i' % build
-                pkgs.add(r)
-            else:
-                print "requirement %r not recognized" % line
-    spec['packages'] = list(pkgs)
+            r = convert_requires_txt_line(line)
+            if r:
+                spec['packages'].append(r)
 
     spec_dir = os.path.join(egg_info, 'spec')
     if not os.path.isdir(spec_dir):
