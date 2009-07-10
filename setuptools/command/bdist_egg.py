@@ -55,7 +55,7 @@ def convert_requires_txt_line(line):
 def write_spec_depend(egg_info):
     """
     egg_info is the path to the EGG-INFO directory
-    """    
+    """
     pkg_info = open(os.path.join(egg_info, 'PKG-INFO')).read()
 
     spec = {
