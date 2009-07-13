@@ -7,7 +7,7 @@ import enstaller.indexed_repo.utils as utils
 
 class Chain2(Chain):
 
-    def _add_reqs(self, reqs, req, level=1):
+    def add_reqs(self, reqs, req, level=1):
         for dist in self.get_matches(req):
             for r in self.reqs_dist(dist):
                 if r in reqs:
@@ -16,20 +16,28 @@ class Chain2(Chain):
                     continue
                 reqs[r] = level
                 # recursion
-                self._add_reqs(reqs, r, level + 1)
+                self.add_reqs(reqs, r, level + 1)
+
+    def get_all_reqs(self, req):
+        """
+        Returns a dictionary mapping all requirements found to the recursion
+        level, i.e. how many nodes the requirement is located from the root.
+        The root being level = 0, which is the requirement given by 'req' to
+        this method itself, which is also included in the result.
+        """
+        # first, get all requirements
+        res = {}
+        self.add_reqs(res, req)
+        res[req] = 0
+
+        return res
+
 
     def get_reqs(self, req):
         """
-        Returns the set of requirements, which are necessary to install 'req'.
-        For each required (project) name, only one requirement, i.e. the one
-        with the highest strictness, is contained in the output.
-        """       
-        # first, get all requirements
-        reqs = {}
-        self._add_reqs(reqs, req)
-        reqs[req] = 0
 
-        return reqs
+        """
+        reqs = self.get_all_reqs(req)
 
         # the set of all required (project) names
         names = set(r.name for r in reqs)
@@ -42,6 +50,7 @@ class Chain2(Chain):
             rs.sort(key=lambda r: r.strictness)
             res.add(rs[-1])
         return res
+
 
     def install_order(self, req):
         """
@@ -83,8 +92,12 @@ class Chain2(Chain):
         return res
 
 
-c = Chain2(verbose=False)
+# ----------------------------------------------------
+
 from os.path import abspath, dirname
+import string
+
+c = Chain2(verbose=False)
 for fn in ['repo1.txt', 'repo_pub.txt']:
     c.add_repo('file://%s/' % abspath(dirname(__file__)), fn)
 
@@ -95,10 +108,16 @@ req = Req('foo')
 print '===== %r =====' % req
 print filename_dist(c.get_dist(req))
 
-print "Requirements: (strictness, level)"
-for r, level in c.get_reqs(req).iteritems():
-    print '\t%-33r  %i  %i' % (r, r.strictness, level)
+print "Requirements: (strictness, level) -- all"
+rs = c.get_all_reqs(req)
+for r in sorted(rs.keys(), key=lambda r: r.name):
+    print '\t%-33r  %i  %i' % (r, r.strictness, rs[r])
 
-print "Distributions:"
-for d in c.install_order(req):
-    print '\t', filename_dist(d)
+print "Requirements: (strictness)"
+rs = c.get_reqs(req)
+for r in sorted(rs, key=lambda r: r.name):
+    print '\t%-33r  %i' % (r, r.strictness)
+
+#print "Distributions:"
+#for d in c.install_order(req):
+#    print '\t', filename_dist(d)
