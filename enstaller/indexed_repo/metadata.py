@@ -185,10 +185,13 @@ def compress_txt(src):
     fo.close()
 
 
-def write_index(dir_path, compress=False):
+def write_index(dir_path, compress=False, valid_eggnames=True):
     """
-    Updates index-depend.txt (and optionally index-depend.bz2, if compress
-    ia set True) in the directory specified.
+    Updates index-depend.txt in the directory specified.
+
+    compress:         also write index-depend.bz2
+
+    valid_eggnames:   only add eggs with valid egg file names to the index
     """
     txt_path = join(dir_path, 'index-depend.txt')
     print "Updating:", txt_path
@@ -198,7 +201,9 @@ def write_index(dir_path, compress=False):
     faux = StringIO.StringIO()
     n = 0
     for fn in sorted(os.listdir(dir_path), key=string.lower):
-        if not is_valid_eggname(fn):
+        if not fn.endswith('.egg'):
+            continue
+        if valid_eggnames and not is_valid_eggname(fn):
             continue
         faux.write(index_section(join(dir_path, fn)))
         sys.stdout.write('.')
