@@ -84,17 +84,22 @@ def write_spec_depend(egg_info):
     """
     pkg_info = open(os.path.join(egg_info, 'PKG-INFO')).read()
     name_pat = re.compile(r'^Name:\s*(\S+)', re.M)
-    version_pat = re.compile(r'^Version:\s*([^-\s]+)', re.M)
+    version_pat = re.compile(r'^Version:\s*([^-\s]+)(-r\d+)?', re.M)
+    m = version_pat.search(pkg_info)
+    b = 1
+    if m.lastindex == 2:
+        b = m.group(2)[2:]
     spec = dict(
         name = name_pat.search(pkg_info).group(1),
-        version = version_pat.search(pkg_info).group(1),
-        build = 1,
+        version = m.group(1),
+        build = int(b),
         arch = None,
         platform = sys.platform,
         osdist = None,
         python = '%i.%i' % sys.version_info[:2],
         packages = read_requires_txt(egg_info),
     )
+
     spec_dir = os.path.join(egg_info, 'spec')
     if not os.path.isdir(spec_dir):
         log.info("creating directory: %r" % spec_dir)

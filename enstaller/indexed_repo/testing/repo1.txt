@@ -1,0 +1,39 @@
+==> Chaco-3.1.1.dev_r24092-py2.5-macosx-10.3-fat.egg <==
+size = 3421123
+md5 = '8ad5f642e539b98918494de1ddf1458c'
+
+metadata_version = '1.1'
+name = 'Chaco'
+version = '3.1.1.dev'
+build = 24092
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'EnthoughtBase 3.0.3.dev',
+  'numpy 1.1.0',
+  'TraitsBackendWX 3.1.1.dev',
+]
+
+==> foo-2.0-7.egg <==
+size = 867341
+md5 = '6ad5f642e539b98918494de1ddf1458c'
+
+metadata_version = '1.1'
+name = 'foo'
+version = '2.0'
+build = 7
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'Chaco 3.1.1.dev',
+  'numpy 1.3.0-1',
+  'EnthoughtBase 3.0.2-1',
+  'TraitsBackendWX 3.1.0-1'
+]
+
