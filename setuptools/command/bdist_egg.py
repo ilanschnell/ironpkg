@@ -46,43 +46,61 @@ def convert_requires_txt_line(line):
     res = m.group(1)
     if m.lastindex == 2:
         version, build = split_old_version(m.group(2))
-        res += ' %s' % version
+        res += ' %s' % version.replace('-', '_')
         if build is not None:
             res += '-%i' % build
     return res
 
 
+def read_requires_txt(egg_info):
+    """
+    Reads requires.txt and returns a list of requirement strings, to be used
+    as the packages variable in spec/depend.
+    """
+    requires_txt = os.path.join(egg_info, 'requires.txt')
+    if not os.path.isfile(requires_txt):
+        return []
+
+    res = []
+    names = set()
+    for line in open(requires_txt):
+        req_string = convert_requires_txt_line(line)
+        if req_string is None:
+            continue
+        name = req_string.split()[0]
+        if name not in names:
+            res.append(req_string)
+            names.add(name)
+    return res
+
+
 def write_spec_depend(egg_info):
     """
+    Writes spec/depend.  The information used is gathered from PKG-INFO and
+    requires.txt.  If the version (in PKG-INFO) contains '-', which for
+    example happens with development versions, everything before '-' is used.
+
     egg_info is the path to the EGG-INFO directory
     """
     pkg_info = open(os.path.join(egg_info, 'PKG-INFO')).read()
-
-    spec = {
-        'build': 1,
-        'arch': None,
-        'platform': sys.platform,
-        'osdist': None,
-        'python': '%i.%i' % sys.version_info[:2],
-        'packages': []
-        }
-    for var in ['name', 'version']:
-        pat = re.compile(r'^%s:\s*(\S+)' % var, re.M | re.I)
-        spec[var] = pat.search(pkg_info).group(1)
-
-    requires_txt = os.path.join(egg_info, 'requires.txt')
-    if os.path.isfile(requires_txt):
-        for line in open(requires_txt):
-            r = convert_requires_txt_line(line)
-            if r and r not in spec['packages']:
-                spec['packages'].append(r)
-
+    name_pat = re.compile(r'^Name:\s*(\S+)', re.M)
+    version_pat = re.compile(r'^Version:\s*([^-\s]+)', re.M)
+    spec = dict(
+        name = name_pat.search(pkg_info).group(1),
+        version = version_pat.search(pkg_info).group(1),
+        build = 1,
+        arch = None,
+        platform = sys.platform,
+        osdist = None,
+        python = '%i.%i' % sys.version_info[:2],
+        packages = read_requires_txt(egg_info),
+    )
     spec_dir = os.path.join(egg_info, 'spec')
     if not os.path.isdir(spec_dir):
-        log.info("creating dir %r" % spec_dir)
+        log.info("creating directory: %r" % spec_dir)
         os.mkdir(spec_dir)
     path = os.path.join(spec_dir, 'depend')
-    log.info("writing %r" % path)
+    log.info("writing: %r" % path)
     fo = open(path, 'w')
     fo.write(data_from_spec(spec))
     fo.close()
