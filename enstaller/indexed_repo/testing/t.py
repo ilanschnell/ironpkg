@@ -5,19 +5,29 @@ from enstaller.indexed_repo import Chain, Req, filename_dist
 import enstaller.indexed_repo.utils as utils
 
 
+def filter_name(reqs, name):
+    """
+    from the requirements 'reqs', filer those for project 'name'
+    """
+    return set(r for r in reqs if r.name == name)
+
+
 class Chain2(Chain):
 
     def add_reqs(self, reqs, req, level=1):
 
         for dist in self.get_matches(req):
             for r in self.reqs_dist(dist):
+                # r is a requirement for a distribution found
 
-                names = set(r.name for r in reqs)
+                # from all the reqs (we already have) filer the ones with
+                # the project name of this requirement
+                rs2 = filter_name(reqs, r.name)
 
-                if r.name in names:
+                if rs2:
                     print '%-20s: %r' % (r.name, r)
-                    for r2 in reqs:
-                        if r2.name == r.name and r2 != r:
+                    for r2 in rs2:
+                        if r2 != r:
                             print '\t%r' % r2
                     print
                     continue
