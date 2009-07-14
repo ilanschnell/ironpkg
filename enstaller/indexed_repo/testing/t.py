@@ -17,65 +17,68 @@ class Chain2(Chain):
     def add_reqs(self, reqs, req, level=1):
 
         for dist in self.get_matches(req):
+            print 70 * '-'
+            print filename_dist(dist)
+
+            new_reqs = set()
             for r in self.reqs_dist(dist):
-                # r is a requirement for a distribution found
-
-                # from all the reqs (we already have) filer the ones with
-                # the project name of this requirement
+                # from all the reqs (we already have collected) filer the
+                # ones with the project name of this requirement
                 rs2 = filter_name(reqs, r.name)
-
                 if rs2:
-                    print '%-20s: %r' % (r.name, r)
+                    print '\t%r' % r
                     for r2 in rs2:
-                        if r2 != r:
-                            print '\t%r' % r2
-                    print
-                    continue
+                        print '\t\t%r' % r2,
+                        if r2.strictness > r.strictness:
+                            new_reqs.add(r2)
+                            print 'adding',
+                        print
+                else:
+                    new_reqs.add(r)
 
+            print 30 * '-'
+            print 'new_reqs:', new_reqs
+            print
+
+            for r in new_reqs:
                 if r in reqs:
-                    # a loop in the dependency tree would cause infinite
-                    # recursion, unless we skip here.
                     continue
-
                 reqs[r] = level
-
-                # recursion
                 self.add_reqs(reqs, r, level + 1)
 
 
-    def get_all_reqs(self, req):
+    def get_reqs(self, req):
         """
         Returns a dictionary mapping all requirements found to the recursion
         level, i.e. how many nodes the requirement is located from the root.
         The root being level = 0, which is the requirement given by 'req' to
         this method itself, which is also included in the result.
         """
-        # the requirement (in the argument) itself
-        result = {req: 0}
+        # the root requirement (in the argument) itself
+        reqs1 = {req: 0}
 
-        # get all requirements
-        self.add_reqs(result, req)
+        # add all requirements for the root requirement
+        self.add_reqs(reqs1, req)
 
-        return result
+        print "Requirements: (strictness, level)"
+        for r in sorted(reqs1):
+            print '\t%-33r  %i  %i' % (r, r.strictness, reqs1[r])
 
-
-    def get_reqs(self, req):
-        """
-
-        """
-        reqs = self.get_all_reqs(req)
-
-        # the set of all required (project) names
-        names = set(r.name for r in reqs)
-
-        res = set()
-        for name in names:
+        reqs2 = set()
+        for name in set(r.name for r in reqs1):
             # get all requirements for the name
-            rs = [r for r in reqs if r.name == name]
-            # add the requirement with greatest strictness
-            rs.sort(key=lambda r: r.strictness)
-            res.add(rs[-1])
-        return res
+            rs = []
+            for r in filter_name(reqs1, name):
+                rs.append((r, reqs1[r],))
+
+            rs.sort(key=lambda r: r[0].strictness + (10 - r[1]))
+            if len(rs) > 1:
+                print name
+                print '\t', rs
+                print '\t', rs[-1]
+            reqs2.add(rs[-1])
+
+        return [r for r, level in reqs2]
 
 
     def install_order(self, req):
@@ -134,17 +137,12 @@ req = Req('foo')
 print '===== %r =====' % req
 print filename_dist(c.get_dist(req))
 
-print "Requirements: (strictness, level) -- all"
-rs = c.get_all_reqs(req)
-for r in sorted(rs.keys(), key=lambda r: r.name):
-    print '\t%-33r  %i  %i' % (r, r.strictness, rs[r])
-
+rs = c.get_reqs(req)
 exit(0)
 
-print "Requirements: (strictness)"
-rs = c.get_reqs(req)
-for r in sorted(rs, key=lambda r: r.name):
-    print '\t%-33r  %i' % (r, r.strictness)
+print "Requirements:"
+for r in sorted(rs):
+    print '\t%r' % r
 
 print "Distributions:"
 for d in c.install_order(req):
