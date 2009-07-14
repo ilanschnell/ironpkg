@@ -23,7 +23,7 @@ class Platforms(object):
             handle.close()
 
         self.set_data()
-  
+
     def set_data(self):
         self.data = {}
         for line in self.txt.splitlines():

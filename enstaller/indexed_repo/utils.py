@@ -155,6 +155,32 @@ def get_version_build(dist):
     return split_eggname(eggname)[1:]
 
 
+
+def md5_file(path):
+    """
+    Returns the md5sum of the file (located at `path`) as a hexadecimal
+    string of length 32.
+    """
+    fi = open(path, 'rb')
+    h = hashlib.new('md5')
+    while True:
+        chunk = fi.read(4096)
+        if not chunk:
+            break
+        h.update(chunk)
+    fi.close()
+    return h.hexdigest()
+
+
+def pprint_fn_action(fn, action):
+    """
+    Pretty print the distribution name (filename) and an action, the width
+    of the output corresponds to the with of the progress bar used by the
+    function below.
+    """
+    print "%-56s %20s" % (fn, '[%s]' % action)
+
+
 def write_data_from_url(fo, url, md5=None, size=None):
     """
     Read data from the url and write to the file handle fo, which must be

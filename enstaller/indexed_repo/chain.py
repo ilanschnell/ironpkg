@@ -5,7 +5,7 @@ import string
 import StringIO
 import zipfile
 from collections import defaultdict
-from os.path import basename, join, isfile, isdir
+from os.path import basename, getsize, isfile, isdir, join
 
 import metadata
 import utils
@@ -235,16 +235,20 @@ class Chain(object):
         if dist not in self.index:
             raise Exception("distribution not found: %r" % dist)
 
-        assert isdir(self.local), self.local
-
-        dst = join(self.local, utils.filename_dist(dist))
-        if not force and isfile(dst):
-            if self.verbose:
-                print "Not forcing refetch, %r already exists" % dst
-            return
-
         md5 = self.index[dist].get('md5', None)
         size = self.index[dist].get('size', None)
+
+        fn = utils.filename_dist(dist)
+        dst = join(self.local, fn)
+        if (not force and isfile(dst) and getsize(dst) == size and
+                   utils.md5_file(dst) == md5):
+            if self.verbose:
+                print "Not forcing refetch, %r already exists" % dst
+            utils.pprint_fn_action(fn, 'already exists')
+            return
+
+        utils.pprint_fn_action(
+            fn, ['copying', 'downloading'][dist.startswith('http://')])
 
         if self.verbose:
             print "Copying: %r" % dist

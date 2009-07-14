@@ -11,12 +11,8 @@ from os.path import join, isfile
 from chain import Chain
 from requirement import Req, dist_as_req
 from metadata import spec_from_dist
-from utils import filename_dist, canonical
+from utils import canonical, filename_dist, pprint_fn_action
 
-
-
-def pprint_distname_action(fn, action):
-    print "%-56s %20s" % (fn, '[%s]' % action)
 
 
 def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
@@ -65,8 +61,8 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
 
     c = Chain(local, repos, verbose)
 
-    if fetch_force:
-        # When using force, remove all entries from the local repo.
+    if fetch:
+        # When fetching, firstly, remove all entries from the local repo.
         # Otherwise, the resolution will contain entries from the local repo.
         for dist in c.index.keys():
             if dist.startswith('local:'):
@@ -83,20 +79,12 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
         for d in dists:
             print '\t', d
 
-    if not fetch:
-        return dists
-
-    for dist in dists:
-        fn = filename_dist(dist)
-        if verbose:
-            print 70 * '='
-            print dist
-        if fetch_force or not isfile(join(c.local, fn)):
-            action = ['copying', 'downloading'][dist.startswith('http://')]
-            pprint_distname_action(fn, action)
+    if fetch:
+        for dist in dists:
+            if verbose:
+                print 70 * '='
+                print 'fetching: %r' % dist
             c.fetch_dist(dist, force=fetch_force)
-        else:
-            pprint_distname_action(fn, 'already exists')
 
     return dists
 
