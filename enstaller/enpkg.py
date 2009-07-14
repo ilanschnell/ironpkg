@@ -4,8 +4,7 @@ import string
 from os.path import basename, isdir, isfile, join
 
 from config import get_configured_repos
-from indexed_repo import (resolve, filename_dist, pprint_distname_action,
-                          pprint_repo)
+from indexed_repo import resolve, filename_dist, pprint_fn_action, pprint_repo
 import egginst
 
 
@@ -94,6 +93,8 @@ def main():
                     verbose=opts.verbose)
 
     if opts.dry_run:
+        for d in dists:
+            print d
         return
 
     print 77 * '='
@@ -102,10 +103,10 @@ def main():
         egg_name = filename_dist(dist)
         assert egg_name.endswith('.egg')
         if not opts.force and egg_name[:-4] in active:
-            pprint_distname_action(egg_name, 'already active')
+            pprint_fn_action(egg_name, 'already active')
             continue
         egg_path = join(local, egg_name)
-        pprint_distname_action(egg_name, 'installing')
+        pprint_fn_action(egg_name, 'installing')
         if opts.dry_run:
             continue
         egginst.EggInst(egg_path, opts.verbose).install()
