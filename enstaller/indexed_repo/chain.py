@@ -227,10 +227,21 @@ class Chain(object):
 
     # --------------- methods which access the local repo -----------------
 
-    def fetch_dist(self, dist, force=False):
+    def fetch_dist(self, dist, force=False, check_md5=False):
         """
         Get a distribution, i.e. copy or download the distribution into
         the local repo.
+
+        force:
+            force download or copy
+
+        check_md5:
+            when determining if a file needs to be downloaded or copied,
+            check it's md5.  This is, of course, slower but more reliable
+            then just checking the file-size, which always done.
+            Note that option has option has nothing to do with checking the
+            md5 of a download.  The md5 is always checked when files are
+            downloaded (regardless of this option).
         """
         if dist not in self.index:
             raise Exception("distribution not found: %r" % dist)
@@ -241,7 +252,7 @@ class Chain(object):
         fn = utils.filename_dist(dist)
         dst = join(self.local, fn)
         if (not force and isfile(dst) and getsize(dst) == size and
-                   utils.md5_file(dst) == md5):
+                   (not check_md5 or utils.md5_file(dst) == md5)):
             if self.verbose:
                 print "Not forcing refetch, %r already exists" % dst
             utils.pprint_fn_action(fn, 'already exists')
