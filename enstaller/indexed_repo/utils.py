@@ -66,9 +66,18 @@ def split_dist(dist):
     return repo, filename
 
 
+def repo_dist(dist):
+    return split_dist(dist)[0]
+
+
+def filename_dist(dist):
+    return split_dist(dist)[1]
+
+
 def cleanup_repo(repo):
     """
-    Cleanup a repo string
+    Make sure a given repo string, i.e. a string specifying a repository,
+    is valid and return a cleaned up version of the string.
     """
     if repo.startswith('local:'):
         assert repo == 'local:'
@@ -91,14 +100,6 @@ def cleanup_repo(repo):
         raise Exception("Invalid repo string: %r" % repo)
 
     return repo
-
-
-def repo_dist(dist):
-    return split_dist(dist)[0]
-
-
-def filename_dist(dist):
-    return split_dist(dist)[1]
 
 
 

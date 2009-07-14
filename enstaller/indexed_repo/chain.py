@@ -251,6 +251,8 @@ class Chain(object):
 
         fn = utils.filename_dist(dist)
         dst = join(self.local, fn)
+        # if force is not used, see if (i) the file exists (ii) its size is
+        # the expected (iii) optionally, make sure the md5 is the expected.
         if (not force and isfile(dst) and getsize(dst) == size and
                    (not check_md5 or utils.md5_file(dst) == md5)):
             if self.verbose:
