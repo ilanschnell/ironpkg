@@ -8,15 +8,30 @@ import enstaller.indexed_repo.utils as utils
 class Chain2(Chain):
 
     def add_reqs(self, reqs, req, level=1):
+
         for dist in self.get_matches(req):
             for r in self.reqs_dist(dist):
+
+                names = set(r.name for r in reqs)
+
+                if r.name in names:
+                    print '%-20s: %r' % (r.name, r)
+                    for r2 in reqs:
+                        if r2.name == r.name and r2 != r:
+                            print '\t%r' % r2
+                    print
+                    continue
+
                 if r in reqs:
                     # a loop in the dependency tree would cause infinite
                     # recursion, unless we skip here.
                     continue
+
                 reqs[r] = level
+
                 # recursion
                 self.add_reqs(reqs, r, level + 1)
+
 
     def get_all_reqs(self, req):
         """
@@ -25,12 +40,13 @@ class Chain2(Chain):
         The root being level = 0, which is the requirement given by 'req' to
         this method itself, which is also included in the result.
         """
-        # first, get all requirements
-        res = {}
-        self.add_reqs(res, req)
-        res[req] = 0
+        # the requirement (in the argument) itself
+        result = {req: 0}
 
-        return res
+        # get all requirements
+        self.add_reqs(result, req)
+
+        return result
 
 
     def get_reqs(self, req):
@@ -113,11 +129,13 @@ rs = c.get_all_reqs(req)
 for r in sorted(rs.keys(), key=lambda r: r.name):
     print '\t%-33r  %i  %i' % (r, r.strictness, rs[r])
 
+exit(0)
+
 print "Requirements: (strictness)"
 rs = c.get_reqs(req)
 for r in sorted(rs, key=lambda r: r.name):
     print '\t%-33r  %i' % (r, r.strictness)
 
-#print "Distributions:"
-#for d in c.install_order(req):
-#    print '\t', filename_dist(d)
+print "Distributions:"
+for d in c.install_order(req):
+    print '\t', filename_dist(d)
