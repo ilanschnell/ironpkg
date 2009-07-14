@@ -16,7 +16,7 @@ from utils import canonical, filename_dist, pprint_fn_action
 
 
 def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
-            fetch_force=False, verbose=False):
+            fetch_force=False, verbose=False, check_md5=False):
     """
     Resolves a requirement in a chain of indexed repositories.  An optional
     local repository, which is not indexed, can be specified.  This local
@@ -53,6 +53,14 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
 
     fetch_force:
         allow force when fetching
+
+    check_md5:
+        when determining if a file needs to be downloaded or copied, check
+        it's md5.  This is, of course, slower but more reliable then just
+        checking the file-size, which always done.
+        Note that option has option has nothing to do with checking the
+        md5 of a download.  The md5 is always checked when files are
+        downloaded (regardless of this option).
     """
     req = Req(req_string)
 
@@ -84,7 +92,7 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
             if verbose:
                 print 70 * '='
                 print 'fetching: %r' % dist
-            c.fetch_dist(dist, force=fetch_force)
+            c.fetch_dist(dist, force=fetch_force, check_md5=check_md5)
 
     return dists
 
