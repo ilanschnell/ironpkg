@@ -15,33 +15,28 @@ def filter_name(reqs, name):
 
 class Chain2(Chain):
 
+    def select_new_reqs(self, reqs, dist):
+        result = set()
+        for r in self.reqs_dist(dist):
+            # from all the reqs (we already have collected) filter the
+            # ones with the same project name
+            rs2 = filter_name(reqs, r.name)
+            if rs2:
+                # if there are requirements for an existing project name,
+                # only add if it is more strict
+                for r2 in rs2:
+                    if r2.strictness > r.strictness:
+                        result.add(r2)
+            else:
+                # otherwise, just add it, there is no requirement for this
+                # project yet
+                result.add(r)
+        return result
+
+
     def add_reqs(self, reqs, req, level=1):
-
         for dist in self.get_matches(req):
-            print 70 * '-'
-            print filename_dist(dist)
-
-            new_reqs = set()
-            for r in self.reqs_dist(dist):
-                # from all the reqs (we already have collected) filter the
-                # ones with the project name of this requirement
-                rs2 = filter_name(reqs, r.name)
-                if rs2:
-                    print '\t%r' % r
-                    for r2 in rs2:
-                        print '\t\t%r' % r2,
-                        if r2.strictness > r.strictness:
-                            new_reqs.add(r2)
-                            print 'adding',
-                        print
-                else:
-                    new_reqs.add(r)
-
-            print 30 * '-'
-            print 'new_reqs:', new_reqs
-            print
-
-            for r in new_reqs:
+            for r in self.select_new_reqs(reqs, dist):
                 if r in reqs:
                     continue
                 reqs[r] = level
@@ -61,9 +56,10 @@ class Chain2(Chain):
         # add all requirements for the root requirement
         self.add_reqs(reqs1, req)
 
-        print "Requirements: (-level, strictness)"
-        for r in sorted(reqs1):
-            print '\t%-33r %3i %3i' % (r, -reqs1[r], r.strictness)
+        if self.verbose:
+            print "Requirements: (-level, strictness)"
+            for r in sorted(reqs1):
+                print '\t%-33r %3i %3i' % (r, -reqs1[r], r.strictness)
 
         reqs2 = set()
         for name in set(r.name for r in reqs1):
@@ -73,10 +69,6 @@ class Chain2(Chain):
                 rs.append(((-reqs1[r], r.strictness), r))
 
             rs.sort()
-            if len(rs) > 1:
-                print name
-                print '\t', rs
-                print '\t', rs[-1]
             reqs2.add(rs[-1])
 
         return [req for rank, req in reqs2]
@@ -127,7 +119,7 @@ class Chain2(Chain):
 from os.path import abspath, dirname
 import string
 
-c = Chain2(verbose=False)
+c = Chain2(verbose=True)
 for fn in ['repo1.txt', 'repo_pub.txt']:
     c.add_repo('file://%s/' % abspath(dirname(__file__)), fn)
 
@@ -145,6 +137,7 @@ if 0:
     for r in sorted(rs):
         print '\t%r' % r
 
-print "Distributions:"
-for d in c.install_order(req):
-    print '\t', filename_dist(d)
+if 0:
+    print "Distributions:"
+    for d in c.install_order(req):
+        print '\t', filename_dist(d)
