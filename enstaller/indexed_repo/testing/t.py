@@ -16,6 +16,11 @@ def filter_name(reqs, name):
 class Chain2(Chain):
 
     def select_new_reqs(self, reqs, dist):
+        """
+        Selects new requirements, which are listed as dependencies in the
+        distribution 'dist', and are not already in the requirements 'reqs',
+        unless the distribution requires something more strict.
+        """
         result = set()
         for r in self.reqs_dist(dist):
             # from all the reqs (we already have collected) filter the
@@ -35,6 +40,11 @@ class Chain2(Chain):
 
 
     def add_reqs(self, reqs, req, level=1):
+        """
+        Finds requirements of 'req', recursively and adds them to 'reqs',
+        which is a dictionary mapping requirements to a
+        tuple(recursion level, distribution which requires the requirement)
+        """
         for dist in self.get_matches(req):
             for r in self.select_new_reqs(reqs, dist):
                 if r in reqs:
@@ -45,12 +55,12 @@ class Chain2(Chain):
 
     def get_reqs(self, req):
         """
-        Returns a dictionary mapping all requirements found to the recursion
-        level, i.e. how many nodes the requirement is located from the root.
-        The root being level = 0, which is the requirement given by 'req' to
-        this method itself, which is also included in the result.
+        Returns a dictionary mapping all requirements found recursively
+        to the distribution which requires it.
         """
-        # the root requirement (in the argument) itself
+        # the root requirement (in the argument) itself maps to recursion
+        # level 0 and a non-existent distribution (because the required by
+        # the argument of this function and not any other distribution)
         reqs1 = {req: (0, 'local:ROOT')}
 
         # add all requirements for the root requirement
@@ -66,6 +76,10 @@ class Chain2(Chain):
             # get all requirements for the name
             rs = []
             for r in filter_name(reqs1, name):
+                # append a tuple with:
+                #   * tuple(negative recursion level, strictness)
+                #   * requirement itself
+                #   * distribution requiring it
                 rs.append(((-reqs1[r][0], r.strictness), r, reqs1[r][1]))
 
             rs.sort()
