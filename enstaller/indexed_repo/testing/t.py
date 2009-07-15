@@ -39,7 +39,7 @@ class Chain2(Chain):
             for r in self.select_new_reqs(reqs, dist):
                 if r in reqs:
                     continue
-                reqs[r] = level
+                reqs[r] = (level, dist)
                 self.add_reqs(reqs, r, level + 1)
 
 
@@ -51,7 +51,7 @@ class Chain2(Chain):
         this method itself, which is also included in the result.
         """
         # the root requirement (in the argument) itself
-        reqs1 = {req: 0}
+        reqs1 = {req: (0, 'local:ROOT')}
 
         # add all requirements for the root requirement
         self.add_reqs(reqs1, req)
@@ -59,19 +59,33 @@ class Chain2(Chain):
         if self.verbose:
             print "Requirements: (-level, strictness)"
             for r in sorted(reqs1):
-                print '\t%-33r %3i %3i' % (r, -reqs1[r], r.strictness)
+                print '\t%-33r %3i %3i' % (r, -reqs1[r][0], r.strictness)
 
-        reqs2 = set()
+        reqs2 = {}
         for name in set(r.name for r in reqs1):
             # get all requirements for the name
             rs = []
             for r in filter_name(reqs1, name):
-                rs.append(((-reqs1[r], r.strictness), r))
+                rs.append(((-reqs1[r][0], r.strictness), r, reqs1[r][1]))
 
             rs.sort()
-            reqs2.add(rs[-1])
+            r, d = rs[-1][1:]
+            reqs2[r] = d
 
-        return [req for rank, req in reqs2]
+        return reqs2
+
+
+    def get_dist(self, req):
+        """
+        Return the distributions with the largest version and build number
+        from the first repository which contains any matches.
+        """
+        lst = list(self.get_matches(req))
+        lst.sort(key=self.get_version_build)
+        if lst:
+            return lst[-1]
+        else:
+            return None
 
 
     def install_order(self, req):
@@ -81,12 +95,18 @@ class Chain2(Chain):
         distributions can be installed in this order without any package
         being installed before its dependencies got installed.
         """
-        # all requirements necessary for install
-        reqs = self.get_reqs(req)
-
-        # the corresponding distributions (sorted because the output of this
-        # function is otherwise not deterministic)
-        dists = sorted(self.get_dist(r) for r in reqs)
+        # the distributions corresponding to the requirements must be sorted
+        # because the output of this function is otherwise not deterministic
+        dists = []
+        for r, d in self.get_reqs(req).iteritems():
+            dist = self.get_dist(r)
+            if dist:
+                dists.append(dist)
+            else:
+                print 'ERROR: No distribution found for: %r' % r
+                print '       required by: %s' % d
+                sys.exit(1)
+        dists.sort()
 
         # maps dist -> set of required (project) names
         rns = {}
@@ -119,7 +139,7 @@ class Chain2(Chain):
 from os.path import abspath, dirname
 import string
 
-c = Chain2(verbose=True)
+c = Chain2(verbose=0)
 for fn in ['repo1.txt', 'repo_pub.txt']:
     c.add_repo('file://%s/' % abspath(dirname(__file__)), fn)
 
@@ -132,12 +152,12 @@ print filename_dist(c.get_dist(req))
 
 rs = c.get_reqs(req)
 
-if 0:
+if 1:
     print "Requirements:"
     for r in sorted(rs):
-        print '\t%r' % r
+        print '\t%-40r %s' % (r, filename_dist(rs[r]))
 
-if 0:
+if 1:
     print "Distributions:"
     for d in c.install_order(req):
         print '\t', filename_dist(d)

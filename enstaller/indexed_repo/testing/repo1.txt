@@ -12,6 +12,7 @@ platform = None
 osdist = None
 python = '2.5'
 packages = [
+#  'bar',
   'EnthoughtBase 3.0.3.dev',
   'numpy 1.1.0',
   'TraitsBackendWX 3.1.1.dev',
