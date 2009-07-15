@@ -5,9 +5,10 @@ from enstaller.indexed_repo import Chain, Req, filename_dist
 import enstaller.indexed_repo.utils as utils
 
 
+
 def filter_name(reqs, name):
     """
-    from the requirements 'reqs', filer those for project 'name'
+    from the requirements 'reqs', filter those for project 'name'
     """
     return set(r for r in reqs if r.name == name)
 
@@ -22,7 +23,7 @@ class Chain2(Chain):
 
             new_reqs = set()
             for r in self.reqs_dist(dist):
-                # from all the reqs (we already have collected) filer the
+                # from all the reqs (we already have collected) filter the
                 # ones with the project name of this requirement
                 rs2 = filter_name(reqs, r.name)
                 if rs2:
@@ -60,25 +61,25 @@ class Chain2(Chain):
         # add all requirements for the root requirement
         self.add_reqs(reqs1, req)
 
-        print "Requirements: (strictness, level)"
+        print "Requirements: (-level, strictness)"
         for r in sorted(reqs1):
-            print '\t%-33r  %i  %i' % (r, r.strictness, reqs1[r])
+            print '\t%-33r %3i %3i' % (r, -reqs1[r], r.strictness)
 
         reqs2 = set()
         for name in set(r.name for r in reqs1):
             # get all requirements for the name
             rs = []
             for r in filter_name(reqs1, name):
-                rs.append((r, reqs1[r],))
+                rs.append(((-reqs1[r], r.strictness), r))
 
-            rs.sort(key=lambda r: r[0].strictness + (10 - r[1]))
+            rs.sort()
             if len(rs) > 1:
                 print name
                 print '\t', rs
                 print '\t', rs[-1]
             reqs2.add(rs[-1])
 
-        return [r for r, level in reqs2]
+        return [req for rank, req in reqs2]
 
 
     def install_order(self, req):
@@ -138,11 +139,11 @@ print '===== %r =====' % req
 print filename_dist(c.get_dist(req))
 
 rs = c.get_reqs(req)
-exit(0)
 
-print "Requirements:"
-for r in sorted(rs):
-    print '\t%r' % r
+if 0:
+    print "Requirements:"
+    for r in sorted(rs):
+        print '\t%r' % r
 
 print "Distributions:"
 for d in c.install_order(req):
