@@ -139,8 +139,17 @@ def repo_subdir(root_url, enform):
         raise Exception("Found: %r" % res)
 
 
+def current_repo_subdir(root_url):
+    """
+    Returns the sub-directory (e.g. 'Windows/x86'), for the current platform.
+    """
+    print repo_subdir(root_url, current_enform())
+
+
+
 if __name__ == '__main__':
     #for x in ENFORMS.itervalues():
     #    x.print_details()
-    print get_names({})
-    print get_names({'arch': 'amd64', 'osdist': None})
+    #print get_names({})
+    #print get_names({'arch': 'amd64', 'osdist': None})
+    print current_repo_subdir('http://runner.enthought.com/eggs/')
