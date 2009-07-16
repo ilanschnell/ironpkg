@@ -143,7 +143,7 @@ def current_repo_subdir(root_url):
     """
     Returns the sub-directory (e.g. 'Windows/x86'), for the current platform.
     """
-    print repo_subdir(root_url, current_enform())
+    return repo_subdir(root_url, current_enform())
 
 
 
