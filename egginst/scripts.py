@@ -91,7 +91,7 @@ def write_script(fpath, entry_pt, egg_name):
     fo = open(fpath, 'w')
     fo.write('''\
 #!%(python)s
-# This entry point script was created when installing:
+# This script was created by egginst when installing:
 #
 #   %(egg_name)s
 #
@@ -99,7 +99,7 @@ import sys
 from %(module)s import %(func)s
 
 sys.exit(%(func)s())
-''' % dict(module=module, func=func, python=python, egg_name=egg_name))
+''' % locals())
     fo.close()
     os.chmod(fpath, 0755)
 
@@ -120,7 +120,7 @@ def create(egg, conf):
         egg.files.append(path)
 
 
-_hashbang_pat = re.compile(r'#!.+$', re.M)
+hashbang_pat = re.compile(r'#!.+$', re.M)
 def fix_script(path):
     if islink(path) or not isfile(path):
         return
@@ -129,13 +129,16 @@ def fix_script(path):
     data = fi.read()
     fi.close()
 
-    m = _hashbang_pat.match(data)
+    m = hashbang_pat.match(data)
     if not (m and 'python' in m.group().lower()):
         return
 
-    new_data = _hashbang_pat.sub(
-        ('#!"%s"' if on_win else '#!%s') % sys.executable,
-        data, count=1)
+    python = sys.executable
+    if on_win:
+        python = '"%s"' % python
+
+    new_data = hashbang_pat.sub('#!' + python.replace('\\', '\\\\'),
+                                data, count=1)
 
     if new_data == data:
         return
