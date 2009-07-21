@@ -177,7 +177,7 @@ class EggInst(object):
             os.chmod(path, 0755)
 
     def install_app(self, remove=False):
-        path = join(self.meta_dir, 'EGG-INFO', 'inst', 'appinst.dat')
+        path = join(self.meta_dir, 'inst', 'appinst.dat')
         if not isfile(path):
             return
 
