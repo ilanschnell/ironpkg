@@ -141,8 +141,11 @@ def spec_from_dist(zip_path):
     """
     Returns the spec dictionary from a zip-file distribution.
     """
+    arcname = 'EGG-INFO/spec/depend'
     z = zipfile.ZipFile(zip_path)
-    spec = parse_data(z.read('EGG-INFO/spec/depend'), index=False)
+    if arcname not in z.namelist():
+        raise KeyError("%r not in %r" % (arcname, zip_path))
+    spec = parse_data(z.read(arcname), index=False)
     z.close()
     return spec
 
