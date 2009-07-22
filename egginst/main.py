@@ -64,10 +64,10 @@ class EggInst(object):
         self.entry_points()
         self.z.close()
         scripts.fix_scripts(self)
+        self.run('post_egginst.py')
         self.install_app()
         self.write_meta()
-
-        self.run('post_egginst.py')
+        
 
     def entry_points(self):
         lines = list(self.lines_from_arcname('EGG-INFO/entry_points.txt',
@@ -214,8 +214,8 @@ class EggInst(object):
             return
 
         self.read_meta()
-        self.run('pre_egguninst.py')
         self.install_app(remove=True)
+        self.run('pre_egguninst.py')
 
         for p in self.files:
             if islink(p) or isfile(p):
