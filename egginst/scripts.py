@@ -77,14 +77,17 @@ def create_proxies(egg):
             egg.files.append(dst)
 
 
-def write_script(fpath, entry_pt, egg_name):
+def write_script(fpath, entry_pt, egg_name, script_type):
     if verbose:
-        print 'Creating script', fpath
+        print 'Creating script: %s (%s)' % (fpath, script_type)
 
     assert entry_pt.count(':') == 1
     module, func = entry_pt.strip().split(':')
     python = sys.executable
     if on_win:
+        if script_type == 'gui_scripts':
+            p = re.compile('python\.exe$', re.I)
+            python = p.sub('pythonw.exe', python)
         python = '"%s"' % python
 
     rm_rf(fpath)
@@ -105,19 +108,20 @@ sys.exit(%(func)s())
 
 
 def create(egg, conf):
-    for name, entry_pt in conf.items("console_scripts"):
-        fname = name
-        if on_win:
-            exe_path = join(sys.prefix, r'Scripts\%s.exe' % name)
-            rm_rf(exe_path)
-            cp_exe(exe_path)
-            egg.files.append(exe_path)
-
-            fname += '-script.py'
-
-        path = join(bin_dir, fname)
-        write_script(path, entry_pt, egg_name=basename(egg.fpath))
-        egg.files.append(path)
+    for script_type in ['gui_scripts', 'console_scripts']:
+        if script_type not in conf.sections():
+            continue
+        for name, entry_pt in conf.items(script_type):
+            fname = name
+            if on_win:
+                exe_path = join(sys.prefix, r'Scripts\%s.exe' % name)
+                rm_rf(exe_path)
+                cp_exe(exe_path)
+                egg.files.append(exe_path)
+                fname += '-script.py'
+            path = join(bin_dir, fname)
+            write_script(path, entry_pt, basename(egg.fpath), script_type)
+            egg.files.append(path)
 
 
 hashbang_pat = re.compile(r'#!.+$', re.M)
@@ -128,6 +132,11 @@ def fix_script(path):
     fi = open(path)
     data = fi.read()
     fi.close()
+
+    if ' egginst ' in data:
+        # This string is in the comment when write_script() creates
+        # the script, so there is no need to fix anything.
+        return
 
     m = hashbang_pat.match(data)
     if not (m and 'python' in m.group().lower()):

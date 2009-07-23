@@ -67,7 +67,7 @@ class EggInst(object):
         self.run('post_egginst.py')
         self.install_app()
         self.write_meta()
-        
+
 
     def entry_points(self):
         lines = list(self.lines_from_arcname('EGG-INFO/entry_points.txt',
@@ -82,11 +82,13 @@ class EggInst(object):
 
         conf = ConfigParser.ConfigParser()
         conf.read(path)
-        if 'console_scripts' in conf.sections():
+        if ('console_scripts' in conf.sections() or
+            'gui_scripts' in conf.sections()):
             if self.verbose:
-                print 'creating console scripts'
+                print 'creating scripts'
                 scripts.verbose = True
             scripts.create(self, conf)
+
 
     def write_meta(self):
         fo = open(self.meta_txt, 'w')
