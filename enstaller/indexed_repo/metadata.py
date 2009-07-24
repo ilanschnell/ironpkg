@@ -49,7 +49,7 @@ def data_from_spec(spec):
             s = spec[var]
             assert s == s.strip(), spec
             assert s != '', spec
-    assert spec['build'] > 0, spec
+    assert spec['build'] >= 0, spec
 
     canon_names = set()
     for req_string in spec['packages']:
