@@ -128,7 +128,7 @@ def create(egg, conf):
                 cp_exe(exe_path, script_type)
                 egg.files.append(exe_path)
                 fname += '-script.py'
-                if script == 'gui_scripts':
+                if script_type == 'gui_scripts':
                     fname += 'w'
             path = join(bin_dir, fname)
             write_script(path, entry_pt, basename(egg.fpath))
