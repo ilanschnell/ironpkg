@@ -2,6 +2,9 @@ import os
 import sys
 import re
 import shutil
+import zipfile
+from glob import glob
+from distutils.sysconfig import get_python_lib
 from os.path import abspath, basename, join, islink, isfile
 
 from utils import on_win, site_packages, rm_rf
@@ -11,14 +14,20 @@ verbose = False
 bin_dir = join(sys.prefix, 'Scripts' if on_win else 'bin')
 
 
-def cp_exe(dst):
-    src = join(site_packages, 'setuptools', 'cli.exe')
-    if isfile(src):
-        shutil.copyfile(src, dst)
+def cp_exe(dst, script_type='console_scripts'):
+    if script_type == 'console_scripts':
+        shutil.copyfile(join(bin_dir, 'egginst.exe'), dst)
         return
-
-    src = join(bin_dir, 'egginst.exe')
-    shutil.copyfile(src, dst)
+    assert script_type == 'gui_scripts'
+    paths = glob(join(get_python_lib(), 'Enstaller-*.egg'))
+    paths.sort()
+    if not paths:
+        print "WARNING: could not find Enstaller egg in %r" % get_python_lib()
+        return
+    z = zipfile.ZipFile(paths[-1])
+    data = z.read('setuptools/gui.exe')
+    z.close()
+    open(dst, 'wb').write(data)
 
 
 def create_proxy(src):
@@ -77,15 +86,15 @@ def create_proxies(egg):
             egg.files.append(dst)
 
 
-def write_script(fpath, entry_pt, egg_name, script_type):
+def write_script(fpath, entry_pt, egg_name):
     if verbose:
-        print 'Creating script: %s (%s)' % (fpath, script_type)
+        print 'Creating script: %s' % fpath
 
     assert entry_pt.count(':') == 1
     module, func = entry_pt.strip().split(':')
     python = sys.executable
     if on_win:
-        if script_type == 'gui_scripts':
+        if fpath.endswith('pyw'):
             p = re.compile('python\.exe$', re.I)
             python = p.sub('pythonw.exe', python)
         python = '"%s"' % python
@@ -116,11 +125,13 @@ def create(egg, conf):
             if on_win:
                 exe_path = join(sys.prefix, r'Scripts\%s.exe' % name)
                 rm_rf(exe_path)
-                cp_exe(exe_path)
+                cp_exe(exe_path, script_type)
                 egg.files.append(exe_path)
                 fname += '-script.py'
+                if script == 'gui_scripts':
+                    fname += 'w'
             path = join(bin_dir, fname)
-            write_script(path, entry_pt, basename(egg.fpath), script_type)
+            write_script(path, entry_pt, basename(egg.fpath))
             egg.files.append(path)
 
 
