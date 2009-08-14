@@ -82,13 +82,12 @@ python = %(python)r""" % spec]
     return '\n'.join(lst)
 
 
-def parse_data(data, index):
+def parse_data(data, index=False):
     """
     Given the content of a dependency spec file, return a dictionary mapping
     the variables to their values.
 
-    index:  If set to True, makes sure an the md5 and size is also
-            contained in the data.
+    index: If True, makes sure the md5 and size is also contained in the data.
     """
     spec = {}
     exec data.replace('\r', '') in spec
@@ -145,7 +144,7 @@ def spec_from_dist(zip_path):
     z = zipfile.ZipFile(zip_path)
     if arcname not in z.namelist():
         raise KeyError("%r not in %r" % (arcname, zip_path))
-    spec = parse_data(z.read(arcname), index=False)
+    spec = parse_data(z.read(arcname))
     z.close()
     return spec
 

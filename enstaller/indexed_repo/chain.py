@@ -344,7 +344,7 @@ class Chain(object):
             raise Exception("arcname=%r does not exist in %r" %
                             (arcname, filename))
 
-        spec = metadata.parse_data(z.read(arcname), index=False)
+        spec = metadata.parse_data(z.read(arcname))
         z.close()
         add_Reqs_to_spec(spec)
         self.index[dist] = spec
