@@ -33,7 +33,10 @@ def write_exe(dst, script_type='console_scripts'):
     z = zipfile.ZipFile(paths[-1])
     data = z.read('setuptools/' + fn)
     z.close()
-    open(dst, 'wb').write(data)
+    try:
+        open(dst, 'wb').write(data)
+    except IOError:
+        pass
     os.chmod(dst, 0755)
 
 
