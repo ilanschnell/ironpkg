@@ -22,6 +22,7 @@ import scripts
 # installed packages
 EGG_INFO_DIR = join(sys.prefix, 'EGG-INFO')
 
+# This is the directory to which deactivated installed are moved to
 DEACTIVE_DIR = join(sys.prefix, 'DEACTIVE')
 
 
@@ -42,6 +43,11 @@ class EggInst(object):
     def install(self):
         if not isdir(self.meta_dir):
             os.makedirs(self.meta_dir)
+
+        if self.name == 'Enstaller':
+            sys.path.insert(0, self.fpath)
+            from egginst.bootstrap import main
+            sys.exit(main())
 
         self.z = zipfile.ZipFile(self.fpath)
         self.arcnames = self.z.namelist()
