@@ -7,27 +7,34 @@ from glob import glob
 from distutils.sysconfig import get_python_lib
 from os.path import abspath, basename, join, islink, isfile
 
-from utils import on_win, site_packages, rm_rf
+from utils import on_win, rm_rf
 
 
 verbose = False
 bin_dir = join(sys.prefix, 'Scripts' if on_win else 'bin')
 
 
-def cp_exe(dst, script_type='console_scripts'):
-    if script_type == 'console_scripts':
-        shutil.copyfile(join(bin_dir, 'egginst.exe'), dst)
-        return
-    assert script_type == 'gui_scripts'
+def write_exe(dst, script_type='console_scripts'):
+    """
+    This function is only used on Windows, it either cli.exe or gui.exe to
+    the destination specified, depending on script_type.
+    """
+    fn = {'console_scripts': 'cli.exe',
+          'gui_scripts': 'gui.exe'}.get(script_type)
+    if not fn:
+        raise Exception("Did not except script_type=%r" % script_type)
+
     paths = glob(join(get_python_lib(), 'Enstaller-*.egg'))
     paths.sort()
     if not paths:
-        print "WARNING: could not find Enstaller egg in %r" % get_python_lib()
-        return
+        raise Exception("WARNING: could not find Enstaller egg in %r" %
+                        get_python_lib())
+
     z = zipfile.ZipFile(paths[-1])
-    data = z.read('setuptools/gui.exe')
+    data = z.read('setuptools/' + fn)
     z.close()
     open(dst, 'wb').write(data)
+    os.chmod(dst, 0755)
 
 
 def create_proxy(src):
@@ -41,7 +48,7 @@ def create_proxy(src):
 
     dst = join(bin_dir, dst_name)
     rm_rf(dst)
-    cp_exe(dst)
+    write_exe(dst)
 
     dst_script = dst[:-4] + '-script.py'
     rm_rf(dst_script)
@@ -125,7 +132,7 @@ def create(egg, conf):
             if on_win:
                 exe_path = join(sys.prefix, r'Scripts\%s.exe' % name)
                 rm_rf(exe_path)
-                cp_exe(exe_path, script_type)
+                write_exe(exe_path, script_type)
                 egg.files.append(exe_path)
                 fname += '-script.py'
                 if script_type == 'gui_scripts':
@@ -175,3 +182,9 @@ def fix_scripts(egg):
     for fpath in egg.files:
         if fpath.startswith(bin_dir):
             fix_script(fpath)
+
+
+
+if __name__ == '__main__':
+    write_exe('C.exe', 'console_scripts')
+    write_exe('G.exe', 'gui_scripts')
