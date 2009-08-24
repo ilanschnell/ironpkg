@@ -34,8 +34,8 @@ def main():
     shutil.copy(egg_path, sp)
 
     # Create Enstaller.pth in site-packages
-    fo = open(join(sp, 'Enstaller.pth\n'), 'w')
-    fo.write('./' + basename(egg_path))
+    fo = open(join(sp, 'Enstaller.pth'), 'w')
+    fo.write('./%s\n' + basename(egg_path))
     fo.close()
 
     # The rest of this function creates the scripts
