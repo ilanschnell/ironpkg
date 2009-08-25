@@ -1,5 +1,6 @@
 from os.path import isdir, join
-from setuptools.package_index import open_with_auth
+
+from utils import open_with_auth
 
 
 def to_list(s):

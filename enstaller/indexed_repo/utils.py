@@ -1,6 +1,8 @@
 import sys
 import re
 import hashlib
+import urlparse
+import urllib2
 from os.path import basename
 
 from egginst.utils import human_bytes, rm_rf
@@ -173,6 +175,39 @@ def md5_file(path):
     return h.hexdigest()
 
 
+def open_with_auth(url):
+    """
+    Open a urllib2 request, handling HTTP authentication
+    """
+    try:
+        import custom_tools
+    except ImportError:
+        custom_tools = False
+
+    scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
+    assert query == ''
+    auth, host = urllib2.splituser(netloc)
+    if (auth is None and custom_tools and
+        url.startswith(custom_tools.epd_baseurl)):
+        tmp = ''.join(chr(ord(c) ^ (3 + i))
+                      for i, c in enumerate(custom_tools.epd_auth[12:-12]))
+        assert tmp.endswith('@')
+        auth = tmp[:-1]
+    # TODO: get query from config file
+    # query = OpenID
+    # Attempt the request
+    if auth:
+        coded_auth = "Basic " + urllib2.unquote(auth).encode('base64').strip()
+        new_url = urlparse.urlunparse((scheme, host, path,
+                                       params, query, frag))
+        request = urllib2.Request(new_url)
+        request.add_header("Authorization", coded_auth)
+    else:
+        request = urllib2.Request(url)
+    request.add_header('User-Agent', 'Enstaller')
+    return urllib2.urlopen(request)
+
+
 def pprint_fn_action(fn, action):
     """
     Pretty print the distribution name (filename) and an action, the width
@@ -188,8 +223,6 @@ def write_data_from_url(fo, url, md5=None, size=None):
     open for writing.  Optionally check the MD5.  When the size in bytes
     is provided, a progress bar is displayed using the download/copy.
     """
-    from setuptools.package_index import open_with_auth
-
     if size:
         sys.stdout.write('%9s [' % human_bytes(size))
         sys.stdout.flush()
