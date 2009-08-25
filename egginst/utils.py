@@ -6,8 +6,6 @@ from os.path import abspath, dirname, isdir, isfile, islink, join
 
 on_win = sys.platform.startswith('win')
 
-site_packages = join(dirname(os.__file__), 'site-packages')
-
 
 def rel_prefix(path):
     assert abspath(path).startswith(sys.prefix)

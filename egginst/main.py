@@ -11,10 +11,10 @@ import shutil
 import string
 import zipfile
 import ConfigParser
+from distutils.sysconfig import get_python_lib
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from utils import (on_win, site_packages, rel_prefix, rmdir_er, rm_rf,
-                   human_bytes)
+from utils import on_win, rel_prefix, rmdir_er, rm_rf, human_bytes
 import scripts
 
 
@@ -24,6 +24,8 @@ EGG_INFO_DIR = join(sys.prefix, 'EGG-INFO')
 
 # This is the directory to which deactivated installed are moved to
 DEACTIVE_DIR = join(sys.prefix, 'DEACTIVE')
+
+SITE_PACKAGES = get_python_lib()
 
 
 def projname(fn):
@@ -47,7 +49,7 @@ class EggInst(object):
         if self.name == 'Enstaller':
             sys.path.insert(0, self.fpath)
             from egginst.bootstrap import main
-            sys.exit(main())
+            return main()
 
         self.z = zipfile.ZipFile(self.fpath)
         self.arcnames = self.z.namelist()
@@ -152,7 +154,7 @@ class EggInst(object):
             ('EGG-INFO/usr/',     not on_win, sys.prefix),
             ('EGG-INFO/scripts/', True,       scripts.bin_dir),
             ('EGG-INFO/',         True,       self.meta_dir),
-            ('',                  True,       site_packages),
+            ('',                  True,       SITE_PACKAGES),
         ]
         for start, cond, dst_dir in dispatch:
             if arcname.startswith(start) and cond:
