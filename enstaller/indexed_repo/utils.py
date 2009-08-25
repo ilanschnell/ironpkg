@@ -187,8 +187,11 @@ def open_with_auth(url):
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
     assert query == ''
     auth, host = urllib2.splituser(netloc)
-    if (auth is None and custom_tools and
-        url.startswith(custom_tools.epd_baseurl)):
+    if (auth is None and
+        custom_tools and
+        hasattr(custom_tools, 'epd_baseurl') and
+        url.startswith(custom_tools.epd_baseurl)
+        ):
         tmp = ''.join(chr(ord(c) ^ (3 + i))
                       for i, c in enumerate(custom_tools.epd_auth[12:-12]))
         assert tmp.endswith('@')

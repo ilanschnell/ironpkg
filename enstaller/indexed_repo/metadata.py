@@ -91,7 +91,7 @@ def parse_data(data, index=False):
     """
     spec = {}
     exec data.replace('\r', '') in spec
-    assert spec['metadata_version'] in ('1.0', '1.1'), spec
+    assert spec['metadata_version'] == '1.1', spec
 
     var_names = [ # these must be present
         'metadata_version', 'name', 'version', 'build',
@@ -102,22 +102,6 @@ def parse_data(data, index=False):
         assert isinstance(spec['md5'], str) and len(spec['md5']) == 32
         assert isinstance(spec['size'], int)
 
-    if spec['metadata_version'] == '1.0':
-        # convert 1.0 -> 1.1
-        spec['metadata_version'] = '1.1'
-
-        assert spec['filename'].endswith('.egg')
-        n, v, b = spec['filename'][:-4].split('-')
-        print("Deprecation warning: found metadata version 1.0 for: %s %s-%s"
-              % (n, v, b))
-
-        assert canonical(n) == canonical(spec['name'])
-        assert v == spec['version']
-        assert b >= 1
-        spec['build'] = int(b)
-        pkgs = spec['packages']
-        spec['packages'] = [name + " " + pkgs[name]
-                            for name in sorted(pkgs, key=string.lower)]
     res = {}
     for name in var_names:
         res[name] = spec[name]
