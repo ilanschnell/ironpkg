@@ -2,7 +2,7 @@ import os
 import sys
 from os.path import dirname, isdir, join
 
-from utils import rm_rf
+from egginst.utils import rm_rf
 
 
 verbose = False

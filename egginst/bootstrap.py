@@ -7,7 +7,7 @@ import ConfigParser
 from os.path import basename, isfile, join
 from distutils.sysconfig import get_python_lib
 
-import egginst.scripts as scripts
+import egginst.scripts
 
 
 
@@ -24,6 +24,9 @@ def main():
     from egginst.bootstrap import main
     exitcode = main()
     """
+    reload(egginst.scripts)
+    reload(egginst.utils)
+
     sp = get_python_lib()
     egg_path = sys.path[0]
 
@@ -53,6 +56,6 @@ def main():
     conf.read(tmp_pth)
     os.unlink(tmp_pth)
 
-    scripts.create(egg, conf)
+    egginst.scripts.create(egg, conf)
 
     return 0

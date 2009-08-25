@@ -49,7 +49,7 @@ bootstrap():
 """
 from os.path import dirname
 
-from main import EggInst, activate, get_active, get_deactive, print_list
+from egginst.main import EggInst, activate, get_active, get_deactive, print_list
 
 
 def bootstrap(verbose=False):

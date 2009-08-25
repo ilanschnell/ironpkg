@@ -179,13 +179,14 @@ def open_with_auth(url):
     """
     Open a urllib2 request, handling HTTP authentication
     """
+    from enstaller import __version__
     try:
         import custom_tools
     except ImportError:
         custom_tools = False
 
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
-    assert query == ''
+    assert not query
     auth, host = urllib2.splituser(netloc)
     if (auth is None and
         custom_tools and
@@ -207,7 +208,7 @@ def open_with_auth(url):
         request.add_header("Authorization", coded_auth)
     else:
         request = urllib2.Request(url)
-    request.add_header('User-Agent', 'Enstaller')
+    request.add_header('User-Agent', 'Enstaller/%s' % __version__)
     return urllib2.urlopen(request)
 
 

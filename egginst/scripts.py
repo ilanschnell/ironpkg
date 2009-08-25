@@ -7,7 +7,7 @@ from glob import glob
 from distutils.sysconfig import get_python_lib
 from os.path import abspath, basename, join, islink, isfile
 
-from utils import on_win, rm_rf
+from egginst.utils import on_win, rm_rf
 
 
 verbose = False

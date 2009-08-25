@@ -14,8 +14,8 @@ import ConfigParser
 from distutils.sysconfig import get_python_lib
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from utils import on_win, rel_prefix, rmdir_er, rm_rf, human_bytes
-import scripts
+from egginst.utils import on_win, rel_prefix, rmdir_er, rm_rf, human_bytes
+import egginst.scripts as scripts
 
 
 # This is the directory which contains the EGG-INFO directories of all
