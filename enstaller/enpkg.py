@@ -1,7 +1,7 @@
 import os
 import sys
 import string
-from os.path import basename, expanduser, isdir, join
+from os.path import basename, expanduser, isdir, isfile, join
 
 import egginst
 
@@ -32,6 +32,18 @@ def configure(opts):
             print '\t    %r' % repo
 
     return local, repos
+
+
+def check_write():
+    path = join(sys.prefix, 'hello.txt')
+    try:
+        open(path, 'w').write('Hello World!\n')
+    except:
+        print "ERROR: Could not write simple file into:", sys.prefix
+        sys.exit(1)
+    finally:
+        if isfile(path):
+            os.unlink(path)
 
 
 def main():
@@ -86,6 +98,8 @@ def main():
 
     if not args:
         p.error("Requirement missing")
+
+    check_write()
 
     dists = resolve(req_string, local, repos,
                     recur=not opts.no_deps,

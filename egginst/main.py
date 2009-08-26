@@ -186,6 +186,7 @@ class EggInst(object):
                  self.so_pat.match(fn))):
             os.chmod(path, 0755)
 
+
     def install_app(self, remove=False):
         path = join(self.meta_dir, 'inst', 'appinst.dat')
         if not isfile(path):
@@ -194,14 +195,21 @@ class EggInst(object):
         try:
             import appinst
         except ImportError:
-            print("Error: importing appinst failed.  Can't %sinstall "
+            print("Warning: importing appinst failed.  Can't %sinstall "
                   "application (skipping)" % 'un' if remove else '')
             return
 
-        if remove:
-            appinst.uninstall_from_dat(path)
-        else:
-            appinst.install_from_dat(path)
+        try:
+            if remove:
+                appinst.uninstall_from_dat(path)
+            else:
+                appinst.install_from_dat(path)
+        except:
+            print("Warning: Could not %sinstall application menu item,\n"
+                  "         probably because of file permissions."
+                  % 'un' if remove else '')
+            return
+
 
     def run(self, fn):
         path = join(self.meta_dir, fn)
