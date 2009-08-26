@@ -1,7 +1,7 @@
 import os
 import sys
 import string
-from os.path import basename, isdir, isfile, join
+from os.path import basename, expanduser, isdir, join
 
 import egginst
 
@@ -10,13 +10,16 @@ from indexed_repo import resolve, filename_dist, pprint_fn_action, pprint_repo
 
 
 def configure():
-    local = join(sys.prefix, 'LOCAL-REPO')
-    if not isdir(local):
-        os.mkdir(local)
-
-    if not isfile(config.get_path()):
+    if config.get_path() is None:
         config.write()
     conf = config.read()
+
+    if conf.has_key('LOCAL'):
+        local = expanduser(conf['LOCAL'])
+    else:
+        local = join(sys.prefix, 'LOCAL-REPO')
+    if not isdir(local):
+        os.mkdir(local)
 
     return local, conf['IndexedRepos']
 

@@ -115,15 +115,19 @@ def read():
     Return the current configuration as a dictionary, or None if the
     configuration file does not exist:
     """
+    if hasattr(read, 'cache'):
+        return read.cache
+
     path = get_path()
     if not path:
         return None
     d = {}
     execfile(path, d)
-    res = {}
-    for v in ['EPD_OpenID', 'IndexedRepos', 'SetuptoolsRepos']:
-        res[v] = d[v]
-    return res
+    read.cache = {}
+    for k in ['EPD_OpenID', 'IndexedRepos', 'SetuptoolsRepos', 'LOCAL']:
+        if d.has_key(k):
+            read.cache[k] = d[k]
+    return read()
 
 
 def get_configured_repos():
