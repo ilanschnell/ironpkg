@@ -3,36 +3,22 @@ import sys
 import string
 from os.path import basename, isdir, isfile, join
 
-from config import get_configured_repos
-from indexed_repo import resolve, filename_dist, pprint_fn_action, pprint_repo
 import egginst
 
+import config
+from indexed_repo import resolve, filename_dist, pprint_fn_action, pprint_repo
 
 
-def get_config():
-    local = None
-    repos = []
-    for url in get_configured_repos():
-        if isdir(url):
-            url = 'file://' + url
+def configure():
+    local = join(sys.prefix, 'LOCAL-REPO')
+    if not isdir(local):
+        os.mkdir(local)
 
-        if not url.startswith(('local:', 'file://', 'http://')):
-            print "Invalid repo in configuration:", url
-            sys.exit(1)
-        if url.startswith('local:'):
-            # This is a local directory, which is always first in the chain,
-            # and the distributions are referenced by local:<distname>
-            local = url[6:]
-        else:
-            # These are indexed repos, url will start with file:// or http://
-            repos.append(url)
+    if not isfile(config.get_path()):
+        config.write()
+    conf = config.read()
 
-    if local is None:
-        local = join(sys.prefix, 'LOCAL-REPO')
-        if not isdir(local):
-            os.mkdir(local)
-
-    return local, repos
+    return local, conf['IndexedRepos']
 
 
 def main():
@@ -69,8 +55,7 @@ def main():
 
     opts, args = p.parse_args()
 
-    local, repos = get_config()
-
+    local, repos = configure()
     if opts.verbose:
         print "configuration:"
         print "\tlocal = %r" % local

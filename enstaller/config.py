@@ -11,9 +11,9 @@ from os.path import abspath, expanduser, isfile, join
 from enstaller import __version__
 
 
-CONFIG_NAME = ".enstaller4rc"
-HOME_CONFIG_PATH = abspath(expanduser("~/" + CONFIG_NAME))
-SYSTEM_CONFIG_PATH = abspath(join(get_python_lib(), CONFIG_NAME))
+CONFIG_FN = ".enstaller4rc"
+HOME_CONFIG_PATH = abspath(expanduser("~/" + CONFIG_FN))
+SYSTEM_CONFIG_PATH = abspath(join(get_python_lib(), CONFIG_FN))
 
 
 def get_path():
@@ -29,7 +29,7 @@ def get_path():
     return None
 
 
-def write_default():
+def write():
     """
     Return the default state of this project's config file.
     """
@@ -62,8 +62,7 @@ The repository for your install of EPD is located:
 %(epd_repo)s
 
 Your OpenID and the location of the EPD repository will be stored in the
-Enstaller configuration file
-%(path)s
+Enstaller configuration file %(path)s
 which you may change at any point by editing the file.
 See the configuration file for more details.
 
@@ -111,47 +110,45 @@ SetuptoolsRepos = [
     fo.close()
 
 
-def parse():
+def read():
     """
-    Return the current configuration.
+    Return the current configuration as a dictionary, or None if the
+    configuration file does not exist:
     """
-    pass
+    path = get_path()
+    if not path:
+        return None
+    d = {}
+    execfile(path, d)
+    res = {}
+    for v in ['EPD_OpenID', 'IndexedRepos', 'SetuptoolsRepos']:
+        res[v] = d[v]
+    return res
 
 
-def get_configured_repos(verbose=False):
+def get_configured_repos():
     """
-    Return the set of repository urls in our config file.
-
-    The config file allows for a declaration of unstable repos as well, but
-    these are only included in the returned set if the 'unstable' argument is
-    true.
-
+    Return the set of Setuptools repository urls in our config file.
     """
-    results = []
+    conf = read()
+    if not conf:
+        return []
 
-    # Add all the stable repos to the results list in the sorted order
-    # of their keys.
-    cp = get_config(verbose=verbose)
-    for name, value in sorted(cp.items('repos')):
-        value = value.strip()
-        if not value.startswith('#') and not value.endswith(',index'):
-            results.append(value)
-
-    return results
+    return [url for url in conf['SetuptoolsRepos']
+            if not url.endswith(',index')]
 
 
-def get_configured_index(verbose=True):
+def get_configured_index():
     """
     Return the index that is set in our config file.
-
     """
+    conf = read()
+    if not conf:
+        return 'http://pypi.python.org/simple'
+
     # Find all of the index urls specified in the stable repos list.
-    results = []
-    cp = get_config()
-    for name, value in sorted(cp.items('repos')):
-        value = value.strip()
-        if value.endswith(',index'):
-            results.append(value[:-6])
+    results = [url[:-6] for url in conf['SetuptoolsRepos']
+               if url.endswith(',index')]
 
     # If there was only one index url found, then just return it.
     # If the user specified more than one index url in the config file,
@@ -159,17 +156,15 @@ def get_configured_index(verbose=True):
     # we return None.
     if len(results) == 1:
         return results[0]
-    elif len(results) > 1:
-        if verbose:
-            print ("Warning:  You specified more than one index URL in the "
-                "config file.  Only the first one found will be used.")
+
+    if len(results) > 1:
+        print ("Warning:  You specified more than one index URL in the "
+               "config file.  Only the first one found will be used.")
         return results[0]
-    else:
-        # FIXME:  For now we just return 'dummy' if no index URL is specified,
-        # but eventually we would like to modify the setuptools code base to
-        # not have to use an index URL.
-        return None
+
+    return None
 
 
 if __name__ == '__main__':
-    write_default()
+    write()
+    print read()

@@ -180,6 +180,7 @@ def open_with_auth(url):
     """
     Open a urllib2 request, handling HTTP authentication
     """
+    import enstaller.config as config
     try:
         import custom_tools
     except ImportError:
@@ -197,9 +198,13 @@ def open_with_auth(url):
                       for i, c in enumerate(custom_tools.epd_auth[12:-12]))
         assert tmp.endswith('@')
         auth = tmp[:-1]
-    # TODO: get query from config file
-    # query = OpenID
-    # Attempt the request
+        conf = config.read()
+        if not conf:
+            raise Exception("Could find Enstaller configuration")
+        openid = conf['EPD_OpenID'].strip()
+        if not openid:
+            raise Exception("OpenID is empty")
+        query = 'OpenID=%s' % openid
     if auth:
         coded_auth = "Basic " + urllib2.unquote(auth).encode('base64').strip()
         new_url = urlparse.urlunparse((scheme, host, path,

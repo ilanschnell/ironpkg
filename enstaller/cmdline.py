@@ -496,8 +496,7 @@ def main():
     remote_repos = [HTMLRepository(arg, verbose=options.verbose) for arg in
         options.find_links]
     remote_repos.extend([HTMLRepository(u, verbose=options.verbose) for u in
-        get_configured_repos(unstable=options.allow_unstable,
-        verbose=options.verbose)])
+        get_configured_repos()])
     remote_repos.append(HTMLRepository(get_configured_index(), index=True,
         verbose=options.verbose))
 
