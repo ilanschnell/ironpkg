@@ -1,7 +1,12 @@
 
+4.0.0
+-----
+* replacing enpkg by new-enpkg
+
+
 3.1.1
 -----
-
+* more work on new-enpkg command and egginst
 
 
 3.1.0

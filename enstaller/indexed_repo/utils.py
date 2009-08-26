@@ -7,6 +7,7 @@ from os.path import basename
 
 from egginst.utils import human_bytes, rm_rf
 
+from enstaller import __version__
 
 
 DIST_PAT = re.compile(r'(local:|file://.*[\\/]|http://.+/)([^\\/]+)$')
@@ -179,11 +180,10 @@ def open_with_auth(url):
     """
     Open a urllib2 request, handling HTTP authentication
     """
-    from enstaller import __version__
     try:
         import custom_tools
     except ImportError:
-        custom_tools = False
+        custom_tools = None
 
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
     assert not query
