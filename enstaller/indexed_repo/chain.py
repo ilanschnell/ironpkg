@@ -235,7 +235,8 @@ class Chain(object):
                 dists.append(dist)
             else:
                 print 'ERROR: No distribution found for: %r' % r
-                print '       required by: %s' % d
+                if d != 'local:ROOT':
+                    print '       required by: %s' % d
                 sys.exit(1)
         dists.sort()
 

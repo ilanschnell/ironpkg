@@ -13,7 +13,7 @@ from enstaller import __version__
 
 CONFIG_FN = ".enstaller4rc"
 HOME_CONFIG_PATH = abspath(expanduser("~/" + CONFIG_FN))
-SYSTEM_CONFIG_PATH = abspath(join(get_python_lib(), CONFIG_FN))
+SYSTEM_CONFIG_PATH = join(get_python_lib(), CONFIG_FN)
 
 
 def get_path():
@@ -56,6 +56,35 @@ file for more details.
 """ % epd_repo
     return openid
 
+RC_TMPL = """\
+# Enstaller configuration file
+# ============================
+#
+# This file contains the default package repositories used by
+# Enstaller (version 4) for Python %(py_ver)s installed in:
+#
+#     %(prefix)s
+#
+# This file created by initially running the enpkg command.
+
+# EPD subscriber OpenID:
+%(openid_line)s
+
+
+# This list of repositories may include the EPD repository.  However,
+# if the EPD repository is listed here things will only work if the
+# correct EPD subscriber OpenID is provided above.
+IndexedRepos = %(repos)s
+
+
+# Setuptools (easy_install) repositories, the index URL is specified by
+# appending a ',index' to the end of a URL.  There can only be one index
+# listed here and when this file is created by default the index is set to
+# the PyPI index.
+SetuptoolsRepos = [
+    'http://pypi.python.org/simple,index',  # Python Package Index
+]
+"""
 
 def write():
     """
@@ -94,35 +123,7 @@ def write():
         openid_line = "#EPD_OpenID = ''"
 
     fo = open(path, 'w')
-    fo.write("""\
-# Enstaller configuration file
-# ============================
-#
-# This file contains the default package repositories used by
-# Enstaller (version 4) for Python %(py_ver)s installed in:
-#
-#     %(prefix)s
-#
-# This file created by initially running the enpkg command.
-
-# EPD subscriber OpenID:
-%(openid_line)s
-
-
-# This list of repositories may include the EPD repository.  However,
-# if the EPD repository is listed here things will only work if the
-# correct EPD subscriber OpenID is provided above.
-IndexedRepos = %(repos)s
-
-
-# Setuptools (easy_install) repositories, the index URL is specified by
-# appending a ',index' to the end of a URL.  There can only be one index
-# listed here and when this file is created by default the index is set to
-# the PyPI index.
-SetuptoolsRepos = [
-    'http://pypi.python.org/simple,index',  # Python Package Index
-]
-""" % locals())
+    fo.write(RC_TMPL % locals())
     fo.close()
     print "Wrote configuration file:", path
     print 70 * '='
