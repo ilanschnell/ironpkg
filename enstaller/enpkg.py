@@ -9,7 +9,8 @@ import config
 from indexed_repo import resolve, filename_dist, pprint_fn_action, pprint_repo
 
 
-def configure():
+
+def configure(opts):
     if config.get_path() is None:
         config.write()
     conf = config.read()
@@ -21,7 +22,16 @@ def configure():
     if not isdir(local):
         os.mkdir(local)
 
-    return local, conf['IndexedRepos']
+    repos = conf['IndexedRepos']
+
+    if opts.verbose:
+        print "configuration:"
+        print "\tlocal = %r" % local
+        print "\trepos:"
+        for repo in repos:
+            print '\t    %r' % repo
+
+    return local, repos
 
 
 def main():
@@ -56,15 +66,18 @@ def main():
                  default=False,
                  help="don't download (or install) dependencies")
 
+    p.add_option('--version',
+                 action="store_true",
+                 default=False)
+
     opts, args = p.parse_args()
 
-    local, repos = configure()
-    if opts.verbose:
-        print "configuration:"
-        print "\tlocal = %r" % local
-        print "\trepos:"
-        for repo in repos:
-            print '\t    %r' % repo
+    if opts.version:
+        from enstaller import __version__
+        print "Enstaller version:", __version__
+        sys.exit(0)
+
+    local, repos = configure(opts)
 
     req_string = ' '.join(args)
     if opts.list: # --list

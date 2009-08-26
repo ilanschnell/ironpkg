@@ -416,12 +416,12 @@ def list_installed(interactive=True, term_width=0):
 
 def setup_parser():
     description = """\
-Utility for managing packages in the site-packages directory.
+Utility for managing setuptools packages in the site-packages directory.
 The command needs to be one of the following: install, upgrade, update,
 rollback, remove, list, save_state
 """
-
-    parser = OptionParser(usage="usage: enpkg command [options]",
+    prog = os.path.basename(sys.argv[0])
+    parser = OptionParser(usage="usage: %s command [options]" % prog,
                           description=description,
                           version="Enstaller version %s" % __version__)
 

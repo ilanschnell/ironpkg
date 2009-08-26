@@ -29,6 +29,34 @@ def get_path():
     return None
 
 
+def input_openid(epd_repo):
+    print """\
+Welcome to Enstaller (version %s)!
+
+Please enter your OpenID which you use to subscribe to EPD.
+If you are not subscribed to EPD, please hit Return.
+""" % __version__
+    while True:
+        openid = raw_input('OpenID: ').strip()
+        if not openid:
+            return ''
+        print "You have entered:", openid
+        tmp = raw_input("Correct? [y/n]: ")
+        if tmp.lower().startswith('y'):
+            break
+    print 70 * '=' + """
+Welcome to the EPD subscriber repository!
+The package repository for your install of EPD is located:
+
+    %s
+
+Your OpenID and this URL are stored in the Enstaller configuration file,
+which may be change at any point by editing the file, see the configuration
+file for more details.
+""" % epd_repo
+    return openid
+
+
 def write():
     """
     Return the default state of this project's config file.
@@ -47,35 +75,23 @@ def write():
 
     epd_repo = None
     if (custom_tools and hasattr(custom_tools, 'epd_baseurl') and
-            hasattr(custom_tools, 'epd_subdir')):
+                         hasattr(custom_tools, 'epd_subdir')):
         epd_repo = custom_tools.epd_baseurl + custom_tools.epd_subdir +'/'
-    else:
-        epd_repo = None
 
-    enst_ver = __version__
+    openid = ''
     if epd_repo:
-        print """\
-Welcone Enstaller (version %(enst_ver)s)!
+        openid = input_openid(epd_repo)
 
-Please enter your OpenID which you use to subscribe to EPD.
-The repository for your install of EPD is located:
-%(epd_repo)s
-
-Your OpenID and the location of the EPD repository will be stored in the
-Enstaller configuration file %(path)s
-which you may change at any point by editing the file.
-See the configuration file for more details.
-
-If you are not subscribed to EPD, just hit Return.
-""" % locals()
-        openid = raw_input('OpenID: ').strip()
+    repos = '[]'
+    if openid:
         repos = '[\n    %r,\n]' % epd_repo
-    else:
-        openid = ''
-        repos = '[]'
 
     py_ver = sys.version[:3]
     prefix = sys.prefix
+    if openid:
+        openid_line = "EPD_OpenID = %r" % openid
+    else:
+        openid_line = "#EPD_OpenID = ''"
 
     fo = open(path, 'w')
     fo.write("""\
@@ -83,14 +99,14 @@ If you are not subscribed to EPD, just hit Return.
 # ============================
 #
 # This file contains the default package repositories used by
-# Enstaller-%(enst_ver)s for Python %(py_ver)s installed in:
+# Enstaller (version 4) for Python %(py_ver)s installed in:
 #
 #     %(prefix)s
 #
 # This file created by initially running the enpkg command.
 
 # EPD subscriber OpenID:
-EPD_OpenID = %(openid)r
+%(openid_line)s
 
 
 # This list of repositories may include the EPD repository.  However,
@@ -99,7 +115,7 @@ EPD_OpenID = %(openid)r
 IndexedRepos = %(repos)s
 
 
-# Setuptools (easy_install) repositories, the index url is specified by
+# Setuptools (easy_install) repositories, the index URL is specified by
 # appending a ',index' to the end of a URL.  There can only be one index
 # listed here and when this file is created by default the index is set to
 # the PyPI index.
@@ -108,6 +124,8 @@ SetuptoolsRepos = [
 ]
 """ % locals())
     fo.close()
+    print "Wrote configuration file:", path
+    print 70 * '='
 
 
 def read():

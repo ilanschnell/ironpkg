@@ -194,17 +194,18 @@ def open_with_auth(url):
         hasattr(custom_tools, 'epd_baseurl') and
         url.startswith(custom_tools.epd_baseurl)
         ):
-        tmp = ''.join(chr(ord(c) ^ (3 + i))
-                      for i, c in enumerate(custom_tools.epd_auth[12:-12]))
-        assert tmp.endswith('@')
-        auth = tmp[:-1]
         conf = config.read()
-        if not conf:
-            raise Exception("Could find Enstaller configuration")
-        openid = conf['EPD_OpenID'].strip()
-        if not openid:
-            raise Exception("OpenID is empty")
-        query = 'OpenID=%s' % openid
+        if conf is None:
+            raise Exception("Could not locate Enstaller configuration file")
+        openid = conf.get('EPD_OpenID')
+        if openid:
+            tmp = ''.join(chr(ord(c) ^ (3 + i))
+                    for i, c in enumerate(custom_tools.epd_auth[12:-12]))
+            assert tmp.endswith('@')
+            auth = tmp[:-1]
+            query = 'OpenID=%s' % urllib2.quote(openid)
+        else:
+            print "WARNING: OpenID missing in: %s" % config.get_path()
     if auth:
         coded_auth = "Basic " + urllib2.unquote(auth).encode('base64').strip()
         new_url = urlparse.urlunparse((scheme, host, path,
