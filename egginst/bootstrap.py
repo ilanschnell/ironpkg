@@ -4,7 +4,7 @@ import zipfile
 import shutil
 import tempfile
 import ConfigParser
-from os.path import basename, isfile, join
+from os.path import basename, isfile, isdir, join
 from distutils.sysconfig import get_python_lib
 
 import egginst.scripts
@@ -76,6 +76,9 @@ def main():
     conf.read(tmp_pth)
     os.unlink(tmp_pth)
 
+    bin_dir = egginst.scripts.bin_dir
+    if not isdir(bin_dir):
+        os.mkdir(bin_dir)
     egginst.scripts.create(egg, conf)
 
     # Finally, if there an easy-install.pth in site-packages, remove and
