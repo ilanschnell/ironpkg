@@ -82,6 +82,6 @@ def main():
     # occurrences of Enstaller from it.
     pth = join(sp, 'easy-install.pth')
     if isfile(pth):
-        fix_easy_pth()
+        fix_easy_pth(pth)
 
     return 0
