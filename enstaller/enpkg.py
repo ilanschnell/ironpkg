@@ -101,10 +101,17 @@ def main():
 
     check_write()
 
+    # 'active' is a list of the egg names which are currently active.
+    if opts.force:
+        active = []
+    else:
+        active = ['%s.egg' % s for s in egginst.get_active()]
+
     dists = resolve(req_string, local, repos,
                     recur=not opts.no_deps,
                     fetch=not opts.dry_run,
                     fetch_force=opts.force,
+                    fetch_exclude=active,
                     verbose=opts.verbose)
 
     if opts.dry_run:
@@ -112,12 +119,11 @@ def main():
             print d
         return
 
-    print 77 * '='
-    active = egginst.get_active()
+    print 77 * '='    
     for dist in dists:
         egg_name = filename_dist(dist)
         assert egg_name.endswith('.egg')
-        if not opts.force and egg_name[:-4] in active:
+        if egg_name in active:
             pprint_fn_action(egg_name, 'already active')
             continue
         egg_path = join(local, egg_name)

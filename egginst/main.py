@@ -295,7 +295,9 @@ def activate(dn):
 
 def get_active():
     """
-    return a sroted list of all installed (active) packages
+    Returns a sorted list of all installed (active) packages.  Each
+    element is the filename, excluding the .egg extension, of the egg
+    which was used to install the package.
     """
     if not isdir(EGG_INFO_DIR):
         return []
@@ -312,7 +314,8 @@ def get_active():
 
 def get_deactive():
     """
-    returns the set of all deactivated projects
+    Returns the set of all deactivated projects, the format of each
+    element in the set is the as the get_active() function uses.
     """
     if not isdir(DEACTIVE_DIR):
         return []

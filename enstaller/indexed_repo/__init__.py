@@ -15,8 +15,9 @@ from utils import canonical, filename_dist, pprint_fn_action
 
 
 
-def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
-            fetch_force=False, verbose=False, check_md5=False):
+def resolve(req_string, local=None, repos=[], recur=True,
+            fetch=False, fetch_force=False, fetch_exclude=[],
+            verbose=False, check_md5=False):
     """
     Resolves a requirement in a chain of indexed repositories.  An optional
     local repository, which is not indexed, can be specified.  This local
@@ -50,6 +51,10 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
     fetch:
         Download (http://) of copy (file://) the resolved distributions into
         the local repository.
+
+    fetch_exclude:
+        An iterable of eggnames which should be excluded from being fetched.
+        The default is an empty list.
 
     fetch_force:
         allow force when fetching
@@ -89,6 +94,8 @@ def resolve(req_string, local=None, repos=[], recur=True, fetch=False,
 
     if fetch:
         for dist in dists:
+            if filename_dist(dist) in fetch_exclude:
+                continue
             if verbose:
                 print 70 * '='
                 print 'fetching: %r' % dist
