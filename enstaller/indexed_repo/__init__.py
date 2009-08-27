@@ -5,6 +5,7 @@ This is the indexed_repo API
 This file contains higher level functions.
 
 """
+import re
 import string
 from os.path import join, isfile
 
@@ -104,23 +105,31 @@ def resolve(req_string, local=None, repos=[], recur=True,
     return dists
 
 
-def pprint_repo(local=None, repos=[], start=""):
+def pprint_repo(local=None, repos=[], rx="?"):
     """
     Pretty print the distributions available in a repo, i.e. a "virtual"
     repo made of a chain of (indexed) repos.
-
-    start:
-        print only items which start with this string (case insensitive).
     """
     c = Chain(local, repos)
-    start = canonical(start)
     names = set(spec['name'] for spec in c.index.itervalues())
+
+    if rx != '?':
+        pat = re.compile(rx, re.I)
+
+    print "Packages available on:"
+    for repo in repos:
+        print repo
+    print
+
+    fmt = "%-20s %s"
+    print fmt % ('Project name', 'Versions')
+    print 40 * '-'
 
     for name in sorted(names, key=string.lower):
         r = Req(name)
         versions = set()
         for dist in c.get_matches(r):
-            if str(dist_as_req(dist)).startswith(start):
+            if rx == '?' or pat.search(name):
                 versions.add(c.index[dist]['version'])
         if versions:
-            print "%-20s %s" % (name, ', '.join(sorted(versions)))
+            print fmt % (name, ', '.join(sorted(versions)))

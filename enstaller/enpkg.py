@@ -50,7 +50,7 @@ def main():
     from optparse import OptionParser
 
     p = OptionParser(
-        usage="usage: %prog [options] Requirement",
+        usage="usage: %prog [options] [Requirement]",
         prog=basename(sys.argv[0]),
         description=("download and install eggs ..."))
 
@@ -66,8 +66,15 @@ def main():
     p.add_option('-l', "--list",
                  action="store_true",
                  default=False,
-                 help="list all packages (with their versions) available "
-                      "on the repo (chain), and exit")
+                 help="list the packages currently installed on the system")
+
+    p.add_option('-s', "--search",
+                 action="store",
+                 default=None,
+                 help="search the index in the repo (chain) of packages "
+                      "and display versions available.  Type '-s ?' to "
+                      "display available versions for all packages.",
+                 metavar='STR')
 
     p.add_option('-v', "--verbose",
                  action="store_true",
@@ -87,13 +94,18 @@ def main():
     if opts.version:
         from enstaller import __version__
         print "Enstaller version:", __version__
-        sys.exit(0)
+        return
 
     local, repos = configure(opts)
 
     req_string = ' '.join(args)
+
     if opts.list:
-        pprint_repo(local, repos, req_string)
+        egginst.print_list()
+        return
+
+    if opts.search:
+        pprint_repo(repos=repos, rx=opts.search)
         return
 
     if not args:
@@ -103,6 +115,8 @@ def main():
 
     # 'active' is a list of the egg names which are currently active.
     if opts.force:
+        # --force simply assumes that no packages are yet installed
+        # to forces the install
         active = []
     else:
         active = ['%s.egg' % s for s in egginst.get_active()]
@@ -115,11 +129,15 @@ def main():
                     verbose=opts.verbose)
 
     if opts.dry_run:
+        print "These packages would be downloaded and installed"
         for d in dists:
-            print d
+            egg_name = filename_dist(d)
+            if egg_name in active:
+                continue
+            print egg_name
         return
 
-    print 77 * '='    
+    print 77 * '='
     for dist in dists:
         egg_name = filename_dist(dist)
         assert egg_name.endswith('.egg')
