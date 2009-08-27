@@ -15,6 +15,26 @@ class Dummy(object):
     pass
 
 
+def fix_easy_pth(pth):
+    new_lines = []
+    needs_rewrite = False
+    fi = open(pth)
+    for line in fi:
+        line = line.strip()
+        if 'enstaller' in line.lower():
+            needs_rewrite = True
+        else:
+            new_lines.append(line)
+    fi.close()
+
+    if needs_rewrite:
+        fo = open(pth, 'w')
+        for line in new_lines:
+            fo.write(line + '\n')
+        fo.close()
+        print "Removed entry of Enstaller from:", pth
+
+
 def main():
     """
     To bootstrap Enstaller into a Python environment, used the following
@@ -38,10 +58,10 @@ def main():
 
     # Create Enstaller.pth in site-packages
     fo = open(join(sp, 'Enstaller.pth'), 'w')
-    fo.write('./%s\n' + basename(egg_path))
+    fo.write('./%s\n' % basename(egg_path))
     fo.close()
 
-    # The rest of this function creates the scripts
+    # Create the scripts
     egg = Dummy()
     egg.fpath = egg_path
     egg.files = []
@@ -57,5 +77,11 @@ def main():
     os.unlink(tmp_pth)
 
     egginst.scripts.create(egg, conf)
+
+    # Finally, if there an easy-install.pth in site-packages, remove and
+    # occurrences of Enstaller from it.
+    pth = join(sp, 'easy-install.pth')
+    if isfile(pth):
+        fix_easy_pth()
 
     return 0

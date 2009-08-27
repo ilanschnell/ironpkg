@@ -92,7 +92,7 @@ def main():
     local, repos = configure(opts)
 
     req_string = ' '.join(args)
-    if opts.list: # --list
+    if opts.list:
         pprint_repo(local, repos, req_string)
         return
 

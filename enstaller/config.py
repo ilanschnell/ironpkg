@@ -30,11 +30,15 @@ def get_path():
 
 
 def input_openid(epd_repo):
+    import time
+    import urllib2
+
     print """\
 Welcome to Enstaller (version %s)!
 
-Please enter your OpenID which you use to subscribe to EPD.
-If you are not subscribed to EPD, please hit Return.
+In order to access the EPD repository, please enter
+the OpenID which you use to subscribe to EPD.
+If you are not subscribed to EPD, hit Return.
 """ % __version__
     while True:
         openid = raw_input('OpenID: ').strip()
@@ -42,18 +46,15 @@ If you are not subscribed to EPD, please hit Return.
             return ''
         print "You have entered:", openid
         tmp = raw_input("Correct? [y/n]: ")
-        if tmp.lower().startswith('y'):
+        if tmp.lower() in ('y', 'yes'):
             break
-    print 70 * '=' + """
-Welcome to the EPD subscriber repository!
-The package repository for your install of EPD is located:
-
-    %s
-
-Your OpenID and this URL are stored in the Enstaller configuration file,
-which may be change at any point by editing the file, see the configuration
-file for more details.
-""" % epd_repo
+    print "Authenticating..."
+    fi = urllib2.urlopen('http://www.enthought.com/')
+    data = fi.read()
+    fi.close()
+    time.sleep(0.75)
+    print "EPD repo url:", epd_repo
+    time.sleep(0.75)
     return openid
 
 RC_TMPL = """\
@@ -126,7 +127,7 @@ def write():
     fo.write(RC_TMPL % locals())
     fo.close()
     print "Wrote configuration file:", path
-    print 70 * '='
+    print 77 * '='
 
 
 def read():
