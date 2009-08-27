@@ -1,5 +1,8 @@
+# This module implements PEP 386
+# 2009-08-27: hg clone http://bitbucket.org/tarek/distutilsversion/
 """
-"Rational" version definition and parsing for DistutilsVersionFight discussion at PyCon 2009.
+"Rational" version definition and parsing for DistutilsVersionFight discussion
+at PyCon 2009.
 """
 import sys
 import re
@@ -136,7 +139,7 @@ class RationalVersion(object):
                        pad_zeros_length=0):
         """Parse 'N.N.N' sequences, return a list of ints.
 
-        @param s {str} 'N.N.N..." sequence to be parsed
+        @param s {str} 'N.N.N...' sequence to be parsed
         @param full_ver_str {str} The full version string from which this
             comes. Used for error strings.
         @param drop_trailing_zeros {bool} Whether to drop trailing zeros
@@ -290,4 +293,3 @@ def suggest_rational_version(s):
     except IrrationalVersionError:
         pass
     return None
-

@@ -9,7 +9,9 @@ from os.path import basename, getsize, isfile, isdir, join
 
 import metadata
 import utils
-from requirement import Req, add_Reqs_to_spec, filter_name
+from requirement import Req, add_Reqs_to_spec, filter_name, dist_as_req
+
+from enstaller.verlib import RationalVersion
 
 
 
@@ -116,12 +118,13 @@ class Chain(object):
 
     def get_version_build(self, dist):
         """
-        Returns a tuple(version, build) for a distribution.  This method is
-        used below for determining the distribution with the largest version
-        and build number.
+        Returns a tuple(version, build) for a distribution, version is a
+        RationalVersion object (see verlib).  This method is used below
+        for determining the distribution with the largest version and build
+        number.
         """
         spec = self.index[dist]
-        return spec['version'], spec['build']
+        return RationalVersion(spec['version']), spec['build']
 
 
     def get_dist(self, req):
@@ -191,6 +194,7 @@ class Chain(object):
         # the root requirement (in the argument) itself maps to recursion
         # level 0 and a non-existent distribution (because the required by
         # the argument of this function and not any other distribution)
+        assert req.strictness == 3, req
         reqs1 = {req: (0, 'local:ROOT')}
 
         # add all requirements for the root requirement
@@ -226,8 +230,14 @@ class Chain(object):
         distributions can be installed in this order without any package
         being installed before its dependencies got installed.
         """
-        # the distributions corresponding to the requirements must be sorted
-        # because the output of this function is otherwise not deterministic
+        if self.verbose:
+            print "Determining install order for %r" % req
+        dist_required = self.get_dist(req)
+        req = dist_as_req(dist_required)
+        if self.verbose:
+            print dist_required
+            print "Requirement: %r" % req
+
         dists = []
         for r, d in self.get_reqs(req).iteritems():
             dist = self.get_dist(r)
@@ -238,6 +248,9 @@ class Chain(object):
                 if d != 'local:ROOT':
                     print '       required by: %s' % d
                 sys.exit(1)
+
+        # the distributions corresponding to the requirements must be sorted
+        # because the output of this function is otherwise not deterministic
         dists.sort()
 
         # maps dist -> set of required (project) names
@@ -261,8 +274,7 @@ class Chain(object):
                     assert len(names_inst) == len(res)
             if len(res) == n:
                 # nothing was added
-                print "WARNING: Loop in the dependency graph"
-                break
+                raise Exception("Loop in the dependency graph")
         return res
 
     # --------------- methods which access the local repo -----------------
