@@ -12,7 +12,7 @@ import egginst.utils
 
 
 site_dir = get_python_lib()
-
+bin_dir = egginst.scripts.bin_dir
 
 class Dummy(object):
     pass
@@ -56,14 +56,25 @@ def create_scripts(egg_path):
     tmp_pth = join(site_dir, 'Enstaller_entry.txt')
     open(tmp_pth, 'w').write(txt)
     conf.read(tmp_pth)
-    os.unlink(tmp_pth)
+    egginst.utils.rm_rf(tmp_pth)
 
     # Make sure the target directory exists
-    if not isdir(egginst.scripts.bin_dir):
-        os.mkdir(egginst.scripts.bin_dir)
+    if not isdir(bin_dir):
+        os.mkdir(bin_dir)
 
     # Create the actual scripts
     egginst.scripts.create(egg, conf)
+
+
+def remove_old_files():
+    # remove files/directories from site-packages
+    for fn in ['site.py', 'setuptools', 'pkg_resources.py', 'easy_install.py',
+               'enstaller', 'egginst', 'Enstaller.egg-link']:
+        path = join(site_dir, fn)
+        egginst.utils.rm_rf(path)
+        if fn.endswith('.py'):
+            egginst.utils.rm_rf(path + 'c')
+            egginst.utils.rm_rf(path + 'o')
 
 
 def main():
@@ -85,6 +96,10 @@ def main():
     if not isfile(egg_path):
         raise Exception("Not a file: %r" % egg_path)
     assert egg_name.startswith("Enstaller-"), egg_name
+
+    # Remove old Enstaller/setuptools files which could cause problems
+    # for this install, and which we don't want to have on the system
+    remove_old_files()
 
     # Make sure we're modules from the new Enstaller egg
     reload(egginst.scripts)
