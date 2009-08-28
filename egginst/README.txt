@@ -1,4 +1,3 @@
-
 egginst
 =======
 
@@ -14,6 +13,3 @@ to easy_install are:
     install shared libraries, change binary headers, etc., things which
     require special post install scripts if (Enstaller) easy_install installs
     them.
-
-  * The install is much more direct and kept simple.  This is probably the
-    biggest difference to easy_install.

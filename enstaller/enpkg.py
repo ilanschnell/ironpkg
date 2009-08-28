@@ -99,9 +99,9 @@ def main():
     local, repos = configure(opts)
 
     req_string = ' '.join(args)
-
+    
     if opts.list:
-        egginst.print_list()
+        egginst.print_active()
         return
 
     if opts.search:
@@ -137,7 +137,7 @@ def main():
             print egg_name
         return
 
-    print 77 * '='
+    print 77 * '='    
     for dist in dists:
         egg_name = filename_dist(dist)
         assert egg_name.endswith('.egg')

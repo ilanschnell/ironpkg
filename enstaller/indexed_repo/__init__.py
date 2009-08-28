@@ -128,10 +128,10 @@ def pprint_repo(local=None, repos=[], rx="?"):
 
     for name in sorted(names, key=string.lower):
         r = Req(name)
-        versions = []
+        versions = set()
         for dist in c.get_matches(r):
             if rx == '?' or pat.search(name):
-                versions.append(c.index[dist]['version'])
-        versions.sort(key=comparable_version)
+                versions.add(c.index[dist]['version'])
         if versions:
-            print fmt % (name, ', '.join(versions))
+            lst = sorted(versions, key=comparable_version)
+            print fmt % (name, ', '.join(lst))

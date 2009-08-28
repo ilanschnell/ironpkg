@@ -103,6 +103,7 @@ class EggInst(object):
         fo.write('# egginst metadata\n')
         fo.write('egg_name = %r\n' % basename(self.fpath))
         fo.write('prefix = %r\n' % sys.prefix)
+        fo.write('installed_size = %i\n' % self.installed_size)
         fo.write('rel_files = [\n')
         fo.write('  %r,\n' % rel_prefix(self.meta_txt))
         for f in self.files:
@@ -113,7 +114,7 @@ class EggInst(object):
     def read_meta(self):
         d = {}
         execfile(self.meta_txt, d)
-        for name in ['egg_name', 'prefix', 'rel_files']:
+        for name in ['egg_name', 'prefix', 'installed_size', 'rel_files']:
             setattr(self, name, d[name])
         self.files = [join(self.prefix, f) for f in d['rel_files']]
 
@@ -130,9 +131,9 @@ class EggInst(object):
                 continue
             yield line
 
+
     def extract(self):
-        cur = 0
-        n = 0
+        cur = n = 0
         size = sum(self.z.getinfo(name).file_size
                    for name in self.arcnames)
         sys.stdout.write('%9s [' % human_bytes(size))
@@ -145,8 +146,10 @@ class EggInst(object):
                 cur += 1
             self.write_arcname(name)
 
+        self.installed_size = size
         sys.stdout.write('.' * (65-cur) + ']\n')
         sys.stdout.flush()
+
 
     def get_dst(self, arcname):
         dispatch = [
@@ -232,14 +235,26 @@ class EggInst(object):
             return
 
         self.read_meta()
+        cur = n = 0
+        nof = len(self.files) # number of files
+        sys.stdout.write('%9s [' % human_bytes(self.installed_size))
         self.install_app(remove=True)
         self.run('pre_egguninst.py')
 
         for p in self.files:
+            n += 1
+            rat = float(n) / nof
+            if rat * 64 >= cur:
+                sys.stdout.write('.')
+                sys.stdout.flush()
+                cur += 1
             if islink(p) or isfile(p):
                 os.unlink(p)
         self.rmdirs()
         rm_rf(self.meta_dir)
+        sys.stdout.write('.' * (65-cur) + ']\n')
+        sys.stdout.flush()
+
 
     def deactivate(self):
         """
@@ -314,7 +329,7 @@ def get_active():
 
 def get_deactive():
     """
-    Returns the set of all deactivated projects, the format of each
+    Returns a sorted list of all deactivated projects, the format of each
     element in the set is the as the get_active() function uses.
     """
     if not isdir(DEACTIVE_DIR):
@@ -325,7 +340,7 @@ def get_deactive():
     return res
 
 
-def print_list():
+def print_all():
     fmt = '%-20s %-20s %s'
     print fmt % ('Project name', 'Version', 'Active')
     print 50 * '='
@@ -350,6 +365,16 @@ def print_list():
         names.add(row[0])
 
 
+def print_active():
+    fmt = '%-20s %s'
+    print fmt % ('Project name', 'Version')
+    print 40 * '='
+
+    for fn in get_active():
+        print fmt % tuple(fn.split('-', 1))
+
+
+
 def main():
     from optparse import OptionParser
 
@@ -363,11 +388,11 @@ def main():
 
     p.add_option('-a', "--activate",
                  action="store_true",
-                 help="activate deactivated package(s)")
+                 help="activate deactivated packages")
 
     p.add_option('-d', "--deactivate",
                  action="store_true",
-                 help="deactives installed package(s)")
+                 help="deactives installed packages (experimental feature)")
 
     p.add_option('-l', "--list",
                  action="store_true",
@@ -389,7 +414,7 @@ def main():
     if opts.list:
         if args:
             p.error("--list takes no arguments")
-        print_list()
+        print_all()
         return
 
     for name in args:

@@ -42,25 +42,6 @@ get_deactive():
 print_list():
     write a list packages, both active and deactive, in a formatted manner
     to stdout.
-
-bootstrap():
-    see below
-
 """
-from os.path import dirname
-
-from egginst.main import EggInst, activate, get_active, get_deactive, print_list
-
-
-def bootstrap(verbose=False):
-    """
-    To bootstrap Enstaller from within Python:
-
-    sys.path.insert(0, <path to the Enstaller egg>)
-    import egginst
-    egginst.bootstrap()
-    """
-    egg_path = dirname(dirname(__file__))
-
-    print "Bootstrapping:", egg_path
-    EggInst(egg_path, verbose).install()
+from egginst.main import (EggInst, activate, get_active, get_deactive,
+                          print_active)
