@@ -54,19 +54,19 @@ def main():
         prog=basename(sys.argv[0]),
         description=("download and install eggs ..."))
 
-    p.add_option('-n', "--dry-run",
-                 action="store_true",
-                 default=False)
-
     p.add_option('-f', "--force",
                  action="store_true",
                  default=False,
-                 help="force download and install")
+                 help="force download/install/remove")
 
     p.add_option('-l', "--list",
                  action="store_true",
                  default=False,
                  help="list the packages currently installed on the system")
+
+    p.add_option("--remove",
+                 action="store_true",
+                 default=False)
 
     p.add_option('-s', "--search",
                  action="store",
@@ -113,48 +113,68 @@ def main():
 
     check_write()
 
+    if opts.remove:
+        dists = resolve(req_string, local, 
+                        recur=not opts.no_deps,
+                        verbose=opts.verbose)
+        for dist in dists:
+            egg_r = filename_dist(dist)
+            pprint_fn_action(egg_r, 'removing')
+            egginst.EggInst(egg_r, opts.verbose).remove()
+        return
+
     # 'active' is a list of the egg names which are currently active.
-    if opts.force:
-        # --force simply assumes that no packages are yet installed
-        # to forces the install
-        active = []
-    else:
-        active = ['%s.egg' % s for s in egginst.get_active()]
+    active = ['%s.egg' % s for s in egginst.get_active()]
 
     dists = resolve(req_string, local, repos,
                     recur=not opts.no_deps,
-                    fetch=not opts.dry_run,
+                    fetch=True,
                     fetch_force=opts.force,
-                    fetch_exclude=active,
+                    fetch_exclude=[] if opts.force else active,
                     verbose=opts.verbose)
 
-    if opts.dry_run:
-        print "These packages would be downloaded and installed"
-        for d in dists:
-            egg_name = filename_dist(d)
-            if egg_name in active:
-                continue
-            print egg_name
-        return
-
-    print 77 * '='
+    remove = []
     for dist in dists:
         egg_name = filename_dist(dist)
-        assert egg_name.endswith('.egg')
         if egg_name in active:
-            pprint_fn_action(egg_name, 'already active')
             continue
         cname = cname_eggname(egg_name)
-        for a in active:
-            if cname != cname_eggname(a):
-                continue
-            pprint_fn_action(a, 'removing')
-            egginst.EggInst(a, opts.verbose).remove()
+        for egg_a in active:
+            if cname == cname_eggname(egg_a):
+                remove.append(egg_a)
 
-        egg_path = join(local, egg_name)
-        pprint_fn_action(egg_name, 'installing')
-        egginst.EggInst(egg_path, opts.verbose).install()
+    install = []
+    for dist in dists:
+        egg_name = filename_dist(dist)
+        if egg_name not in active:
+            install.append(egg_name)
 
+    if opts.verbose:
+        print "These packages will be removed:"
+        for egg_r in remove:
+            print '\t' + egg_r[:-4]
+        print
+        print "These packages will be installed:"
+        for egg_i in install:
+            print '\t' + egg_i[:-4]
+        print
+
+    print 77 * '='
+    for egg_r in remove:
+        pprint_fn_action(egg_r, 'removing')
+        egginst.EggInst(egg_r, opts.verbose).remove()
+
+    for dist in dists:
+        egg_name = filename_dist(dist)
+        if opts.force or egg_name in install:
+            pprint_fn_action(egg_name, 'installing')
+            egg_path = join(local, egg_name)
+            egginst.EggInst(egg_path, opts.verbose).install()
+        else:
+            pprint_fn_action(egg_name, 'already active')
+            if egg_name not in active:
+                print "Hmm, %s not active" % egg_name
+        
 
 if __name__ == '__main__':
     main()
