@@ -53,6 +53,10 @@ class TestUtils(unittest.TestCase):
         s3 = comparable_spec(dict(version='2009c', build=1))
         self.assert_(s1 < s2 < s3)
 
+        s1 = comparable_spec(dict(version='0.7.0', build=1))
+        s2 = comparable_spec(dict(version='0.8.0.dev5876', build=2))
+        s3 = comparable_spec(dict(version='0.8.0', build=1))
+        self.assert_(s1 < s2 < s3)
 
 
 class TestReq(unittest.TestCase):

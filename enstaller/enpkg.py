@@ -6,8 +6,8 @@ from os.path import basename, expanduser, isdir, isfile, join
 import egginst
 
 import config
-from indexed_repo import (resolve, filename_dist, pprint_fn_action, print_repo,
-                          print_versions)
+from indexed_repo import (resolve, filename_dist, Chain,
+                          pprint_fn_action, print_repo, print_versions)
 from indexed_repo.utils import cname_eggname
 
 
@@ -70,6 +70,11 @@ def main():
                  default=False,
                  help="list the packages currently installed on the system")
 
+    p.add_option('-N', "--no-deps",
+                 action="store_true",
+                 default=False,
+                 help="don't download (or install) dependencies")
+
     p.add_option("--remove",
                  action="store_true",
                  default=False,
@@ -84,14 +89,14 @@ def main():
                       "display available versions for all packages.",
                  metavar='STR')
 
+    p.add_option("--test",
+                 action="store_true",
+                 default=False,
+                 help="perform some internal tests (for development only)")
+
     p.add_option('-v', "--verbose",
                  action="store_true",
                  default=False)
-
-    p.add_option('-N', "--no-deps",
-                 action="store_true",
-                 default=False,
-                 help="don't download (or install) dependencies")
 
     p.add_option('--version',
                  action="store_true",
@@ -119,6 +124,11 @@ def main():
 
     if opts.search:
         print_repo(repos=repos, rx=opts.search)
+        return
+
+    if opts.test:
+        c = Chain(local, repos, opts.verbose)
+        c.test()
         return
 
     args_n = len(args)
