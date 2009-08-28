@@ -11,8 +11,6 @@ import metadata
 import utils
 from requirement import Req, add_Reqs_to_spec, filter_name, dist_as_req
 
-from enstaller.verlib import RationalVersion
-
 
 
 class Chain(object):
@@ -123,8 +121,7 @@ class Chain(object):
         for determining the distribution with the largest version and build
         number.
         """
-        spec = self.index[dist]
-        return RationalVersion(spec['version']), spec['build']
+        return utils.comparable_spec(self.index[dist])
 
 
     def get_dist(self, req):

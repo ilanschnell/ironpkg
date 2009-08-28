@@ -12,7 +12,8 @@ from os.path import join, isfile
 from chain import Chain
 from requirement import Req, dist_as_req
 from metadata import spec_from_dist
-from utils import canonical, filename_dist, pprint_fn_action
+from utils import (canonical, filename_dist, comparable_version,
+                   pprint_fn_action)
 
 
 
@@ -127,9 +128,10 @@ def pprint_repo(local=None, repos=[], rx="?"):
 
     for name in sorted(names, key=string.lower):
         r = Req(name)
-        versions = set()
+        versions = []
         for dist in c.get_matches(r):
             if rx == '?' or pat.search(name):
-                versions.add(c.index[dist]['version'])
+                versions.append(c.index[dist]['version'])
+        versions.sort(key=comparable_version)
         if versions:
-            print fmt % (name, ', '.join(sorted(versions)))
+            print fmt % (name, ', '.join(versions))

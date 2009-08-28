@@ -1,8 +1,8 @@
 import random
 import unittest
 
-from utils import (split_old_version, split_old_eggname, get_version_build,
-                   split_dist)
+from utils import (split_old_version, split_old_eggname,
+                   comparable_version, comparable_spec, split_dist)
 from requirement import Req
 
 
@@ -34,32 +34,25 @@ class TestUtils(unittest.TestCase):
         fn = 'grin-1.1.1-py2.5.egg'
         self.assertRaises(AssertionError, split_old_eggname, fn)
 
-    def test_get_version_build(self):
-        for fn, tu in [
-            ('file:///zope.interface-3.4.1-1.egg', ('3.4.1', 1)),
-            ('local:MySQL_python-1.2.2-3.egg', ('1.2.2', 3)),
-            ('Reportlab-2.1-4.egg', ('2.1', 4)),
-            ('hdf5-1.8.1-13.egg', ('1.8.1', 13)),
-            ('pytz-2008c-3.egg', ('2008c', 3)),
-            ]:
-            self.assertEqual(get_version_build(fn), tu)
+    def test_comparable_version(self):
+        versions = ['1.0.4', '1.2.1', '1.3.0b1', '1.3.0', '1.3.10']
+        org = list(versions)
+        random.shuffle(versions)
+        versions.sort(key=comparable_version)
+        self.assertEqual(versions, org)
 
-        fn = 'blist-0.9.17-py2.5-win32.egg'
-        self.assertRaises(AssertionError, get_version_build, fn)
+        versions = ['2008j', '2008k', '2009b', '2009h']
+        org = list(versions)
+        random.shuffle(versions)
+        versions.sort(key=comparable_version)
+        self.assertEqual(versions, org)
 
-    def test_matchsort(self):
-        dists = [
-            'numpy-1.0.4-1.egg',
-            'numpy-1.2.1-1.egg',
-            'numpy-1.2.1-8.egg',
-            'numpy-1.2.1-11.egg',
-            'numpy-1.2.1-21.egg',
-            'numpy-1.3.0-1.egg',
-        ]
-        org = list(dists)
-        random.shuffle(dists)
-        dists.sort(key=get_version_build)
-        self.assertEqual(dists, org)
+    def test_comparable_spec(self):
+        s1 = comparable_spec(dict(version='2008j', build=1))
+        s2 = comparable_spec(dict(version='2008j', build=2))
+        s3 = comparable_spec(dict(version='2009c', build=1))
+        self.assert_(s1 < s2 < s3)
+
 
 
 class TestReq(unittest.TestCase):

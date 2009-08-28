@@ -8,6 +8,7 @@ from os.path import basename
 from egginst.utils import human_bytes, rm_rf
 
 from enstaller import __version__
+from enstaller.verlib import RationalVersion, IrrationalVersionError
 
 
 DIST_PAT = re.compile(r'(local:|file://.*[\\/]|http://.+/)([^\\/]+)$')
@@ -147,18 +148,24 @@ def split_eggname(eggname):
     assert m, eggname
     return m.group(1), m.group(2), int(m.group(3))
 
-def get_version_build(dist):
-    """
-    Return the version and build number of a distribution, as a
-    tuple(version, build), where version is a string and build is an integer.
-    """
-    if ':' in dist:
-        eggname = filename_dist(dist)
-    else:
-        eggname = dist
-    return split_eggname(eggname)[1:]
 
+def comparable_version(version):
+    try:
+        return RationalVersion(version)
+    except IrrationalVersionError:
+        # If obtaining the RationalVersion object fails (for example for
+        # the version '2009j'), simply return the string, such that
+        # a string comparison can be made.
+        return version
 
+def comparable_spec(spec):
+    """
+    Returns a tuple(version, build) for a distribution, version is a
+    RationalVersion object.  The result may be used for as a sort key.
+    """
+    return comparable_version(spec['version']), spec['build']
+
+# ------------
 
 def md5_file(path):
     """
