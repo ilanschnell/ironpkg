@@ -120,7 +120,7 @@ def canonical(s):
 
 
 _old_version_pat = re.compile(r'(\S+?)(n\d+)$')
-def split_old_version(version):
+def _split_old_version(version):
     """
     Return tuple(version, build) for an old 'n' version.
     """
@@ -129,10 +129,10 @@ def split_old_version(version):
         return version, None
     return m.group(1), int(m.group(2)[1:])
 
-def split_old_eggname(eggname):
+def _split_old_eggname(eggname):
     assert basename(eggname) == eggname and eggname.endswith('.egg')
     name, old_version = eggname[:-4].split('-')[:2]
-    version, build = split_old_version(old_version)
+    version, build = _split_old_version(old_version)
     assert build is not None
     return name, version, build
 
@@ -148,10 +148,9 @@ def split_eggname(eggname):
     assert m, eggname
     return m.group(1), m.group(2), int(m.group(3))
 
+
 def cname_eggname(eggname):
-    m = egg_pat.match(eggname)
-    assert m, eggname
-    return canonical(m.group(1))
+    return canonical(eggname.split('-')[0])
 
 
 def comparable_version(version):

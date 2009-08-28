@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from utils import (split_old_version, split_old_eggname,
+from utils import (_split_old_version, _split_old_eggname,
                    comparable_version, comparable_spec, split_dist)
 from requirement import Req
 
@@ -23,16 +23,16 @@ class TestUtils(unittest.TestCase):
             self.assertRaises(AssertionError, split_dist, dist)
 
     def test_split_old_version(self):
-        self.assertEqual(split_old_version('1.1.0n3'), ('1.1.0', 3))
-        self.assertEqual(split_old_version('2008cn1'), ('2008c', 1))
-        self.assertEqual(split_old_version('2nn2'), ('2n', 2))
-        self.assertEqual(split_old_version('1.1n'), ('1.1n', None))
+        self.assertEqual(_split_old_version('1.1.0n3'), ('1.1.0', 3))
+        self.assertEqual(_split_old_version('2008cn1'), ('2008c', 1))
+        self.assertEqual(_split_old_version('2nn2'), ('2n', 2))
+        self.assertEqual(_split_old_version('1.1n'), ('1.1n', None))
 
     def test_split_old_eggname(self):
         fn = 'grin-1.1.1n2-py2.5.egg'
-        self.assertEqual(split_old_eggname(fn), ('grin', '1.1.1', 2))
+        self.assertEqual(_split_old_eggname(fn), ('grin', '1.1.1', 2))
         fn = 'grin-1.1.1-py2.5.egg'
-        self.assertRaises(AssertionError, split_old_eggname, fn)
+        self.assertRaises(AssertionError, _split_old_eggname, fn)
 
     def test_comparable_version(self):
         versions = ['1.0.4', '1.2.1', '1.3.0b1', '1.3.0', '1.3.10']

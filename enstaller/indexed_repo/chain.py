@@ -220,7 +220,7 @@ class Chain(object):
         return reqs2
 
 
-    def install_order(self, req):
+    def install_order(self, req, recur=True):
         """
         Return the list of distributions which need to be installed.
         The returned list is given in dependency order, i.e. the
@@ -230,6 +230,12 @@ class Chain(object):
         if self.verbose:
             print "Determining install order for %r" % req
         dist_required = self.get_dist(req)
+        if dist_required is None:
+            return None
+
+        if not recur:
+            return [dist_required]
+
         req = dist_as_req(dist_required)
         if self.verbose:
             print dist_required

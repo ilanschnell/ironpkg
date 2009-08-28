@@ -15,7 +15,7 @@ from types import CodeType
 from setuptools.extension import Library
 
 from enstaller.indexed_repo.metadata import data_from_spec
-from enstaller.indexed_repo.utils import split_old_version
+from enstaller.indexed_repo.utils import _split_old_version
 
 
 def strip_module(filename):
@@ -45,7 +45,7 @@ def convert_requires_txt_line(line):
 
     res = m.group(1)
     if m.lastindex == 2:
-        version, build = split_old_version(m.group(2))
+        version, build = _split_old_version(m.group(2))
         res += ' %s' % version.replace('-', '_')
         if build is not None:
             res += '-%i' % build

@@ -6,11 +6,12 @@ from os.path import basename, expanduser, isdir, isfile, join
 import egginst
 
 import config
-from indexed_repo import resolve, filename_dist, pprint_fn_action, pprint_repo
+from indexed_repo import (resolve, filename_dist, pprint_fn_action, print_repo,
+                          print_versions)
 from indexed_repo.utils import cname_eggname
 
 
-def configure(opts):
+def configure(verbose=False):
     if config.get_path() is None:
         config.write()
     conf = config.read()
@@ -24,7 +25,7 @@ def configure(opts):
 
     repos = conf['IndexedRepos']
 
-    if opts.verbose:
+    if verbose:
         print "configuration:"
         print "\tlocal = %r" % local
         print "\trepos:"
@@ -50,14 +51,19 @@ def main():
     from optparse import OptionParser
 
     p = OptionParser(
-        usage="usage: %prog [options] [Requirement]",
+        usage="usage: %prog [options] [name] [version]",
         prog=basename(sys.argv[0]),
         description=("download and install eggs ..."))
+
+    p.add_option("--config",
+                 action="store_true",
+                 default=False,
+                 help="display the configuration and exit")
 
     p.add_option('-f', "--force",
                  action="store_true",
                  default=False,
-                 help="force download/install/remove")
+                 help="force download and install")
 
     p.add_option('-l', "--list",
                  action="store_true",
@@ -66,7 +72,9 @@ def main():
 
     p.add_option("--remove",
                  action="store_true",
-                 default=False)
+                 default=False,
+                 help="remove tha package, and its dependencies (!) "
+                      "from the system")
 
     p.add_option('-s', "--search",
                  action="store",
@@ -96,25 +104,34 @@ def main():
         print "Enstaller version:", __version__
         return
 
-    local, repos = configure(opts)
-
-    req_string = ' '.join(args)
+    if opts.config:
+        cfg_path = config.get_path()
+        print "config file:", cfg_path
+        if cfg_path:
+            configure(verbose=True)
+        return
 
     if opts.list:
         egginst.print_active()
         return
 
+    local, repos = configure(opts.verbose)
+
     if opts.search:
-        pprint_repo(repos=repos, rx=opts.search)
+        print_repo(repos=repos, rx=opts.search)
         return
 
-    if not args:
-        p.error("Requirement missing")
+    args_n = len(args)
+    if args_n == 0:
+        p.error("Requirement, i.e. name and optional version missing")
+    if args_n > 2:
+        p.error("A requirement is a name and an optional version")
+    req_string = ' '.join(args)
 
     check_write()
 
     if opts.remove:
-        dists = resolve(req_string, local, 
+        dists = resolve(req_string, local,
                         recur=not opts.no_deps,
                         verbose=opts.verbose)
         for dist in dists:
@@ -132,6 +149,10 @@ def main():
                     fetch_force=opts.force,
                     fetch_exclude=[] if opts.force else active,
                     verbose=opts.verbose)
+    if dists is None:
+        print "No distribution found."
+        print_versions(repos=repos, name=req_string.split()[0])
+        return
 
     remove = []
     for dist in dists:
@@ -174,7 +195,7 @@ def main():
             pprint_fn_action(egg_name, 'already active')
             if egg_name not in active:
                 print "Hmm, %s not active" % egg_name
-        
+
 
 if __name__ == '__main__':
     main()

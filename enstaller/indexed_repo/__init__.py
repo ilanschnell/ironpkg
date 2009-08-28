@@ -84,13 +84,12 @@ def resolve(req_string, local=None, repos=[], recur=True,
                 del c.index[dist]
 
     # resolve the dependencies
-    if recur:
-        dists = c.install_order(req)
-    else:
-        dists = [c.get_dist(req)]
+    dists = c.install_order(req, recur)
+    if dists is None:
+        return None
 
     if verbose:
-        print "Distributions:"
+        print "Distributions in install order:"
         for d in dists:
             print '\t', d
 
@@ -106,10 +105,10 @@ def resolve(req_string, local=None, repos=[], recur=True,
     return dists
 
 
-def pprint_repo(local=None, repos=[], rx="?"):
+def print_repo(local=None, repos=[], rx="?"):
     """
-    Pretty print the distributions available in a repo, i.e. a "virtual"
-    repo made of a chain of (indexed) repos.
+    Print the distributions available in a repo, i.e. a "virtual" repo made
+    of a chain of (indexed) repos.
     """
     c = Chain(local, repos)
     names = set(spec['name'] for spec in c.index.itervalues())
@@ -135,3 +134,14 @@ def pprint_repo(local=None, repos=[], rx="?"):
         if versions:
             lst = sorted(versions, key=comparable_version)
             print fmt % (name, ', '.join(lst))
+
+
+def print_versions(local=None, repos=[], name='numpy'):
+    c = Chain(local, repos)
+    r = Req(name)
+    versions = set()
+    for dist in c.get_matches(r):
+        versions.add(c.index[dist]['version'])
+    if versions:
+        print "Versions for package %r are: %s" % (
+                name, ', '.join(sorted(versions, key=comparable_version)))
