@@ -1,9 +1,16 @@
 
 Enhancements:
 
- * -
+ * Add ability to list summary strings from EGG-INFO/spec/summary in an
+   index file, such that the enpkg --search option will also search in
+   (as well as list) summaries.
+
+ * Since the Version 4 enpkg command is using egginst, and since the new
+   enpkg and egginst commands do not use setuptools code anymore, it is
+   worth considering to take setuptools of out Enstaller entirely.
 
 
 Bugs:
 
- * Post install script may get run multiple during the install process.
+ * Post install script (setuptools) may get run multiple during the
+   install process.

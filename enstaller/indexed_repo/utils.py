@@ -253,7 +253,10 @@ def write_data_from_url(fo, url, md5=None, size=None):
         path = url[7:]
         fi = open(path, 'rb')
     elif url.startswith('http://'):
-        fi = open_with_auth(url)
+        try:
+            fi = open_with_auth(url)
+        except urllib2.URLError, e:
+            raise Exception("\n%s\nCannot open URL:\n    %s" % (e, url))
     else:
         raise Exception("Invalid url: %r" % url)
 

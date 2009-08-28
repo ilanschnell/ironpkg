@@ -18,8 +18,10 @@ functionality to setuptools, as well as fixes some bugs.
 In May, 2009 Ilan Schnell started writing a package called egginst, which
 is a clean implementation of an easy_install alternative.
 
+In August, 2009 the first production version of the new Enstaller v4.0 which
+uses egginst and new implementation of enpkg was released.
+
 Enstaller is maintained by Ilan Schnell.
 
 Many people at Enthought have provided feedback, and given suggestions,
 in particular Dave Peterson.
-
