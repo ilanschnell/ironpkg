@@ -93,6 +93,7 @@ class TestReq(unittest.TestCase):
             name = 'foo-bar',
             version = '2.4.1',
             build = 3,
+            python = None,
         )
         for req_string, m in [
             ('', True),
@@ -107,16 +108,6 @@ class TestReq(unittest.TestCase):
             ]:
             r = Req(req_string)
             self.assertEqual(r.matches(spec), m)
-
-    def test_as_setuptools(self):
-        for s1, s2 in [
-            ('foo', 'foo'),
-            ('bar 1.8', 'bar >=1.8'),
-            ('bar 1.8 2.0', 'bar >=1.8'),
-            ('baz 1.3.1-7', 'baz ==1.3.1n7')
-            ]:
-            r = Req(s1)
-            self.assertEqual(r.as_setuptools(), s2)
 
 
 if __name__ == '__main__':

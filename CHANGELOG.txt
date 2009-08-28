@@ -2,7 +2,7 @@
 4.0.0
 -----
 * replacing enpkg by new-enpkg which uses egginst.  The old (Enstaller v3)
-  enpkg command is still avaiable and now called easy_manage, because it
+  enpkg command is still available and now called easy_manage, because it
   can manage setuptools installed packages.
 
 

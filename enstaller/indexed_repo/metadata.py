@@ -91,7 +91,7 @@ def parse_data(data, index=False):
     """
     spec = {}
     exec data.replace('\r', '') in spec
-    assert spec['metadata_version'] == '1.1', spec
+    assert spec['metadata_version'] >= '1.1', spec
 
     var_names = [ # these must be present
         'metadata_version', 'name', 'version', 'build',

@@ -1,4 +1,4 @@
-from utils import canonical, split_eggname, filename_dist
+from utils import PY_VER, canonical, split_eggname, filename_dist
 
 
 
@@ -40,7 +40,9 @@ class Req(object):
         (self).  That is, the canonical name must match, and the version
         must be in the list of required versions.
         """
-        assert spec['metadata_version'] == '1.1', spec
+        assert spec['metadata_version'] >= '1.1', spec
+        if spec['python'] not in [None, PY_VER]:
+            return False
         if self.strictness == 0:
             return True
         if canonical(spec['name']) != self.name:
@@ -69,17 +71,6 @@ class Req(object):
 
     def __hash__(self):
         return hash(str(self))
-
-    def as_setuptools(self):
-        if self.strictness == 0:
-            raise Exception("Can't convert requirement with strictness = 0")
-        if self.strictness == 1:
-            return self.name
-        ver = self.versions[0]
-        if self.strictness == 2:
-            return '%s >=%s' % (self.name, ver)
-        assert self.strictness == 3
-        return '%s ==%s' % (self.name, ver.replace('-', 'n'))
 
 
 def add_Reqs_to_spec(spec):

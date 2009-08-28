@@ -11,6 +11,9 @@ from enstaller import __version__
 from enstaller.verlib import RationalVersion, IrrationalVersionError
 
 
+PY_VER = '%i.%i' % sys.version_info[:2]
+
+
 DIST_PAT = re.compile(r'(local:|file://.*[\\/]|http://.+/)([^\\/]+)$')
 
 def split_dist(dist):
