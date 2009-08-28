@@ -11,6 +11,7 @@ from indexed_repo import (resolve, filename_dist, Chain,
 from indexed_repo.utils import cname_eggname
 
 
+
 def configure(verbose=False):
     if config.get_path() is None:
         config.write()
@@ -103,6 +104,10 @@ def main():
                  default=False)
 
     opts, args = p.parse_args()
+    args_n = len(args)
+
+    if args_n > 0 and (opts.list or opts.config):
+        p.error("Option takes no arguments")
 
     if opts.version:
         from enstaller import __version__
@@ -131,7 +136,6 @@ def main():
         c.test()
         return
 
-    args_n = len(args)
     if args_n == 0:
         p.error("Requirement, i.e. name and optional version missing")
     if args_n > 2:
