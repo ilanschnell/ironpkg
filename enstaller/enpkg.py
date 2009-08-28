@@ -7,7 +7,7 @@ import egginst
 
 import config
 from indexed_repo import resolve, filename_dist, pprint_fn_action, pprint_repo
-
+from indexed_repo.utils import cname_eggname
 
 
 def configure(opts):
@@ -99,7 +99,7 @@ def main():
     local, repos = configure(opts)
 
     req_string = ' '.join(args)
-    
+
     if opts.list:
         egginst.print_active()
         return
@@ -137,17 +137,22 @@ def main():
             print egg_name
         return
 
-    print 77 * '='    
+    print 77 * '='
     for dist in dists:
         egg_name = filename_dist(dist)
         assert egg_name.endswith('.egg')
         if egg_name in active:
             pprint_fn_action(egg_name, 'already active')
             continue
+        cname = cname_eggname(egg_name)
+        for a in active:
+            if cname != cname_eggname(a):
+                continue
+            pprint_fn_action(a, 'removing')
+            egginst.EggInst(a, opts.verbose).remove()
+
         egg_path = join(local, egg_name)
         pprint_fn_action(egg_name, 'installing')
-        if opts.dry_run:
-            continue
         egginst.EggInst(egg_path, opts.verbose).install()
 
 

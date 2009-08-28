@@ -148,6 +148,11 @@ def split_eggname(eggname):
     assert m, eggname
     return m.group(1), m.group(2), int(m.group(3))
 
+def cname_eggname(eggname):
+    m = egg_pat.match(eggname)
+    assert m, eggname
+    return canonical(m.group(1))
+
 
 def comparable_version(version):
     try:
