@@ -148,6 +148,12 @@ def main():
         dists = resolve(req_string, local,
                         recur=not opts.no_deps,
                         verbose=opts.verbose)
+        # FIXME:
+        #     On a fresh EPD install this fails because there are no eggs
+        #     in the local repo yet, and resolve returns None.
+        #     A fix would be to add the ability to "index" the installed,
+        #     by reading the spec files in EGG-INFO in stead of the local
+        #     repo (which might not exist yet).
         for dist in dists:
             egg_r = filename_dist(dist)
             pprint_fn_action(egg_r, 'removing')
