@@ -24,8 +24,7 @@ scripts = []
 
 setup(
     name="Enstaller",
-    description = ("A replacement for setuptools that builds on top of it and "
-        "adds additional features."),
+    description = "Install and managing tool for egg-based Python packages",
     author="Enthought, Inc.",
     author_email="info@enthought.com",
     license="BSD",
