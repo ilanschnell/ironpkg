@@ -8,7 +8,7 @@ import egginst
 import config
 from indexed_repo import (resolve, filename_dist, Chain,
                           pprint_fn_action, print_repo, print_versions)
-from indexed_repo.utils import cname_eggname
+from indexed_repo.utils import cname_eggname, canonical
 
 
 
@@ -79,8 +79,7 @@ def main():
     p.add_option("--remove",
                  action="store_true",
                  default=False,
-                 help="remove tha package, and its dependencies (!) "
-                      "from the system")
+                 help="remove a package")
 
     p.add_option('-s', "--search",
                  action="store",
@@ -144,24 +143,29 @@ def main():
 
     check_write()
 
-    if opts.remove:
-        dists = resolve(req_string, local,
-                        recur=not opts.no_deps,
-                        verbose=opts.verbose)
-        # FIXME:
-        #     On a fresh EPD install this fails because there are no eggs
-        #     in the local repo yet, and resolve returns None.
-        #     A fix would be to add the ability to "index" the installed,
-        #     by reading the spec files in EGG-INFO in stead of the local
-        #     repo (which might not exist yet).
-        for dist in dists:
-            egg_r = filename_dist(dist)
-            pprint_fn_action(egg_r, 'removing')
-            egginst.EggInst(egg_r, opts.verbose).remove()
-        return
-
     # 'active' is a list of the egg names which are currently active.
     active = ['%s.egg' % s for s in egginst.get_active()]
+
+    if opts.remove:
+        egg_r = None # egg to be removed
+        cname = canonical(req_string.split()[0])
+        for egg_a in active:
+            if cname != cname_eggname(egg_a):
+                continue
+            if args_n == 2:
+                v_a, b_a = egg_a[:-4].split('-')[1:3]
+                if args[1] not in [v_a, '%s-%s' % (v_a, b_a)]:
+                    print("%s is installed cannot remove version %s." %
+                          (egg_a[:-4], args[1]))
+                    return
+            egg_r = egg_a
+            break
+        else:
+            print "Package %r does not seem to be installed." % cname
+            return
+        pprint_fn_action(egg_r, 'removing')
+        egginst.EggInst(egg_r, opts.verbose).remove()
+        return
 
     dists = resolve(req_string, local, repos,
                     recur=not opts.no_deps,
