@@ -5,12 +5,9 @@ Enhancements:
    index file, such that the enpkg --search option will also search in
    (as well as list) summaries.
 
+ * Add an --update option to enpkg which for each installed package
+   checks if an update is available, and if so installs it.
+
  * Since the Version 4 enpkg command is using egginst, and since the new
-   enpkg and egginst commands do not use setuptools code anymore, it is
-   worth considering to take setuptools of out Enstaller entirely.
-
-
-Bugs:
-
- * Post install script (setuptools) may get run multiple during the
-   install process.
+   enpkg and egginst commands do not use setuptools code anymore,
+   setuptools can be removed.
