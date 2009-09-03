@@ -19,6 +19,15 @@ def write_exe(dst, script_type='console_scripts'):
     This function is only used on Windows, it either cli.exe or gui.exe to
     the destination specified, depending on script_type.
     """
+    # Fixme:
+    # The code below only works when you have the Enstaller egg in
+    # site-packages.  While this is the case when Enstaller is bootstrapped
+    # from an egg, it is not the case when (on a clean system) you type:
+    # Enstaller> python setup.py develop
+    # This makes it hard to bootstrap from source on Windows (not that function
+    # only gets called on Windows).  To solve this problem, it is probably
+    # easiest to embed the executable code into a module, or to search for
+    # in other places.
     fn = {'console_scripts': 'cli.exe',
           'gui_scripts': 'gui.exe'}.get(script_type)
     if not fn:
