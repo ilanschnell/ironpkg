@@ -129,7 +129,10 @@ def create(egg, conf):
             fname = name
             if on_win:
                 exe_path = join(sys.prefix, r'Scripts\%s.exe' % name)
-                rm_rf(exe_path)
+                try:
+                    rm_rf(exe_path)
+                except WindowsError:
+                    pass
                 write_exe(exe_path, script_type)
                 egg.files.append(exe_path)
                 fname += '-script.py'
