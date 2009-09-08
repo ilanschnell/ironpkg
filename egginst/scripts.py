@@ -19,29 +19,15 @@ def write_exe(dst, script_type='console_scripts'):
     This function is only used on Windows, it either cli.exe or gui.exe to
     the destination specified, depending on script_type.
     """
-    # Fixme:
-    # The code below only works when you have the Enstaller egg in
-    # site-packages.  While this is the case when Enstaller is bootstrapped
-    # from an egg, it is not the case when (on a clean system) you type:
-    # Enstaller> python setup.py develop
-    # This makes it hard to bootstrap from source on Windows (not that function
-    # only gets called on Windows).  To solve this problem, it is probably
-    # easiest to embed the executable code into a module, or to search for
-    # in other places.
-    fn = {'console_scripts': 'cli.exe',
-          'gui_scripts': 'gui.exe'}.get(script_type)
-    if not fn:
+    import exe_data
+
+    if script_type == 'console_scripts':
+        data = exe_data.cli
+    elif script_type == 'gui_scripts':
+        data = exe_data.gui
+    else:
         raise Exception("Did not except script_type=%r" % script_type)
 
-    paths = glob(join(get_python_lib(), 'Enstaller-*.egg'))
-    paths.sort()
-    if not paths:
-        raise Exception("WARNING: could not find Enstaller egg in %r" %
-                        get_python_lib())
-
-    z = zipfile.ZipFile(paths[-1])
-    data = z.read('setuptools/' + fn)
-    z.close()
     try:
         open(dst, 'wb').write(data)
     except IOError:
@@ -198,5 +184,5 @@ def fix_scripts(egg):
 
 
 if __name__ == '__main__':
-    write_exe('C.exe', 'console_scripts')
-    write_exe('G.exe', 'gui_scripts')
+    write_exe('cli.exe')
+    write_exe('gui.exe', 'gui_scripts')
