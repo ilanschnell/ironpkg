@@ -66,17 +66,6 @@ def create_scripts(egg_path):
     egginst.scripts.create(egg, conf)
 
 
-def remove_old_files():
-    # remove files/directories from site-packages
-    for fn in ['site.py', 'setuptools', 'pkg_resources.py', 'easy_install.py',
-               'enstaller', 'egginst', 'Enstaller.egg-link']:
-        path = join(site_dir, fn)
-        egginst.utils.rm_rf(path)
-        if fn.endswith('.py'):
-            egginst.utils.rm_rf(path + 'c')
-            egginst.utils.rm_rf(path + 'o')
-
-
 def main():
     """
     To bootstrap Enstaller into a Python environment, used the following
@@ -97,9 +86,11 @@ def main():
         raise Exception("Not a file: %r" % egg_path)
     assert egg_name.startswith("Enstaller-"), egg_name
 
-    # Remove old Enstaller/setuptools files which could cause problems
-    # for this install, and which we don't want to have on the system
-    remove_old_files()
+    # Remove old Enstaller files which could cause problems for this
+    # install, and which we don't want on the system
+    for fn in ['enstaller', 'egginst', 'Enstaller.egg-link']:
+        path = join(site_dir, fn)
+        egginst.utils.rm_rf(path)
 
     # Make sure we're modules from the new Enstaller egg
     reload(egginst.scripts)
@@ -108,7 +99,9 @@ def main():
     sys.stdout.write('%9s [' % egginst.utils.human_bytes(getsize(egg_path)))
 
     # Copy the egg into site-packages
-    shutil.copy(egg_path, site_dir)
+    dst = join(site_dir, basename(egg_path))
+    egginst.utils.rm_rf(dst)
+    shutil.copyfile(egg_path, dst)
     sys.stdout.write(40 * '.')
 
     # Create Enstaller.pth in site-packages

@@ -1,8 +1,7 @@
 
 4.0.1
 -----
-
-
+* removed the setuptools patch
 
 
 4.0.0

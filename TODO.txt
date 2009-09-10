@@ -7,7 +7,3 @@ Enhancements:
 
  * Add an --update option to enpkg which for each installed package
    checks if an update is available, and if so installs it.
-
- * Since the Version 4 enpkg command is using egginst, and since the new
-   enpkg and egginst commands do not use setuptools code anymore,
-   setuptools can be removed.
