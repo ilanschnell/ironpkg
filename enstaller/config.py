@@ -76,15 +76,6 @@ RC_TMPL = """\
 # if the EPD repository is listed here things will only work if the
 # correct EPD subscriber OpenID is provided above.
 IndexedRepos = %(repos)s
-
-
-# Setuptools (easy_install) repositories, the index URL is specified by
-# appending a ',index' to the end of a URL.  There can only be one index
-# listed here and when this file is created by default the index is set to
-# the PyPI index.
-SetuptoolsRepos = [
-    'http://pypi.python.org/simple,index',  # Python Package Index
-]
 """
 
 def write():
@@ -144,49 +135,10 @@ def read():
     d = {}
     execfile(path, d)
     read.cache = {}
-    for k in ['EPD_OpenID', 'IndexedRepos', 'SetuptoolsRepos', 'LOCAL']:
+    for k in ['EPD_OpenID', 'IndexedRepos', 'LOCAL']:
         if d.has_key(k):
             read.cache[k] = d[k]
     return read()
-
-
-def get_configured_repos():
-    """
-    Return the set of Setuptools repository urls in our config file.
-    """
-    conf = read()
-    if not conf:
-        return []
-
-    return [url for url in conf['SetuptoolsRepos']
-            if not url.endswith(',index')]
-
-
-def get_configured_index():
-    """
-    Return the index that is set in our config file.
-    """
-    conf = read()
-    if not conf:
-        return 'http://pypi.python.org/simple'
-
-    # Find all of the index urls specified in the stable repos list.
-    results = [url[:-6] for url in conf['SetuptoolsRepos']
-               if url.endswith(',index')]
-
-    # If there was only one index url found, then just return it.
-    # If the user specified more than one index url in the config file,
-    # then we print a warning.  And if no index url was found, then
-    # we return None.
-    if len(results) == 1:
-        return results[0]
-
-    if len(results) > 1:
-        print ("Warning:  You specified more than one index URL in the "
-               "config file.  Only the first one found will be used.")
-        return results[0]
-
-    return None
 
 
 if __name__ == '__main__':

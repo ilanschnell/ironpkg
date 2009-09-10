@@ -1,3 +1,8 @@
+Ilan Schnell is the main developer and maintainer of Enstaller (version 4).
+
+
+Historical notes:
+=================
 
 The original setuptools was originally written by Phillip J. Eby.
 
@@ -20,8 +25,6 @@ is a clean implementation of an easy_install alternative.
 
 In August, 2009 the first production version of the new Enstaller v4.0 which
 uses egginst and new implementation of enpkg was released.
-
-Enstaller is maintained by Ilan Schnell.
 
 Many people at Enthought have provided feedback, and given suggestions,
 in particular Dave Peterson.

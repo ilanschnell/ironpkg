@@ -1,0 +1,11 @@
+metadata_version = '1.1'
+name = 'Enstaller'
+version = '4.0.1'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
