@@ -261,6 +261,9 @@ class EggInst(object):
                 cur += 1
             if islink(p) or isfile(p):
                 os.unlink(p)
+                if p.endswith('.py') and isfile(p + 'c'):
+                    # remove the corresponding .pyc
+                    os.unlink(p + 'c')
         self.rmdirs()
         rm_rf(self.meta_dir)
         sys.stdout.write('.' * (65-cur) + ']\n')
