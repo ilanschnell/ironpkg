@@ -1,5 +1,4 @@
-from utils import PY_VER, canonical, split_eggname, filename_dist
-
+from enstaller.utils import PY_VER, canonical, split_eggname, filename_dist
 
 
 class Req(object):

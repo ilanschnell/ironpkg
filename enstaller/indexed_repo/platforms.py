@@ -1,6 +1,6 @@
 from os.path import isdir, join
 
-from utils import open_with_auth
+from enstaller.utils import open_with_auth
 
 
 def to_list(s):

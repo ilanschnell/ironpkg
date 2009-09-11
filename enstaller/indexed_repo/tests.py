@@ -1,8 +1,8 @@
 import random
 import unittest
 
-from utils import (_split_old_version, _split_old_eggname,
-                   comparable_version, comparable_spec, split_dist)
+from enstaller.utils import (_split_old_version, _split_old_eggname,
+                             comparable_version, comparable_spec, split_dist)
 from requirement import Req
 
 

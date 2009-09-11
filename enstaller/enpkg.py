@@ -8,7 +8,7 @@ import egginst
 import config
 from indexed_repo import (resolve, filename_dist, Chain, Req,
                           pprint_fn_action, print_repo, print_versions)
-from indexed_repo.utils import cname_eggname
+from enstaller.utils import cname_eggname
 
 
 

@@ -12,8 +12,9 @@ from os.path import join, isfile
 from chain import Chain
 from requirement import Req, dist_as_req
 from metadata import spec_from_dist
-from utils import (canonical, filename_dist, comparable_version,
-                   pprint_fn_action)
+
+from enstaller.utils import (canonical, filename_dist, comparable_version,
+                             pprint_fn_action)
 
 
 

@@ -8,8 +8,9 @@ from collections import defaultdict
 from os.path import basename, getsize, isfile, isdir, join
 
 import metadata
-import utils
 from requirement import Req, add_Reqs_to_spec, filter_name, dist_as_req
+
+import enstaller.utils as utils
 
 
 
