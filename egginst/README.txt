@@ -11,5 +11,5 @@ to easy_install are:
 
   * egginst knows about the eggs the people from Enthought use.  It can
     install shared libraries, change binary headers, etc., things which
-    require special post install scripts if (Enstaller) easy_install installs
-    them.
+    require special post install scripts if (ensetuptools) easy_install
+    installs them.
