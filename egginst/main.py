@@ -27,6 +27,8 @@ DEACTIVE_DIR = join(sys.prefix, 'DEACTIVE')
 
 SITE_PACKAGES = get_python_lib()
 
+NS_PKG_STUB = '__import__("pkg_resources").declare_namespace(__name__)'
+
 
 def projname(fn):
     return fn.split('-')[0]
@@ -176,12 +178,21 @@ class EggInst(object):
             return
         path = self.get_dst(arcname)
         dn, fn = os.path.split(path)
+        data = self.z.read(arcname)
+        if fn in ['__init__.py', '__init__.pyc']:
+            tmp = arcname.rstrip('c')
+            if (tmp in self.arcnames and
+                self.z.read(tmp).strip() == NS_PKG_STUB):
+                if fn == '__init__.py':
+                    data = ''
+                if fn == '__init__.pyc':
+                    return
         self.files.append(path)
         if not isdir(dn):
             os.makedirs(dn)
         rm_rf(path, self.verbose)
         fo = open(path, 'wb')
-        fo.write(self.z.read(arcname))
+        fo.write(data)
         fo.close()
         if (arcname.startswith(('EGG-INFO/usr/bin/', 'EGG-INFO/scripts/')) or
                 fn.endswith(('.dylib', '.pyd', '.so')) or
