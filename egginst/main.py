@@ -388,7 +388,7 @@ def main():
 
     p.add_option('-a', "--activate",
                  action="store_true",
-                 help="activate deactivated packages")
+                 help="activate deactivated packages (experimental feature)")
 
     p.add_option('-d', "--deactivate",
                  action="store_true",
@@ -404,7 +404,14 @@ def main():
 
     p.add_option('-v', "--verbose", action="store_true")
 
+    p.add_option('--version', action="store_true")
+
     opts, args = p.parse_args()
+
+    if opts.version:
+        from enstaller import __version__
+        print "Enstaller version:", __version__
+        return
 
     if opts.activate:
         for name in args:
