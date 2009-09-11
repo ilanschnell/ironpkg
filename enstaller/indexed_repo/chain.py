@@ -8,6 +8,7 @@ from collections import defaultdict
 from os.path import basename, getsize, isfile, isdir, join
 
 import metadata
+import dist_naming
 from requirement import Req, add_Reqs_to_spec, filter_name, dist_as_req
 
 import enstaller.utils as utils
@@ -56,7 +57,7 @@ class Chain(object):
         if self.verbose:
             print "Adding repository:", repo
 
-        repo = utils.cleanup_repo(repo)
+        repo = dist_naming.cleanup_reponame(repo)
 
         self.repos.append(repo)
 
@@ -97,7 +98,7 @@ class Chain(object):
         """
         matches = set()
         for dist, spec in self.index.iteritems():
-            if utils.repo_dist(dist) == repo and req.matches(spec):
+            if dist_naming.repo_dist(dist) == repo and req.matches(spec):
                 matches.add(dist)
         return matches
 
@@ -122,7 +123,7 @@ class Chain(object):
         for determining the distribution with the largest version and build
         number.
         """
-        return utils.comparable_spec(self.index[dist])
+        return dist_naming.comparable_spec(self.index[dist])
 
 
     def get_dist(self, req):
@@ -305,7 +306,7 @@ class Chain(object):
         md5 = self.index[dist].get('md5', None)
         size = self.index[dist].get('size', None)
 
-        fn = utils.filename_dist(dist)
+        fn = dist_naming.filename_dist(dist)
         dst = join(self.local, fn)
         # if force is not used, see if (i) the file exists (ii) its size is
         # the expected (iii) optionally, make sure the md5 is the expected.

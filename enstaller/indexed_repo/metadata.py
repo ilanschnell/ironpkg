@@ -9,8 +9,9 @@ import hashlib
 from collections import defaultdict
 from os.path import basename, dirname, join, getsize
 
-from enstaller.utils import canonical, is_valid_eggname
+from dist_naming import is_valid_eggname
 
+from enstaller.utils import canonical
 
 
 def parse_index(data):
