@@ -27,7 +27,9 @@ DEACTIVE_DIR = join(sys.prefix, 'DEACTIVE')
 
 SITE_PACKAGES = get_python_lib()
 
-NS_PKG_STUB = '__import__("pkg_resources").declare_namespace(__name__)'
+NS_PKG_PAT = re.compile(
+    r'\s*__import__\([\'"]pkg_resources[\'"]\)\.declare_namespace'
+    r'\(__name__\)\s*$')
 
 
 def projname(fn):
@@ -181,8 +183,7 @@ class EggInst(object):
         data = self.z.read(arcname)
         if fn in ['__init__.py', '__init__.pyc']:
             tmp = arcname.rstrip('c')
-            if (tmp in self.arcnames and
-                self.z.read(tmp).strip() == NS_PKG_STUB):
+            if tmp in self.arcnames and NS_PKG_PAT.match(self.z.read(tmp)):
                 if fn == '__init__.py':
                     data = ''
                 if fn == '__init__.pyc':
