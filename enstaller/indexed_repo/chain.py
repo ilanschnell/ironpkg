@@ -282,6 +282,21 @@ class Chain(object):
                 raise Exception("Loop in the dependency graph")
         return res
 
+
+    def list_versions(self, name):
+        """
+        given the name of a package, retruns a sorted list of versions for
+        package `name` found in any repo.
+        """
+        versions = set()
+
+        cname = utils.canonical(name)
+        for spec in self.index.itervalues():
+            if utils.canonical(spec['name']) == cname:
+                versions.add(spec['version'])
+
+        return sorted(versions, key=utils.comparable_version)
+
     # --------------- methods which access the local repo -----------------
 
     def fetch_dist(self, dist, force=False, check_md5=False):
