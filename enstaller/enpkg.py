@@ -155,7 +155,7 @@ def main():
         return
 
     if args_n == 0:
-        p.error("Requirement, i.e. name and optional version missing")
+        p.error("Requirement (that is, name and optional version) missing")
     if args_n > 2:
         p.error("A requirement is a name and an optional version")
     req_string = ' '.join(args)
