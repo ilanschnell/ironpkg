@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import string
 from os.path import basename, expanduser, isdir, isfile, join
@@ -6,9 +7,9 @@ from os.path import basename, expanduser, isdir, isfile, join
 import egginst
 
 import config
-from indexed_repo import (resolve, filename_dist, Chain, Req,
-                          pprint_fn_action, print_repo, print_versions)
-from enstaller.utils import cname_eggname
+from utils import canonical
+from indexed_repo import filename_dist, Chain, Req
+from enstaller.utils import cname_eggname, pprint_fn_action, comparable_version
 
 
 
@@ -48,8 +49,33 @@ def check_write():
             os.unlink(path)
 
 
-def remove_req_string(req_string, verbose=False):
-    req = Req(req_string)
+def search(repos, rx="?"):
+    """
+    Print the distributions available in a repo, i.e. a "virtual" repo made
+    of a chain of (indexed) repos.
+    """
+    if rx != '?':
+        pat = re.compile(rx, re.I)
+
+    print "Packages available on:"
+    for repo in repos:
+        print '\t' + repo
+    print
+
+    fmt = "%-20s %s"
+    print fmt % ('Project name', 'Versions')
+    print 40 * '-'
+
+    c = Chain(repos=repos)
+    names = set(spec['name'] for spec in c.index.itervalues())
+    for name in sorted(names, key=string.lower):
+        if rx == '?' or pat.search(name):
+            versions = c.list_versions(name)
+            if versions:
+                print fmt % (name, ', '.join(versions))
+
+
+def remove_req(req, verbose=False):
     for pkg in egginst.get_active():
         if req.name != cname_eggname(pkg):
             continue
@@ -146,7 +172,7 @@ def main():
     local, repos = configure(opts.verbose)
 
     if opts.search:
-        print_repo(repos=repos, rx=opts.search)
+        search(repos, opts.search)
         return
 
     if opts.test:
@@ -154,31 +180,48 @@ def main():
         c.test()
         return
 
+    check_write()
+
     if args_n == 0:
         p.error("Requirement (that is, name and optional version) missing")
     if args_n > 2:
         p.error("A requirement is a name and an optional version")
-    req_string = ' '.join(args)
+    req = Req(' '.join(args))
 
     if opts.remove:
-        remove_req_string(req_string, opts.verbose)
+        remove_req(req, opts.verbose)
         return
-
-    check_write()
 
     # 'active' is a list of the egg names which are currently active.
     active = ['%s.egg' % s for s in egginst.get_active()]
 
-    dists = resolve(req_string, local, repos,
-                    recur=not opts.no_deps,
-                    fetch=True,
-                    fetch_force=opts.force,
-                    fetch_exclude=[] if opts.force else active,
-                    verbose=opts.verbose)
+    c = Chain(None, repos, opts.verbose)
+
+    dists = c.install_order(req, recur=not opts.no_deps)
+
     if dists is None:
         print "No distribution found."
-        print_versions(repos=repos, name=req_string.split()[0])
+        versions = c.list_versions(req.name)
+        if versions:
+            print "Versions for package %r are: %s" % (req.name,
+                                                       ', '.join(versions))
         return
+
+    if opts.verbose:
+        print "Distributions in install order:"
+        for d in dists:
+            print '\t', d
+
+    # Fetch the distributions
+    fetch_exclude = [] if opts.force else active
+    c.local = local
+    for dist in dists:
+        if filename_dist(dist) in fetch_exclude:
+            continue
+        if opts.verbose:
+            print 70 * '='
+            print 'fetching: %r' % dist
+        c.fetch_dist(dist, force=opts.force)
 
     remove = []
     for dist in dists:
