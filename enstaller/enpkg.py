@@ -49,7 +49,7 @@ def check_write():
             os.unlink(path)
 
 
-def search(repos, rx="?"):
+def search(c, rx="?"):
     """
     Print the distributions available in a repo, i.e. a "virtual" repo made
     of a chain of (indexed) repos.
@@ -57,16 +57,10 @@ def search(repos, rx="?"):
     if rx != '?':
         pat = re.compile(rx, re.I)
 
-    print "Packages available on:"
-    for repo in repos:
-        print '\t' + repo
-    print
-
     fmt = "%-20s %s"
     print fmt % ('Project name', 'Versions')
     print 40 * '-'
 
-    c = Chain(repos=repos)
     names = set(spec['name'] for spec in c.index.itervalues())
     for name in sorted(names, key=string.lower):
         if rx == '?' or pat.search(name):
@@ -75,7 +69,7 @@ def search(repos, rx="?"):
                 print fmt % (name, ', '.join(versions))
 
 
-def remove_req(req, verbose=False):
+def remove_req(req, opts):
     for pkg in egginst.get_active():
         if req.name != cname_eggname(pkg):
             continue
@@ -90,7 +84,8 @@ def remove_req(req, verbose=False):
         print "Package %r does not seem to be installed." % req.name
         return
     pprint_fn_action(pkg, 'removing')
-    egginst.EggInst(pkg, verbose).remove()
+    if not opts.dry_run:
+        egginst.EggInst(pkg, opts.verbose).remove()
 
 
 def main():
@@ -115,6 +110,10 @@ def main():
                  action="store_true",
                  default=False,
                  help="list the packages currently installed on the system")
+
+    p.add_option('-n', "--dry-run",
+                 action="store_true",
+                 help="show what would have been downloaded/removed/installed")
 
     p.add_option('-N', "--no-deps",
                  action="store_true",
@@ -150,7 +149,7 @@ def main():
     opts, args = p.parse_args()
     args_n = len(args)
 
-    if args_n > 0 and (opts.list or opts.config):
+    if args_n > 0 and (opts.list or opts.test or opts.config):
         p.error("Option takes no arguments")
 
     if opts.version:
@@ -170,32 +169,29 @@ def main():
         return
 
     local, repos = configure(opts.verbose)
+    c = Chain(repos, opts.verbose)
 
     if opts.search:
-        search(repos, opts.search)
+        search(c, opts.search)
         return
 
     if opts.test:
-        c = Chain(repos, opts.verbose)
         c.test()
         return
-
-    check_write()
 
     if args_n == 0:
         p.error("Requirement (that is, name and optional version) missing")
     if args_n > 2:
         p.error("A requirement is a name and an optional version")
     req = Req(' '.join(args))
+    check_write()
 
     if opts.remove:
-        remove_req(req, opts.verbose)
+        remove_req(req, opts)
         return
 
     # 'active' is a list of the egg names which are currently active.
     active = ['%s.egg' % s for s in egginst.get_active()]
-
-    c = Chain(repos, opts.verbose)
 
     dists = c.install_order(req, recur=not opts.no_deps)
 
@@ -213,14 +209,14 @@ def main():
             print '\t', d
 
     # Fetch the distributions
-    fetch_exclude = [] if opts.force else active
+    exclude_fetch = [] if opts.force else active
     for dist in dists:
-        if filename_dist(dist) in fetch_exclude:
+        if filename_dist(dist) in exclude_fetch:
             continue
-        if opts.verbose:
-            print 70 * '='
-            print 'fetching: %r' % dist
-        c.fetch_dist(dist, local, force=opts.force)
+        if opts.dry_run:
+            pprint_fn_action(filename_dist(dist), 'downloading')
+        else:
+            c.fetch_dist(dist, local, force=opts.force)
 
     remove = []
     for dist in dists:
@@ -238,27 +234,19 @@ def main():
         if egg_name not in active:
             install.append(egg_name)
 
-    if opts.verbose:
-        print "These packages will be removed:"
-        for egg_r in remove:
-            print '\t' + egg_r[:-4]
-        print
-        print "These packages will be installed:"
-        for egg_i in install:
-            print '\t' + egg_i[:-4]
-        print
-
     print 77 * '='
     for egg_r in remove:
         pprint_fn_action(egg_r, 'removing')
-        egginst.EggInst(egg_r, opts.verbose).remove()
+        if not opts.dry_run:
+            egginst.EggInst(egg_r, opts.verbose).remove()
 
     for dist in dists:
         egg_name = filename_dist(dist)
         if opts.force or egg_name in install:
             pprint_fn_action(egg_name, 'installing')
             egg_path = join(local, egg_name)
-            egginst.EggInst(egg_path, opts.verbose).install()
+            if not opts.dry_run:
+                egginst.EggInst(egg_path, opts.verbose).install()
         else:
             pprint_fn_action(egg_name, 'already active')
             if egg_name not in active:
