@@ -3,7 +3,7 @@ import re
 from enstaller.utils import comparable_version
 
 
-DIST_PAT = re.compile(r'(local:|file://.*[\\/]|http://.+/)([^\\/]+)$')
+DIST_PAT = re.compile(r'(file://.*[\\/]|http://.+/)([^\\/]+)$')
 
 def split_dist(dist):
     """
@@ -14,17 +14,6 @@ def split_dist(dist):
     That is, simply adding the two strings will give the dist.  The terms
     filename and distname are used interchangeably.  There are currently
     the three types of repos:
-
-    local:
-    ======
-
-    A local repository is where distributions are downloaded or copied to.
-    Index file are always ignored in this repo, i.e. when a chain is
-    initalized, the distributions in the local repo are always added to the
-    index by inspecting the actual files.
-    It is ALWAYS the first repo in the chain, EVEN when it is not used,
-    i.e. no acutal directory is defined for the repo.  The repo string is
-    always 'local:'.
 
     file://
     =======
@@ -46,7 +35,6 @@ def split_dist(dist):
 
     Here are some valid repo names:
 
-    local:
     file:///usr/local/repo/
     file://E:\eggs\
     http://www.enthought.com/repo/EPD/eggs/Windows/x86/
@@ -86,10 +74,7 @@ def cleanup_reponame(repo):
     Make sure a given repo string, i.e. a string specifying a repository,
     is valid and return a cleaned up version of the string.
     """
-    if repo.startswith('local:'):
-        assert repo == 'local:'
-
-    elif repo.startswith('http://'):
+    if repo.startswith('http://'):
         if not repo.endswith('/'):
             repo += '/'
 

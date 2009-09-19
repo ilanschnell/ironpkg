@@ -17,24 +17,14 @@ import enstaller.utils as utils
 
 class Chain(object):
 
-    def __init__(self, local=None, repos=[], verbose=False):
+    def __init__(self, repos=[], verbose=False):
         self.verbose = verbose
 
         # maps distributions to specs
         self.index = {}
 
-        # Path to the local repository, must be set, if functions accessing
-        # the local repository (see below) are called.
-        self.local = local
-
-        if local is not None:
-            # Add all distributions in the local repo to the index (without
-            # writing any index files)
-            self.index_all_files('local:')
-
-        # Chain of repository, either local or remote, from which
-        # distributions may be fetched, the local directory is always first.
-        self.repos = ['local:']
+        # Chain of repositories, either local or remote
+        self.repos = []
         for repo in repos:
             # These are file:// (optionally indexed) or http:// (indexed)
             self.add_repo(repo)
@@ -44,7 +34,7 @@ class Chain(object):
 
 
     def print_repos(self):
-        print 'Repositories: (local=%r)' % self.local
+        print 'Repositories:'
         for r in self.repos:
             print '\t%r' % r
 
@@ -194,7 +184,7 @@ class Chain(object):
         # level 0 and a non-existent distribution (because the required by
         # the argument of this function and not any other distribution)
         assert req.strictness == 3, req
-        reqs1 = {req: (0, 'local:ROOT')}
+        reqs1 = {req: (0, 'ROOT')}
 
         # add all requirements for the root requirement
         self.add_reqs(reqs1, req)
@@ -250,7 +240,7 @@ class Chain(object):
                 dists.append(dist)
             else:
                 print 'ERROR: No distribution found for: %r' % r
-                if d != 'local:ROOT':
+                if d != 'ROOT':
                     print '       required by: %s' % d
                 sys.exit(1)
 
@@ -297,12 +287,11 @@ class Chain(object):
 
         return sorted(versions, key=utils.comparable_version)
 
-    # --------------- methods which access the local repo -----------------
 
-    def fetch_dist(self, dist, force=False, check_md5=False):
+    def fetch_dist(self, dist, fetch_dir, force=False, check_md5=False):
         """
         Get a distribution, i.e. copy or download the distribution into
-        the local repo.
+        fetch_dir.
 
         force:
             force download or copy
@@ -322,7 +311,7 @@ class Chain(object):
         size = self.index[dist].get('size', None)
 
         fn = dist_naming.filename_dist(dist)
-        dst = join(self.local, fn)
+        dst = join(fetch_dir, fn)
         # if force is not used, see if (i) the file exists (ii) its size is
         # the expected (iii) optionally, make sure the md5 is the expected.
         if (not force and isfile(dst) and getsize(dst) == size and
@@ -347,9 +336,6 @@ class Chain(object):
 
 
     def dirname_repo(self, repo):
-        if repo == 'local:':
-            return self.local
-
         if repo.startswith('file://'):
             return repo[7:].rstrip(r'\/')
 
@@ -358,10 +344,9 @@ class Chain(object):
 
     def index_file(self, filename, repo):
         """
-        Add an unindexed distribution, which must already exist in the
-        repository, (which is either the local repository or a repository
-        of the filesystem) to the index (in memory).  Note that the index
-        file on disk remains unchanged.
+        Add an unindexed distribution, which must already exist in a local
+        repository to the index (in memory).  Note that the index file on
+        disk remains unchanged.
         """
         dist = repo + filename
         if self.verbose:
@@ -397,7 +382,7 @@ class Chain(object):
 
     # ------------- testing
 
-    def test(self, assert_files_exist=False):
+    def test(self):
         """
         Test the content of the repo for consistency.
         """
@@ -406,10 +391,6 @@ class Chain(object):
         for fn in sorted(self.index.keys(), key=string.lower):
             if self.verbose:
                 print fn
-
-            if assert_files_exist:
-                dist_path = join(self.local, fn)
-                assert isfile(dist_path), dist_path
 
             spec = self.index[fn]
             for r in spec['Reqs']:

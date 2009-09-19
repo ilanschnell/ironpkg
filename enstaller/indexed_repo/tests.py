@@ -10,7 +10,6 @@ class TestUtils(unittest.TestCase):
 
     def test_split_dist(self):
         for repo, fn in [
-            ('local:', 'foo.egg'),
             ('http://www.example.com/repo/', 'foo.egg'),
             ('file:///home/repo/', 'numpy-1.1.1-5.egg'),
             ('file://E:\\eggs\\', 'numpy-1.1.1-5.egg'),

@@ -176,7 +176,7 @@ def main():
         return
 
     if opts.test:
-        c = Chain(local, repos, opts.verbose)
+        c = Chain(repos, opts.verbose)
         c.test()
         return
 
@@ -195,7 +195,7 @@ def main():
     # 'active' is a list of the egg names which are currently active.
     active = ['%s.egg' % s for s in egginst.get_active()]
 
-    c = Chain(None, repos, opts.verbose)
+    c = Chain(repos, opts.verbose)
 
     dists = c.install_order(req, recur=not opts.no_deps)
 
@@ -214,14 +214,13 @@ def main():
 
     # Fetch the distributions
     fetch_exclude = [] if opts.force else active
-    c.local = local
     for dist in dists:
         if filename_dist(dist) in fetch_exclude:
             continue
         if opts.verbose:
             print 70 * '='
             print 'fetching: %r' % dist
-        c.fetch_dist(dist, force=opts.force)
+        c.fetch_dist(dist, local, force=opts.force)
 
     remove = []
     for dist in dists:
