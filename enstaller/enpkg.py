@@ -7,9 +7,9 @@ from os.path import basename, expanduser, isdir, isfile, join
 import egginst
 
 import config
-from utils import canonical
+from utils import (canonical, cname_eggname, comparable_version,
+                   pprint_fn_action)
 from indexed_repo import filename_dist, Chain, Req
-from enstaller.utils import cname_eggname, pprint_fn_action, comparable_version
 
 
 
