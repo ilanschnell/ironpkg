@@ -88,6 +88,18 @@ def remove_req(req, opts):
         egginst.EggInst(pkg, opts.verbose).remove()
 
 
+def iter_dists_excl(dists, exclude_fn):
+    """
+    Iterates over all dists, excluding the ones whose filename is an element
+    of exclude_fn.  Yields both the distribution and filename.
+    """
+    for dist in dists:
+        fn = filename_dist(dist)
+        if fn in exclude_fn:
+            continue
+        yield dist, fn
+
+
 def main():
     from optparse import OptionParser
 
@@ -98,17 +110,20 @@ def main():
 
     p.add_option("--config",
                  action="store_true",
-                 default=False,
                  help="display the configuration and exit")
 
     p.add_option('-f', "--force",
                  action="store_true",
-                 default=False,
-                 help="force download and install")
+                 help="force download and install the main package "
+                      "(not it's dependencies, see --forceall)")
+
+    p.add_option("--forceall",
+                 action="store_true",
+                 help="force download and install of all packages "
+                      "(i.e. including dependencies")
 
     p.add_option('-l', "--list",
                  action="store_true",
-                 default=False,
                  help="list the packages currently installed on the system")
 
     p.add_option('-n', "--dry-run",
@@ -117,17 +132,14 @@ def main():
 
     p.add_option('-N', "--no-deps",
                  action="store_true",
-                 default=False,
-                 help="don't download (or install) dependencies")
+                 help="neither download nor install dependencies")
 
     p.add_option("--remove",
                  action="store_true",
-                 default=False,
                  help="remove a package")
 
     p.add_option('-s', "--search",
                  action="store",
-                 default=None,
                  help="search the index in the repo (chain) of packages "
                       "and display versions available.  Type '-s ?' to "
                       "display available versions for all packages.",
@@ -135,16 +147,13 @@ def main():
 
     p.add_option("--test",
                  action="store_true",
-                 default=False,
                  help="perform some internal tests (for development only)")
 
     p.add_option('-v', "--verbose",
-                 action="store_true",
-                 default=False)
+                 action="store_true")
 
     p.add_option('--version',
-                 action="store_true",
-                 default=False)
+                 action="store_true")
 
     opts, args = p.parse_args()
     args_n = len(args)
@@ -190,9 +199,6 @@ def main():
         remove_req(req, opts)
         return
 
-    # 'active' is a list of the egg names which are currently active.
-    active = ['%s.egg' % s for s in egginst.get_active()]
-
     dists = c.install_order(req, recur=not opts.no_deps)
 
     if dists is None:
@@ -208,49 +214,43 @@ def main():
         for d in dists:
             print '\t', d
 
-    # Fetch the distributions
-    exclude_fetch = [] if opts.force else active
-    for dist in dists:
-        if filename_dist(dist) in exclude_fetch:
-            continue
-        if opts.dry_run:
-            pprint_fn_action(filename_dist(dist), 'downloading')
-        else:
-            c.fetch_dist(dist, local, force=opts.force)
+    # 'active' is the set of egg names which are currently active.
+    active = set('%s.egg' % s for s in egginst.get_active())
 
-    remove = []
+    # These are the eggs which are being excluded from download and install
+    exclude = set(active)
+    if opts.force:
+        exclude.discard(filename_dist(dists[-1]))
+    elif opts.forceall:
+        exclude = set()
+
+    # Fetch distributions
+    for dist, fn in iter_dists_excl(dists, exclude):
+        if opts.dry_run:
+            pprint_fn_action(fn, 'downloading')
+        else:
+            c.fetch_dist(dist, local, force=opts.force or opts.forceall)
+
+    # Remove packages
     for dist in dists:
         egg_name = filename_dist(dist)
         if egg_name in active:
+            # if the distribution (which needs to be installed) is already
+            # active don't remove it
             continue
         cname = cname_eggname(egg_name)
         for egg_a in active:
             if cname == cname_eggname(egg_a):
-                remove.append(egg_a)
+                pprint_fn_action(egg_a, 'removing')
+                if not opts.dry_run:
+                    egginst.EggInst(egg_a, opts.verbose).remove()
 
-    install = []
-    for dist in dists:
-        egg_name = filename_dist(dist)
-        if egg_name not in active:
-            install.append(egg_name)
-
-    print 77 * '='
-    for egg_r in remove:
-        pprint_fn_action(egg_r, 'removing')
+    # Install packages
+    for dist, egg_name in iter_dists_excl(dists, exclude):
+        pprint_fn_action(egg_name, 'installing')
+        egg_path = join(local, egg_name)
         if not opts.dry_run:
-            egginst.EggInst(egg_r, opts.verbose).remove()
-
-    for dist in dists:
-        egg_name = filename_dist(dist)
-        if opts.force or egg_name in install:
-            pprint_fn_action(egg_name, 'installing')
-            egg_path = join(local, egg_name)
-            if not opts.dry_run:
-                egginst.EggInst(egg_path, opts.verbose).install()
-        else:
-            pprint_fn_action(egg_name, 'already active')
-            if egg_name not in active:
-                print "Hmm, %s not active" % egg_name
+            egginst.EggInst(egg_path, opts.verbose).install()
 
 
 if __name__ == '__main__':

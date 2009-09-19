@@ -318,7 +318,6 @@ class Chain(object):
                    (not check_md5 or utils.md5_file(dst) == md5)):
             if self.verbose:
                 print "Not forcing refetch, %r already exists" % dst
-            utils.pprint_fn_action(fn, 'already exists')
             return
 
         utils.pprint_fn_action(
