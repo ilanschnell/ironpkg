@@ -15,7 +15,9 @@ class Req(object):
         3   name, version and build matter
     """
 
-    def __init__(self, req_string):
+    def __init__(self, req_string, py_ver=PY_VER):
+        self.py_ver = py_ver
+
         for c in '<>=':
             assert c not in req_string, req_string
         lst = req_string.replace(',', ' ').split()
@@ -42,7 +44,7 @@ class Req(object):
         must be in the list of required versions.
         """
         assert spec['metadata_version'] >= '1.1', spec
-        if spec['python'] not in [None, PY_VER]:
+        if spec['python'] not in [None, self.py_ver]:
             return False
         if self.strictness == 0:
             return True
@@ -102,8 +104,3 @@ def filter_name(reqs, name):
     from the requirements 'reqs', filter those for project 'name'
     """
     return set(r for r in reqs if r.name == name)
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
