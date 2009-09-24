@@ -2,7 +2,6 @@ import os
 import sys
 import zipfile
 import shutil
-import tempfile
 import ConfigParser
 from os.path import basename, getsize, isfile, isdir, join
 from distutils.sysconfig import get_python_lib

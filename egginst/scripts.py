@@ -1,10 +1,6 @@
 import os
 import sys
 import re
-import shutil
-import zipfile
-from glob import glob
-from distutils.sysconfig import get_python_lib
 from os.path import abspath, basename, join, islink, isfile
 
 from egginst.utils import on_win, rm_rf

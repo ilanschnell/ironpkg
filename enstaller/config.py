@@ -2,7 +2,6 @@
 # All rights reserved.
 
 import os
-import stat
 import sys
 
 from distutils.sysconfig import get_python_lib
