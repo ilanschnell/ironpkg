@@ -216,7 +216,8 @@ class EggInst(object):
 
         try:
             if remove:
-                appinst.uninstall_from_dat(path)
+                if sys.platform == 'win32':
+                    appinst.uninstall_from_dat(path)
             else:
                 appinst.install_from_dat(path)
         except:
