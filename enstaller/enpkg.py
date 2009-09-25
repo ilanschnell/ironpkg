@@ -201,7 +201,7 @@ def main():
     dists = c.install_order(req, recur=not opts.no_deps)
 
     if dists is None:
-        print "No distribution found."
+        print "No distribution found for requirement '%s'." % req
         versions = c.list_versions(req.name)
         if versions:
             print "Versions for package %r are: %s" % (req.name,
