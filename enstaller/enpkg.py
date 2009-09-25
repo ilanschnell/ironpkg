@@ -227,11 +227,11 @@ def main():
     for dist, fn in iter_dists_excl(dists, exclude):
         if opts.dry_run:
             pprint_fn_action(fn, 'downloading')
-        else:
-            c.fetch_dist(dist, local, force=opts.force or opts.forceall)
+            continue
+        c.fetch_dist(dist, local, force=opts.force or opts.forceall)
 
-    # Remove packages
-    for dist in dists:
+    # Remove packages (in reverse install order)
+    for dist in dists[::-1]:
         egg_name = filename_dist(dist)
         if egg_name in active:
             # if the distribution (which needs to be installed) is already

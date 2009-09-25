@@ -190,7 +190,6 @@ def fix_scripts(egg):
             fix_script(fpath)
 
 
-
 if __name__ == '__main__':
     write_exe('cli.exe')
     write_exe('gui.exe', 'gui_scripts')

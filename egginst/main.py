@@ -207,6 +207,9 @@ class EggInst(object):
         if not isfile(path):
             return
 
+        if remove and sys.platform != 'win32':
+            return
+
         try:
             import appinst
         except ImportError:
@@ -216,8 +219,7 @@ class EggInst(object):
 
         try:
             if remove:
-                if sys.platform == 'win32':
-                    appinst.uninstall_from_dat(path)
+                appinst.uninstall_from_dat(path)
             else:
                 appinst.install_from_dat(path)
         except:
