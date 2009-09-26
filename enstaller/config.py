@@ -8,6 +8,7 @@ from distutils.sysconfig import get_python_lib
 from os.path import abspath, expanduser, isfile, join
 
 from enstaller import __version__
+from utils import PY_VER
 
 
 CONFIG_FN = ".enstaller4rc"
@@ -65,15 +66,16 @@ RC_TMPL = """\
 #
 #     %(prefix)s
 #
-# This file created by initially running the enpkg command.
+# This file was created by initially running the enpkg command.
 
 # EPD subscriber OpenID:
 %(openid_line)s
 
-
 # This list of repositories may include the EPD repository.  However,
 # if the EPD repository is listed here things will only work if the
-# correct EPD subscriber OpenID is provided above.
+# correct EPD subscriber OpenID is provided above.  Notice also that
+# only indexed repositories, i.e. HTTP directories which contain a file
+# 'index-depend.bz2', can be listed here.
 IndexedRepos = %(repos)s
 """
 
@@ -96,7 +98,7 @@ def write():
     epd_repo = None
     if (custom_tools and hasattr(custom_tools, 'epd_baseurl') and
                          hasattr(custom_tools, 'epd_subdir')):
-        epd_repo = custom_tools.epd_baseurl + custom_tools.epd_subdir +'/'
+        epd_repo = custom_tools.epd_baseurl + custom_tools.epd_subdir + '/'
 
     openid = ''
     if epd_repo:
@@ -106,7 +108,7 @@ def write():
     if openid:
         repos = '[\n    %r,\n]' % epd_repo
 
-    py_ver = sys.version[:3]
+    py_ver = PY_VER
     prefix = sys.prefix
     if openid:
         openid_line = "EPD_OpenID = %r" % openid
