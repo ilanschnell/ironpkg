@@ -1,3 +1,4 @@
+import re
 from dist_naming import split_eggname, filename_dist
 
 from enstaller.utils import PY_VER, canonical
@@ -7,35 +8,30 @@ class Req(object):
     """
     A requirement object is initalized by a requirement string. Attributes:
     name: the canonical project name
-    versions: the list of possible versions required
+    version: the list of possible versions required
     strictness: the level of strictness
         0   nothing matters, anything matches
-        1   name matters
-        2   name and version(s) matter
-        3   name, version and build matter
+        1   only the name must match
+        2   name and version must match
+        3   name, version and build must match
     """
+    py_pat = re.compile(r'\d+\.\d+$')
 
-    def __init__(self, req_string, py_ver=PY_VER):
-        self.py_ver = py_ver
-
-        for c in '<>=':
+    def __init__(self, req_string, py=PY_VER):
+        assert self.py_pat.match(py), py
+        for c in '<>=,':
             assert c not in req_string, req_string
-        lst = req_string.replace(',', ' ').split()
+        lst = req_string.split()
+        assert len(lst) <= 2, req_string
         self.strictness = 0
-        self.name = ''
-
+        self.name = self.version = None
         if lst:
             self.name = canonical(lst[0])
-            assert '-' not in self.name
             self.strictness = 1
-
-        self.versions = sorted(lst[1:])
-        if self.versions:
-            self.strictness = 2
-
-        if any('-' in v for v in self.versions):
-            assert len(self.versions) == 1
-            self.strictness = 3
+        if len(lst) == 2:
+            self.version = lst[1]
+            self.strictness = 2 + bool('-' in self.version)
+        self.py = py
 
     def matches(self, spec):
         """
@@ -44,7 +40,7 @@ class Req(object):
         must be in the list of required versions.
         """
         assert spec['metadata_version'] >= '1.1', spec
-        if spec['python'] not in [None, self.py_ver]:
+        if spec['python'] not in (None, self.py):
             return False
         if self.strictness == 0:
             return True
@@ -53,21 +49,23 @@ class Req(object):
         if self.strictness == 1:
             return True
         if self.strictness == 2:
-            return spec['version'] in self.versions
+            return spec['version'] == self.version
         assert self.strictness == 3
-        return '%(version)s-%(build)i' % spec == self.versions[0]
+        return '%(version)s-%(build)i' % spec == self.version
 
     def __str__(self):
+        if self.strictness == 0:
+            return ''
         res = self.name
-        if self.versions:
-            res += ' ' + ', '.join(self.versions)
+        if self.version:
+            res += ' ' + self.version
         return res
 
     def __repr__(self):
         """
         return a canonical representation of the object
         """
-        return 'Req(%r)' % str(self)
+        return 'Req(%r, py=%r)' % (str(self), self.py)
 
     def __cmp__(self, other):
         return cmp(str(self), str(other))
@@ -95,7 +93,7 @@ def dist_as_req(dist, strictness=3):
     if strictness >= 2:
         req_string += ' %s' % version
     if strictness >= 3:
-        req_string += '-%s' % build
+        req_string += '-%i' % build
     return Req(req_string)
 
 

@@ -132,8 +132,6 @@ class Chain(object):
         """
         Return the set of requirement objects of the distribution.
         """
-        if dist not in self.index:
-            raise Exception("Index does not contain distribution: %r" % dist)
         return self.index[dist]['Reqs']
 
 
@@ -304,9 +302,6 @@ class Chain(object):
             md5 of a download.  The md5 is always checked when files are
             downloaded (regardless of this option).
         """
-        if dist not in self.index:
-            raise Exception("distribution not found: %r" % dist)
-
         md5 = self.index[dist].get('md5', None)
         size = self.index[dist].get('size', None)
 
@@ -337,8 +332,7 @@ class Chain(object):
     def dirname_repo(self, repo):
         if repo.startswith('file://'):
             return repo[7:].rstrip(r'\/')
-
-        raise Exception("No directory for repo=%r" % repo)
+        return None
 
 
     def index_file(self, filename, repo):
@@ -347,19 +341,17 @@ class Chain(object):
         repository to the index (in memory).  Note that the index file on
         disk remains unchanged.
         """
+        assert filename == basename(filename), filename
         dist = repo + filename
         if self.verbose:
             print "Adding %r to index" % dist
-
-        if filename != basename(filename):
-            raise Exception("base filename expected, got %r" % filename)
 
         arcname = 'EGG-INFO/spec/depend'
         z = zipfile.ZipFile(join(self.dirname_repo(repo), filename))
         if arcname not in z.namelist():
             z.close()
-            raise Exception("arcname=%r does not exist in %r" %
-                            (arcname, filename))
+            raise Exception("zipfile %r has no arcname=%r" %
+                            (filename, arcname))
 
         spec = metadata.parse_data(z.read(arcname))
         z.close()
@@ -399,8 +391,6 @@ class Chain(object):
                     continue
                 if self.verbose:
                     print '\t', r, '->', self.get_dist(r)
-                assert isinstance(r.versions, list)
-                assert all(v == v.strip() for v in r.versions)
                 assert d in self.index, '*** %r ***' % d
 
             r = Req('%(name)s %(version)s' % spec)

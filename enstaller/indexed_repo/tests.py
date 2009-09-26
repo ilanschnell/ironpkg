@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from requirement import Req
+from requirement import Req, dist_as_req
 from dist_naming import comparable_spec, split_dist
 from enstaller.utils import comparable_version
 
@@ -50,12 +50,21 @@ class TestUtils(unittest.TestCase):
 
 class TestReq(unittest.TestCase):
 
+    def test_dist_as_req(self):
+        for req_string, s in [
+            ('numpy', 1),
+            ('numpy 1.3.0', 2),
+            ('numpy 1.3.0-2', 3),
+            ]:
+            req = dist_as_req('file:///numpy-1.3.0-2.egg', s)
+            self.assertEqual(req, Req(req_string))
+            self.assertEqual(req.strictness, s)
+
     def test_misc_methods(self):
         for req_string, n in [
             ('', 0),
             ('foo', 1),
-            ('foo 1.8', 2),
-            ('foo 1.8, 1.9', 2),
+            ('foo 1.9', 2),
             ('foo 1.8-7', 3)
             ]:
             r = Req(req_string)
@@ -66,15 +75,14 @@ class TestReq(unittest.TestCase):
             self.assertEqual(r, r)
             self.assertEqual(eval(repr(r)), r)
 
-    def test_versions(self):
-        for req_string, versions in [
-            ('foo 1.8', ['1.8']),
-            ('foo 2.3 1.8', ['1.8', '2.3']),
-            ('foo 4.0.1, 2.3, 1.8', ['1.8', '2.3', '4.0.1']),
-            ('foo 1.8-7', ['1.8-7'])
+    def test_version(self):
+        for req_string, version in [
+            ('foo 1.8', '1.8'),
+            ('foo 2.3', '2.3'),
+            ('foo 1.8-7', '1.8-7')
             ]:
             r = Req(req_string)
-            self.assertEqual(r.versions, versions)
+            self.assertEqual(r.version, version)
 
     def test_matches(self):
         spec = dict(
@@ -89,14 +97,18 @@ class TestReq(unittest.TestCase):
             ('foo', False),
             ('Foo-BAR', True),
             ('foo-Bar 2.4.1', True),
-            ('foo-Bar 2.4.0 2.4.1', True),
-            ('foo-Bar 2.4.0 2.4.3', False),
             ('FOO-Bar 1.8.7', False),
             ('FOO-BAR 2.4.1-3', True),
             ('FOO-Bar 2.4.1-1', False),
             ]:
-            r = Req(req_string)
-            self.assertEqual(r.matches(spec), m)
+            self.assertEqual(Req(req_string).matches(spec), m, req_string)
+
+        for py in ['2.4', '2.5', '2.6', '3.1']:
+            self.assertEqual(Req('foo_bar', py).matches(spec), True)
+
+        spec['python'] = '2.5'
+        self.assertEqual(Req('foo_bar', '2.5').matches(spec), True)
+        self.assertEqual(Req('foo_bar', '2.6').matches(spec), False)
 
 
 if __name__ == '__main__':
