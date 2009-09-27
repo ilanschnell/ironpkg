@@ -10,8 +10,8 @@ from os.path import basename, getsize, isfile, isdir, join
 import metadata
 import dist_naming
 from requirement import Req, add_Reqs_to_spec, filter_name, dist_as_req
-
-import enstaller.utils as utils
+from enstaller.utils import (canonical, comparable_version, md5_file,
+                             pprint_fn_action, rm_rf, write_data_from_url)
 
 
 
@@ -67,7 +67,7 @@ class Chain(object):
             print "\treading:", index_url
 
         faux = StringIO.StringIO()
-        utils.write_data_from_url(faux, index_url)
+        write_data_from_url(faux, index_url)
         index_data = faux.getvalue()
 
         if index_fn.endswith('.bz2'):
@@ -236,11 +236,11 @@ class Chain(object):
             dist = self.get_dist(r)
             if dist:
                 dists.append(dist)
-            else:
-                print 'ERROR: No distribution found for: %r' % r
-                if d != 'ROOT':
-                    print '       required by: %s' % d
-                sys.exit(1)
+                continue
+            print 'ERROR: No distribution found for: %r' % r
+            if d != 'ROOT':
+                print '       required by: %s' % d
+            sys.exit(1)
 
         # the distributions corresponding to the requirements must be sorted
         # because the output of this function is otherwise not deterministic
@@ -263,7 +263,7 @@ class Chain(object):
                 # see if all required packages were added already
                 if all(bool(n in names_inst) for n in rns[dist]):
                     res.append(dist)
-                    names_inst.add(utils.canonical(self.index[dist]['name']))
+                    names_inst.add(canonical(self.index[dist]['name']))
                     assert len(names_inst) == len(res)
             if len(res) == n:
                 # nothing was added
@@ -278,12 +278,12 @@ class Chain(object):
         """
         versions = set()
 
-        cname = utils.canonical(name)
+        cname = canonical(name)
         for spec in self.index.itervalues():
-            if utils.canonical(spec['name']) == cname:
+            if canonical(spec['name']) == cname:
                 versions.add(spec['version'])
 
-        return sorted(versions, key=utils.comparable_version)
+        return sorted(versions, key=comparable_version)
 
 
     def fetch_dist(self, dist, fetch_dir, force=False, check_md5=False):
@@ -310,12 +310,12 @@ class Chain(object):
         # if force is not used, see if (i) the file exists (ii) its size is
         # the expected (iii) optionally, make sure the md5 is the expected.
         if (not force and isfile(dst) and getsize(dst) == size and
-                   (not check_md5 or utils.md5_file(dst) == md5)):
+                   (not check_md5 or md5_file(dst) == md5)):
             if self.verbose:
                 print "Not forcing refetch, %r already exists" % dst
             return
 
-        utils.pprint_fn_action(
+        pprint_fn_action(
             fn, ['copying', 'downloading'][dist.startswith('http://')])
 
         if self.verbose:
@@ -323,9 +323,9 @@ class Chain(object):
             print "     to: %r" % dst
 
         fo = open(dst + '.part', 'wb')
-        utils.write_data_from_url(fo, dist, md5, size)
+        write_data_from_url(fo, dist, md5, size)
         fo.close()
-        utils.rm_rf(dst)
+        rm_rf(dst)
         os.rename(dst + '.part', dst)
 
 

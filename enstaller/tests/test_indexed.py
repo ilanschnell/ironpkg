@@ -1,25 +1,8 @@
 import random
 import unittest
 
-import dist_naming
-from enstaller.utils import comparable_version
-from requirement import Req, dist_as_req
-
-
-class TestUtils(unittest.TestCase):
-
-    def test_comparable_version(self):
-        versions = ['1.0.4', '1.2.1', '1.3.0b1', '1.3.0', '1.3.10']
-        org = list(versions)
-        random.shuffle(versions)
-        versions.sort(key=comparable_version)
-        self.assertEqual(versions, org)
-
-        versions = ['2008j', '2008k', '2009b', '2009h']
-        org = list(versions)
-        random.shuffle(versions)
-        versions.sort(key=comparable_version)
-        self.assertEqual(versions, org)
+import enstaller.indexed_repo.dist_naming as dist_naming
+from enstaller.indexed_repo.requirement import Req, dist_as_req
 
 
 class TestDistNaming(unittest.TestCase):

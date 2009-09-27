@@ -1,8 +1,7 @@
 # This module implements PEP 386
 # 2009-08-27: hg clone http://bitbucket.org/tarek/distutilsversion/
 """
-"Rational" version definition and parsing for DistutilsVersionFight discussion
-at PyCon 2009.
+"Rational" version definition and parsing for DistutilsVersionFight discussion at PyCon 2009.
 """
 import sys
 import re

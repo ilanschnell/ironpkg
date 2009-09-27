@@ -8,7 +8,7 @@ from enstaller import __version__
 from enstaller.verlib import RationalVersion, IrrationalVersionError
 
 
-PY_VER = '%i.%i' % sys.version_info[:2]
+PY_VER = '2.5' #'%i.%i' % sys.version_info[:2]
 
 
 def canonical(s):
