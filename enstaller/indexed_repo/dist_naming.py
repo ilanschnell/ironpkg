@@ -61,7 +61,7 @@ def filename_dist(dist):
 egg_pat = re.compile(r'([^-]+)-([^-]+)-(\d+).egg$')
 
 def is_valid_eggname(eggname):
-    return egg_pat.match(eggname)
+    return bool(egg_pat.match(eggname))
 
 def split_eggname(eggname):
     m = egg_pat.match(eggname)
