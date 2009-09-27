@@ -1,0 +1,663 @@
+==> AppInst-2.0.4-1.egg <==
+size = 79310
+md5 = '287f8df72b09413021cb331e0b131ab0'
+
+metadata_version = '1.1'
+name = 'AppInst'
+version = '2.0.4'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> argparse-1.0.1-1.egg <==
+size = 43239
+md5 = '57502cab849fca133e26ef9fc426374e'
+
+metadata_version = '1.1'
+name = 'argparse'
+version = '1.0.1'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> basemap-0.99.4-2.egg <==
+size = 12907911
+md5 = '244d56a930da5b051aa822e93820118b'
+
+metadata_version = '1.1'
+name = 'basemap'
+version = '0.99.4'
+build = 2
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'ipython 0.10',
+  'matplotlib 0.99.0',
+  'numpy 1.3.0',
+]
+
+==> Cheetah-2.2.1-1.egg <==
+size = 502849
+md5 = '3aaf9efe6529f35b2dc788b88f799714'
+
+metadata_version = '1.1'
+name = 'Cheetah'
+version = '2.2.1'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> ensetuptools-1.0.0-1.egg <==
+size = 449774
+md5 = 'a79826238d09d9bc8eb98fbb6d81ffe6'
+
+metadata_version = '1.1'
+name = 'ensetuptools'
+version = '1.0.0'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> Enstaller-4.1.0-1.egg <==
+size = 101074
+md5 = '52b6c3ed640d0a7331384509049b006c'
+
+metadata_version = '1.1'
+name = 'Enstaller'
+version = '4.1.0'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> EPD-5.1.0-1.egg <==
+size = 2739
+md5 = '5335ce3516416a518f0c3f68d6aee7e1'
+
+metadata_version = '1.1'
+name = 'EPD'
+version = '5.1.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = None
+python = None
+packages = [
+  'argparse 1.0.1-1',
+  'basemap 0.99.4-2',
+  'bitarray 0.3.5-1',
+  'CherryPy 3.1.2-1',
+  'coverage 2.80-1',
+  'docutils 0.5-1',
+  'ensetuptools 1.0.0-1',
+  'EPDIndex 1.0-1',
+  'EPDLab 3.0.1-3',
+  'epydoc 3.0.1-1',
+  'ETS 3.3.0-2',
+  'foolscap 0.2.9-1',
+  'fpconst 0.7.2-1',
+  'gadfly 1.0.0-4',
+  'grin 1.1.1-2',
+  'idle 2.5.4-4',
+  'Jinja2 2.1.1-1',
+  'lib_netcdf3 3.6.2-6',
+  'lib_netcdf4 4.0-1',
+  'libxml2 2.7.3-1',
+  'libxslt 1.1.24-3',
+  'lxml 2.2.2-1',
+  'mpi4py 1.1.0-1',
+  'multiprocessing 2.6.1.1-1',
+  'MySQL_python 1.2.2-4',
+  'netCDF4 0.7.6-3',
+  'networkx 0.99-1',
+  'numarray 1.5.2-2',
+  'ply 3.3-1',
+  'pyaudio 0.2.3-1',
+  'pycdf 0.6.3b0-1',
+  'pycrypto 2.0.1-2',
+  'pydot 1.0.2-2',
+  'pyflakes 0.3.0-1',
+  'pygarrayimage 0.0.7-1',
+  'Pygments 1.0-1',
+  'pyhdf 0.8.3-2',
+  'PyOpenGL 3.0.0-1',
+  'pyOpenSSL 0.7-1',
+  'pyparsing 1.5.2-1',
+  'pyproj 1.8.5-1',
+  'Pyrex 0.9.8.5-1',
+  'pyserial 2.4-1',
+  'PyVISA 1.3-1',
+  'Reportlab 2.1-4',
+  'ScientificPython 2.7.9-3',
+  'scikits.rsformats 0.1-3',
+  'scons 1.2.0-2',
+  'simplejson 1.9.2-1',
+  'soaplib 0.7.2-2',
+  'SOAPpy 0.11.6-2',
+  'Sphinx 0.6.3-1',
+  'SQLAlchemy 0.4.6-1',
+  'Twisted 8.2.0-1',
+  'Whoosh 0.1.12-1',
+  'WhooshDoc 1.0-2',
+  'xlrd 0.7.1-1',
+  'xlwt 0.7.2-1',
+  'ZConfig 2.6.0-1',
+  'zdaemon 2.0.2-1',
+  'ZODB3 3.8.1-1',
+  'zope.interface 3.5.2-1',
+  'zope.proxy 3.5.0-1',
+  'zope.testing 3.7.6-1',
+]
+
+==> EPDCore-1.2.1-1.egg <==
+size = 1401
+md5 = 'e1666c2520063967bfdce75a2fa1f23a'
+
+metadata_version = '1.1'
+name = 'EPDCore'
+version = '1.2.1'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = None
+python = None
+packages = [
+  'AppInst 2.0.4-1',
+  'configobj 4.5.3-1',
+  'Cython 0.11.2-1',
+  'freetype 2.3.7-1',
+  'hdf5 1.8.1-1',
+  'ipython 0.10-1',
+  'libjpeg 7.0-1',
+  'libpng 1.2.25-1',
+  'matplotlib 0.99.0-2',
+  'nose 0.11.1-1',
+  'numpy 1.3.0-1',
+  'PIL 1.1.6-4',
+  'pyglet 1.1.3-1',
+  'pytables 2.1.1-1',
+  'python_dateutil 1.4.1-1',
+  'pytz 2009l-1',
+  'scipy 0.8.0.dev5698-1',
+  'swig 1.3.40-1',
+  'sympy 0.6.5-1',
+  'VTK 5.4.2-1',
+  'wxPython 2.8.7.1-4',
+]
+
+==> EPDLab-3.0.1-3.egg <==
+size = 371675
+md5 = 'c7ec53625e32dd8b9805655e1fb9e36d'
+
+metadata_version = '1.1'
+name = 'EPDLab'
+version = '3.0.1'
+build = 3
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'AppInst 2.0.4',
+  'ETS 3.3.0',
+]
+
+==> ETS-3.2.0-3.egg <==
+size = 3421
+md5 = '6ad5f642e539b98918494de1ddf1458c'
+
+metadata_version = '1.1'
+name = 'ETS'
+version = '3.2.0'
+build = 3
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = None
+packages = [
+  'AppTools 3.2.0-1',
+  'BlockCanvas 3.0.2-1',
+  'Chaco 3.1.0-2',
+  'CodeTools 3.0.2-1',
+  'docutils 0.5-1',
+  'Enable 3.1.0-3',
+  'EnthoughtBase 3.0.2-1',
+  'EnvisageCore 3.1.0-1',
+  'EnvisagePlugins 3.1.0-1',
+  'EPDCore 1.2.0-1',
+  'ETSDevTools 3.0.2-2',
+  'ETSProjectTools 0.5.0-1',
+  'Jinja2 2.1.1-1',
+  'Mayavi 3.2.0-4',
+  'Pygments 1.0-1',
+  'SciMath 3.0.3-2',
+  'SetupDocs 1.0.2-2',
+  'Sphinx 0.6.1-1',
+  'Traits 3.1.0-1',
+  'TraitsBackendQt 3.1.0-1',
+  'TraitsBackendWX 3.1.0-1',
+  'TraitsGUI 3.0.4-1',
+]
+
+==> ETS-3.3.0-2.egg <==
+size = 3432
+md5 = 'aac43f60c4eab26919c9efd50e45cc6b'
+
+metadata_version = '1.1'
+name = 'ETS'
+version = '3.3.0'
+build = 2
+
+arch = 'x86'
+platform = 'darwin'
+osdist = None
+python = None
+packages = [
+  'AppTools 3.3.0-1',
+  'BlockCanvas 3.1.0-1',
+  'Chaco 3.2.0-1',
+  'CodeTools 3.1.0-1',
+  'docutils 0.5-1',
+  'Enable 3.2.0-1',
+  'ensetuptools 1.0.0-1',
+  'EnthoughtBase 3.0.3-1',
+  'EnvisageCore 3.1.1-1',
+  'EnvisagePlugins 3.1.1-1',
+  'EPDCore 1.2.1-1',
+  'ETSDevTools 3.0.3-1',
+  'ETSProjectTools 0.5.1-1',
+  'Jinja2 2.1.1-1',
+  'Mayavi 3.3.0-2',
+  'Pygments 1.0-1',
+  'SciMath 3.0.4-1',
+  'SetupDocs 1.0.3-2',
+  'Sphinx 0.6.3-1',
+  'Traits 3.2.0-1',
+  'TraitsBackendQt 3.2.0-1',
+  'TraitsBackendWX 3.2.0-1',
+  'TraitsGUI 3.1.0-1',
+]
+
+==> grin-1.1.1-2.egg <==
+size = 30213
+md5 = '1280f52dc26308e59fb4352f07a0897a'
+
+metadata_version = '1.1'
+name = 'grin'
+version = '1.1.1'
+build = 2
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'argparse 1.0.1',
+]
+
+==> idle-2.5.4-4.egg <==
+size = 38103
+md5 = '6e27eb67ec43ef4886de1615252d4258'
+
+metadata_version = '1.1'
+name = 'idle'
+version = '2.5.4'
+build = 4
+
+arch = None
+platform = None
+osdist = None
+python = None
+packages = [
+  'AppInst 2.0.4',
+]
+
+==> ipython-0.10-1.egg <==
+size = 6935556
+md5 = 'baf6518a766d8e367d43d9fde0197023'
+
+metadata_version = '1.1'
+name = 'ipython'
+version = '0.10'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'AppInst 2.0.4',
+]
+
+==> matplotlib-0.99.0-2.egg <==
+size = 6183785
+md5 = '7139e110f957c161f9b4cbc066d535d3'
+
+metadata_version = '1.1'
+name = 'matplotlib'
+version = '0.99.0'
+build = 2
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'configobj 4.5.3',
+  'freetype 2.3.7',
+  'libpng 1.2.25',
+  'numpy 1.3.0',
+  'python_dateutil 1.4.1',
+  'pytz 2009l',
+  'wxPython 2.8.7.1',
+]
+
+==> Mayavi-3.3.0-2.egg <==
+size = 16988401
+md5 = '4230816bb44c45feb390b6ddf05a4e41'
+
+metadata_version = '1.1'
+name = 'Mayavi'
+version = '3.3.0'
+build = 2
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'AppInst 2.0.4',
+  'AppTools 3.3.0',
+  'EnthoughtBase 3.0.3',
+  'EnvisagePlugins 3.1.1',
+  'Traits 3.2.0',
+  'TraitsGUI 3.1.0',
+  'VTK 5.4.2',
+]
+
+==> netCDF4-0.7.6-3.egg <==
+size = 160967
+md5 = '0af02237056327edf262364a6f03af8e'
+
+metadata_version = '1.1'
+name = 'netCDF4'
+version = '0.7.6'
+build = 3
+
+arch = 'x86'
+platform = 'darwin'
+osdist = None
+python = '2.5'
+packages = [
+  'hdf5 1.8.1',
+  'lib_netcdf4 4.0',
+  'numpy 1.3.0',
+]
+
+==> ply-3.3-1.egg <==
+size = 88253
+md5 = 'b95b83cda5c823c286c38159142edcd0'
+
+metadata_version = '1.1'
+name = 'ply'
+version = '3.3'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> psycopg2-2.0.11-1.egg <==
+size = 201133
+md5 = 'acfafb861c7a719db8ab4ce5f62e24cd'
+
+metadata_version = '1.1'
+name = 'psycopg2'
+version = '2.0.11'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> pydot-1.0.2-2.egg <==
+size = 40671
+md5 = '881469fd31cd79323a3dd38061e00087'
+
+metadata_version = '1.1'
+name = 'pydot'
+version = '1.0.2'
+build = 2
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'pyparsing 1.5.2',
+]
+
+==> pyflakes-0.3.0-1.egg <==
+size = 35334
+md5 = '2931de45b08fc83360af88796d9c0ecc'
+
+metadata_version = '1.1'
+name = 'pyflakes'
+version = '0.3.0'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> pyparsing-1.5.2-1.egg <==
+size = 114302
+md5 = 'a18c73ecae3b5d92f224c08c53284201'
+
+metadata_version = '1.1'
+name = 'pyparsing'
+version = '1.5.2'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> pytz-2009l-1.egg <==
+size = 523572
+md5 = '19df1d04091816888323a2eab153ad68'
+
+metadata_version = '1.1'
+name = 'pytz'
+version = '2009l'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> scikits.rsformats-0.1-3.egg <==
+size = 10193
+md5 = '55c0ccb71d6269c1e412286ba1d4387a'
+
+metadata_version = '1.1'
+name = 'scikits.rsformats'
+version = '0.1'
+build = 3
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'numpy 1.3.0',
+  'pyhdf 0.8.3',
+  'pyparsing 1.5.2',
+]
+
+==> scons-1.2.0-2.egg <==
+size = 1248027
+md5 = 'c6c0338b8715c3a2562ffc0f49fee74f'
+
+metadata_version = '1.1'
+name = 'scons'
+version = '1.2.0'
+build = 2
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> SetupDocs-1.0.3-2.egg <==
+size = 15093
+md5 = 'ce4b55303f302eea33fa9f05956ce28f'
+
+metadata_version = '1.1'
+name = 'SetupDocs'
+version = '1.0.3'
+build = 2
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'Sphinx 0.6.3',
+]
+
+==> Sphinx-0.6.3-1.egg <==
+size = 656266
+md5 = '1256a739617242b7ee1ba026386e51df'
+
+metadata_version = '1.1'
+name = 'Sphinx'
+version = '0.6.3'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'docutils 0.5',
+  'Jinja2 2.1.1',
+  'Pygments 1.0',
+]
+
+==> swig-1.3.40-1.egg <==
+size = 1182403
+md5 = '3d786ab66449999530485e127b730e66'
+
+metadata_version = '1.1'
+name = 'swig'
+version = '1.3.40'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = None
+packages = []
+
+==> sympy-0.6.5-1.egg <==
+size = 3872263
+md5 = '0cffe5f17f36d9d7a4f33a8705163b0b'
+
+metadata_version = '1.1'
+name = 'sympy'
+version = '0.6.5'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> WhooshDoc-1.0-2.egg <==
+size = 41580
+md5 = '8e8e5aa407994369a8f4163f49f955b6'
+
+metadata_version = '1.1'
+name = 'WhooshDoc'
+version = '1.0'
+build = 2
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'argparse 1.0.1',
+  'epydoc 3.0.1',
+  'Whoosh 0.1.12',
+]
+
+==> xlrd-0.7.1-1.egg <==
+size = 196885
+md5 = '50e2f08ab6c511227b6f94ec3a4e4101'
+
+metadata_version = '1.1'
+name = 'xlrd'
+version = '0.7.1'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
+==> xlwt-0.7.2-1.egg <==
+size = 256109
+md5 = '043b890de83a0451ec949fb0108a186b'
+
+metadata_version = '1.1'
+name = 'xlwt'
+version = '0.7.2'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+

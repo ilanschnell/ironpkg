@@ -13,6 +13,21 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
+==> AppInst-2.0.3-1.egg <==
+size = 79376
+md5 = '11a78d7a7c5aa38a6c6170d984cd6f74'
+
+metadata_version = '1.1'
+name = 'AppInst'
+version = '2.0.3'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
 ==> AppTools-3.2.0-1.egg <==
 size = 837502
 md5 = '0ed81a0bf4e4ab1fec43e910be1a85d4'
@@ -30,6 +45,24 @@ packages = [
   'configobj 4.5.3',
 ]
 
+==> AppTools-3.3.0-1.egg <==
+size = 893896
+md5 = '0692f771f109d0318cefb5c614ddda36'
+
+metadata_version = '1.1'
+name = 'AppTools'
+version = '3.3.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'configobj 4.5.3',
+  'numpy 1.3.0',
+]
+
 ==> argparse-0.8.0-1.egg <==
 size = 35448
 md5 = '5a4ffe9d7454f8bb92ff401b533448e0'
@@ -42,6 +75,21 @@ build = 1
 arch = 'x86'
 platform = 'darwin'
 osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> argparse-1.0-1.egg <==
+size = 41076
+md5 = 'ace799fae98be640c3cf6aaa543720e6'
+
+metadata_version = '1.1'
+name = 'argparse'
+version = '1.0'
+build = 1
+
+arch = None
+platform = None
+osdist = None
 python = '2.5'
 packages = []
 
@@ -65,8 +113,8 @@ packages = [
 ]
 
 ==> basemap-0.99.1-2.egg <==
-size = 12872250
-md5 = '349446ec22ed3f6f340891f8eef34d6d'
+size = 12872248
+md5 = '1db4aacdb6480b12e20dce680bf53618'
 
 metadata_version = '1.1'
 name = 'basemap'
@@ -79,7 +127,26 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = [
   'ipython 0.9.1',
-  'matplotlib 0.98.5.2',
+  'matplotlib 0.99.0',
+  'numpy 1.3.0',
+]
+
+==> basemap-0.99.4-1.egg <==
+size = 12907912
+md5 = '6939f54caaeb5b3733041c12ad9b63e6'
+
+metadata_version = '1.1'
+name = 'basemap'
+version = '0.99.4'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'ipython 0.9.1',
+  'matplotlib 0.99.0',
   'numpy 1.3.0',
 ]
 
@@ -105,6 +172,21 @@ md5 = 'd0b0327125053ce54495b381fbaa9c7a'
 metadata_version = '1.1'
 name = 'BlockCanvas'
 version = '3.0.2'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> BlockCanvas-3.1.0-1.egg <==
+size = 1313160
+md5 = '52df1950af8a1dfa1e0e4abb1c8a7e59'
+
+metadata_version = '1.1'
+name = 'BlockCanvas'
+version = '3.1.0'
 build = 1
 
 arch = 'x86'
@@ -145,7 +227,24 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = [
   'numpy 1.3.0',
-  'Enable 3.1.0',
+]
+
+==> Chaco-3.2.0-1.egg <==
+size = 1106683
+md5 = '98592f27da841490587c231d3b2d6580'
+
+metadata_version = '1.1'
+name = 'Chaco'
+version = '3.2.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'Enable 3.2.0',
+  'numpy 1.3.0',
 ]
 
 ==> CherryPy-3.1.0-1.egg <==
@@ -164,8 +263,8 @@ python = '2.5'
 packages = []
 
 ==> CherryPy-3.1.2-1.egg <==
-size = 676226
-md5 = '356588af1dcb59c7db9bad8a4251aee3'
+size = 676511
+md5 = '9bcdca67b93122e5661df95adaf10c08'
 
 metadata_version = '1.1'
 name = 'CherryPy'
@@ -185,6 +284,21 @@ md5 = '8c5f47cac58dd2d2c53c91cad1e13872'
 metadata_version = '1.1'
 name = 'CodeTools'
 version = '3.0.2'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> CodeTools-3.1.0-1.egg <==
+size = 273371
+md5 = 'e9811ce50bc04ba31a40702a4e5a1919'
+
+metadata_version = '1.1'
+name = 'CodeTools'
+version = '3.1.0'
 build = 1
 
 arch = 'x86'
@@ -319,13 +433,30 @@ packages = [
   'numpy 1.3.0',
 ]
 
-==> Enstaller-3.1.1-1.egg <==
-size = 495867
-md5 = 'a1277b73052027cf018b0ecca4c574e9'
+==> Enable-3.2.0-1.egg <==
+size = 3738977
+md5 = 'fa4764296091a2bbe6ca383e4fbbd7cd'
+
+metadata_version = '1.1'
+name = 'Enable'
+version = '3.2.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'numpy 1.3.0',
+]
+
+==> Enstaller-4.0.0-1.egg <==
+size = 536825
+md5 = '002c256122b57e8770e5a43910059211'
 
 metadata_version = '1.1'
 name = 'Enstaller'
-version = '3.1.1'
+version = '4.0.0'
 build = 1
 
 arch = None
@@ -349,6 +480,21 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
+==> EnthoughtBase-3.0.3-1.egg <==
+size = 321278
+md5 = 'e7d8c76642c569585e5269cc77a254ea'
+
+metadata_version = '1.1'
+name = 'EnthoughtBase'
+version = '3.0.3'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
 ==> EnvisageCore-3.1.0-1.egg <==
 size = 203515
 md5 = 'f158da700d20d94196b97d1044d5c25f'
@@ -356,6 +502,21 @@ md5 = 'f158da700d20d94196b97d1044d5c25f'
 metadata_version = '1.1'
 name = 'EnvisageCore'
 version = '3.1.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> EnvisageCore-3.1.1-1.egg <==
+size = 203466
+md5 = '7372ae317d1e6a3b07343eb9bfe9c668'
+
+metadata_version = '1.1'
+name = 'EnvisageCore'
+version = '3.1.1'
 build = 1
 
 arch = 'x86'
@@ -382,9 +543,155 @@ packages = [
   'EnvisageCore 3.1.0',
 ]
 
+==> EnvisagePlugins-3.1.1-1.egg <==
+size = 383715
+md5 = 'cef92d35f70ef4a5b525290eefdb0f6e'
+
+metadata_version = '1.1'
+name = 'EnvisagePlugins'
+version = '3.1.1'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'EnthoughtBase 3.0.3',
+  'EnvisageCore 3.1.1',
+]
+
+==> EPD-5.0.0-1.egg <==
+size = 2674
+md5 = '42f472e705c87915ad7b7f7b262d8e2f'
+
+metadata_version = '1.1'
+name = 'EPD'
+version = '5.0.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = None
+packages = [
+  'argparse 1.0-1',
+  'basemap 0.99.1-2',
+  'bitarray 0.3.5-1',
+  'CherryPy 3.1.2-1',
+  'coverage 2.80-1',
+  'docutils 0.5-1',
+  'EPDIndex 1.0-1',
+  'EPDLab 3.0.1-2',
+  'epydoc 3.0.1-1',
+  'ETS 3.3.0-1',
+  'foolscap 0.2.9-1',
+  'fpconst 0.7.2-1',
+  'gadfly 1.0.0-4',
+  'grin 1.1.1-1',
+  'idle 2.5.4-2',
+  'Jinja2 2.1.1-1',
+  'lib_netcdf3 3.6.2-6',
+  'lib_netcdf4 4.0-1',
+  'libxml2 2.7.3-1',
+  'libxslt 1.1.24-3',
+  'lxml 2.2.2-1',
+  'mpi4py 1.1.0-1',
+  'multiprocessing 2.6.1.1-1',
+  'MySQL_python 1.2.2-4',
+  'netCDF4 0.7.6-2',
+  'networkx 0.99-1',
+  'numarray 1.5.2-2',
+  'ply 3.2-1',
+  'pyaudio 0.2.3-1',
+  'pycdf 0.6.3b0-1',
+  'pycrypto 2.0.1-2',
+  'pydot 1.0.2-1',
+  'pygarrayimage 0.0.7-1',
+  'Pygments 1.0-1',
+  'pyhdf 0.8.3-2',
+  'PyOpenGL 3.0.0-1',
+  'pyOpenSSL 0.7-1',
+  'pyparsing 1.5.0-1',
+  'pyproj 1.8.5-1',
+  'Pyrex 0.9.8.5-1',
+  'pyserial 2.4-1',
+  'PyVISA 1.3-1',
+  'Reportlab 2.1-4',
+  'ScientificPython 2.7.9-3',
+  'scikits.rsformats 0.1-2',
+  'scons 1.2.0-1',
+  'simplejson 1.9.2-1',
+  'soaplib 0.7.2-2',
+  'SOAPpy 0.11.6-2',
+  'Sphinx 0.6.2-1',
+  'SQLAlchemy 0.4.6-1',
+  'Twisted 8.2.0-1',
+  'Whoosh 0.1.12-1',
+  'WhooshDoc 1.0-1',
+  'ZConfig 2.6.0-1',
+  'zdaemon 2.0.2-1',
+  'ZODB3 3.8.1-1',
+  'zope.interface 3.5.2-1',
+  'zope.proxy 3.5.0-1',
+  'zope.testing 3.7.6-1',
+]
+
+==> EPDCore-1.2.0-1.egg <==
+size = 1423
+md5 = '83ef8c6562bf5fbed9c2b02969ecbb05'
+
+metadata_version = '1.1'
+name = 'EPDCore'
+version = '1.2.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = None
+packages = [
+  'AppInst 2.0.3-1',
+  'configobj 4.5.3-1',
+  'Cython 0.11.2-1',
+  'freetype 2.3.7-1',
+  'hdf5 1.8.1-1',
+  'ipython 0.9.1-2',
+  'libjpeg 7.0-1',
+  'libpng 1.2.25-1',
+  'matplotlib 0.99.0-1',
+  'nose 0.11.1-1',
+  'numpy 1.3.0-1',
+  'PIL 1.1.6-4',
+  'pyglet 1.1.3-1',
+  'pytables 2.1.1-1',
+  'python_dateutil 1.4.1-1',
+  'pytz 2009j-1',
+  'scipy 0.8.0.dev5698-1',
+  'swig 1.3.39-1',
+  'sympy 0.6.4-1',
+  'VTK 5.4.2-1',
+  'wxPython 2.8.7.1-4',
+]
+
+==> EPDDocs-1.0-1.egg <==
+size = 49158354
+md5 = '03bebbe6440ee216257a6ae7b0f6c86f'
+
+metadata_version = '1.1'
+name = 'EPDDocs'
+version = '1.0'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = None
+packages = []
+
 ==> EPDIndex-1.0-1.egg <==
-size = 23736550
-md5 = 'a09a81dabfb32d3aebc1ab954f04df57'
+size = 23737028
+md5 = '4f7bcb1d664a8e599c4b20bbcaff03b9'
 
 metadata_version = '1.1'
 name = 'EPDIndex'
@@ -394,7 +701,7 @@ build = 1
 arch = 'x86'
 platform = None
 osdist = None
-python = '2.5'
+python = None
 packages = []
 
 ==> EPDLab-3.0.1-1.egg <==
@@ -415,6 +722,41 @@ packages = [
   'ETS 3.2.0',
 ]
 
+==> EPDLab-3.0.1-2.egg <==
+size = 371757
+md5 = '22533b9366e86d578e92e1a337743357'
+
+metadata_version = '1.1'
+name = 'EPDLab'
+version = '3.0.1'
+build = 2
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'AppInst 2.0.3',
+  'ETS 3.3.0',
+]
+
+==> EPDTests-5.0.0-1.egg <==
+size = 5466297
+md5 = 'cac9e75e8b47224b210629d66cebfe30'
+
+metadata_version = '1.1'
+name = 'EPDTests'
+version = '5.0.0'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = [
+  'nose 0.11.1',
+]
+
 ==> epydoc-3.0.1-1.egg <==
 size = 555415
 md5 = '939e8a482e253de16a2f0a15c02f0327'
@@ -430,220 +772,6 @@ osdist = None
 python = '2.5'
 packages = [
   'docutils 0.5',
-]
-
-==> ETPCore-1.0.1-1.egg <==
-size = 1505
-md5 = '28df53f13be1d31e34a7b61f47254f2f'
-
-metadata_version = '1.1'
-name = 'ETPCore'
-version = '1.0.1'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = None
-packages = [
-  'Cython 0.9.8.1.1',
-  'EPDLab 3.0.1',
-  'ipython 0.9.1',
-  'matplotlib 0.98.5.2',
-  'nose 0.10.3',
-  'numpy 1.2.1',
-  'pytables 2.0.4',
-  'scipy 0.7.0',
-  'swig 1.3.36',
-  'sympy 0.6.2',
-  'VTK 5.2.0',
-  'WhooshDoc 1.0',
-  'wxPython 2.8.7.1',
-]
-
-==> ETPCore-1.1.0-1.egg <==
-size = 1521
-md5 = 'c49694155bcdd1e4aedd3370a0a78c03'
-
-metadata_version = '1.1'
-name = 'ETPCore'
-version = '1.1.0'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = None
-packages = [
-  'Cython 0.9.8.1.1',
-  'EPDLab 3.0.1',
-  'ipython 0.9.1',
-  'matplotlib 0.98.5.2',
-  'nose 0.10.3',
-  'numpy 1.3.0',
-  'pytables 2.0.4',
-  'scipy 0.8.0.dev5698',
-  'swig 1.3.36',
-  'sympy 0.6.2',
-  'VTK 5.2.0',
-  'WhooshDoc 1.0',
-  'wxPython 2.8.7.1',
-]
-
-==> ETPLib-4.2.0-2.egg <==
-size = 3270
-md5 = '02f3c4e47f13452c4a9868aa99eea9e6'
-
-metadata_version = '1.1'
-name = 'ETPLib'
-version = '4.2.0'
-build = 2
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = None
-packages = [
-  'AppInst 2.0.1',
-  'argparse 0.8.0',
-  'basemap 0.99.1',
-  'bitarray 0.3.5',
-  'CherryPy 3.1.0',
-  'configobj 4.5.3',
-  'coverage 2.80',
-  'docutils 0.5',
-  'epydoc 3.0.1',
-  'ETPCore 1.0.1',
-  'foolscap 0.2.9',
-  'fpconst 0.7.2',
-  'freetype 2.3.7',
-  'gadfly 1.0.0',
-  'grin 1.1.1',
-  'hdf5 1.8.1',
-  'Jinja2 2.1.1',
-  'lxml 2.1.1',
-  'mpi4py 0.6.0',
-  'multiprocessing 2.6.1.1',
-  'MySQL_python 1.2.2',
-  'netCDF4 0.7.6',
-  'networkx 0.36',
-  'numarray 1.5.2',
-  'PIL 1.1.6',
-  'ply 2.5',
-  'PyAudio 0.2.0',
-  'pycdf 0.6_3b',
-  'pycrypto 2.0.1',
-  'pydot 1.0.2',
-  'pygarrayimage 0.0.5',
-  'pyglet 1.1.1',
-  'Pygments 1.0',
-  'pyhdf 0.8.3',
-  'PyOpenGL 3.0.0b5',
-  'pyOpenSSL 0.7',
-  'pyparsing 1.5.0',
-  'pyproj 1.8.5',
-  'Pyrex 0.9.8.5',
-  'pyserial 2.4',
-  'python_dateutil 1.4',
-  'pytz 2008c',
-  'PyVISA 1.3',
-  'PyXML 0.8.4',
-  'Reportlab 2.1',
-  'ScientificPython 2.7.9',
-  'scikits.rsformats 0.1',
-  'scons 0.98.5',
-  'simplejson 1.9.2',
-  'soaplib 0.7.2',
-  'SOAPpy 0.11.6',
-  'Sphinx 0.6.1',
-  'SQLAlchemy 0.4.6',
-  'testoob 1.13',
-  'Twisted 8.1.0',
-  'Whoosh 0.1.12',
-  'ZConfig 2.6.0',
-  'zdaemon 2.0.2',
-  'ZODB3 3.8.0',
-  'zope.interface 3.4.1',
-  'zope.proxy 3.4.2',
-  'zope.testing 3.5.4',
-]
-
-==> ETPLib-4.3.0-1.egg <==
-size = 3262
-md5 = '6ca0c1c2e3f250f0ead75a2d6f337887'
-
-metadata_version = '1.1'
-name = 'ETPLib'
-version = '4.3.0'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = None
-packages = [
-  'AppInst 2.0.1',
-  'argparse 0.8.0',
-  'basemap 0.99.1',
-  'bitarray 0.3.5',
-  'CherryPy 3.1.0',
-  'configobj 4.5.3',
-  'coverage 2.80',
-  'docutils 0.5',
-  'epydoc 3.0.1',
-  'ETPCore 1.1.0',
-  'foolscap 0.2.9',
-  'fpconst 0.7.2',
-  'freetype 2.3.7',
-  'gadfly 1.0.0',
-  'grin 1.1.1',
-  'hdf5 1.8.1',
-  'Jinja2 2.1.1',
-  'lib_netcdf3 3.6.2',
-  'lib_netcdf4 4.0',
-  'lxml 2.1.1',
-  'mpi4py 0.6.0',
-  'multiprocessing 2.6.1.1',
-  'MySQL_python 1.2.2',
-  'netCDF4 0.7.6',
-  'networkx 0.36',
-  'numarray 1.5.2',
-  'PIL 1.1.6',
-  'ply 2.5',
-  'PyAudio 0.2.0',
-  'pycdf 0.6_3b',
-  'pycrypto 2.0.1',
-  'pydot 1.0.2',
-  'pygarrayimage 0.0.5',
-  'pyglet 1.1.1',
-  'Pygments 1.0',
-  'pyhdf 0.8.3',
-  'PyOpenGL 3.0.0b5',
-  'pyOpenSSL 0.7',
-  'pyparsing 1.5.0',
-  'pyproj 1.8.5',
-  'Pyrex 0.9.8.5',
-  'pyserial 2.4',
-  'python_dateutil 1.4',
-  'pytz 2008c',
-  'PyVISA 1.3',
-  'Reportlab 2.1',
-  'ScientificPython 2.7.9',
-  'scikits.rsformats 0.1',
-  'scons 0.98.5',
-  'simplejson 1.9.2',
-  'soaplib 0.7.2',
-  'SOAPpy 0.11.6',
-  'Sphinx 0.6.1',
-  'SQLAlchemy 0.4.6',
-  'Twisted 8.1.0',
-  'Whoosh 0.1.12',
-  'ZConfig 2.6.0',
-  'zdaemon 2.0.2',
-  'ZODB3 3.8.0',
-  'zope.interface 3.4.1',
-  'zope.proxy 3.4.2',
-  'zope.testing 3.5.4',
 ]
 
 ==> ETS-3.2.0-1.egg <==
@@ -712,6 +840,44 @@ packages = [
   'TraitsGUI 3.0.4',
 ]
 
+==> ETS-3.3.0-1.egg <==
+size = 3427
+md5 = '7c9a43f6687669c6918ce78b292bfb44'
+
+metadata_version = '1.1'
+name = 'ETS'
+version = '3.3.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = None
+packages = [
+  'AppTools 3.3.0-1',
+  'BlockCanvas 3.1.0-1',
+  'Chaco 3.2.0-1',
+  'CodeTools 3.1.0-1',
+  'docutils 0.5-1',
+  'Enable 3.2.0-1',
+  'EnthoughtBase 3.0.3-1',
+  'EnvisageCore 3.1.1-1',
+  'EnvisagePlugins 3.1.1-1',
+  'EPDCore 1.2.0-1',
+  'ETSDevTools 3.0.3-1',
+  'ETSProjectTools 0.5.1-1',
+  'Jinja2 2.1.1-1',
+  'Mayavi 3.3.0-1',
+  'Pygments 1.0-1',
+  'SciMath 3.0.4-1',
+  'SetupDocs 1.0.3-1',
+  'Sphinx 0.6.2-1',
+  'Traits 3.2.0-1',
+  'TraitsBackendQt 3.2.0-1',
+  'TraitsBackendWX 3.2.0-1',
+  'TraitsGUI 3.1.0-1',
+]
+
 ==> ETSDevTools-3.0.2-1.egg <==
 size = 783534
 md5 = '68ee234f6b8ea092feffb391f45b2646'
@@ -744,6 +910,21 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
+==> ETSDevTools-3.0.3-1.egg <==
+size = 750794
+md5 = '7ad6f37d5af3c51b1fe6319cdf3536f7'
+
+metadata_version = '1.1'
+name = 'ETSDevTools'
+version = '3.0.3'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
 ==> ETSProjectTools-0.5.0-1.egg <==
 size = 252849
 md5 = '036012e027010a030fe96ff1fd6f6823'
@@ -759,23 +940,38 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
+==> ETSProjectTools-0.5.1-1.egg <==
+size = 254867
+md5 = '3e74c6205aaa4d3d4d835a2e0a9c48f8'
+
+metadata_version = '1.1'
+name = 'ETSProjectTools'
+version = '0.5.1'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
 ==> foolscap-0.2.9-1.egg <==
-size = 564086
-md5 = 'b8f8c26efbf3e8d2a999c17c577e3a20'
+size = 564110
+md5 = '7b6e53542a7f547135b717c7134d446f'
 
 metadata_version = '1.1'
 name = 'foolscap'
 version = '0.2.9'
 build = 1
 
-arch = None
-platform = None
-osdist = None
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = [
   'pycrypto 2.0.1',
   'pyOpenSSL 0.7',
-  'Twisted 8.1.0',
+  'Twisted 8.2.0',
 ]
 
 ==> fpconst-0.7.2-1.egg <==
@@ -824,20 +1020,20 @@ python = '2.5'
 packages = []
 
 ==> grin-1.1.1-1.egg <==
-size = 30224
-md5 = 'f1df2c5130a9a700516d8b86197b458f'
+size = 30211
+md5 = '1ee49a55351d9a858661aa99ae77d851'
 
 metadata_version = '1.1'
 name = 'grin'
 version = '1.1.1'
 build = 1
 
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
+arch = None
+platform = None
+osdist = None
 python = '2.5'
 packages = [
-  'argparse 0.8.0',
+  'argparse 1.0',
 ]
 
 ==> HDF4-4.2r3-1.egg <==
@@ -889,7 +1085,7 @@ packages = [
 
 ==> idle-2.5.4-2.egg <==
 size = 38154
-md5 = '5db3aa6fa51a265f3d709867b47fefa1'
+md5 = '018afcfb19931a592759f405fa4b4593'
 
 metadata_version = '1.1'
 name = 'idle'
@@ -901,7 +1097,7 @@ platform = 'darwin'
 osdist = 'MacOS_10.4, MacOS_10.5'
 python = None
 packages = [
-  'AppInst 2.0.1',
+  'AppInst 2.0.3',
 ]
 
 ==> ipython-0.9.1-1.egg <==
@@ -922,25 +1118,25 @@ packages = [
 ]
 
 ==> ipython-0.9.1-2.egg <==
-size = 3661651
-md5 = '499c70343283c83ef07da822b441293f'
+size = 3660085
+md5 = 'f15e65c838f4108e3e1035a6c0eee7c7'
 
 metadata_version = '1.1'
 name = 'ipython'
 version = '0.9.1'
 build = 2
 
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
+arch = None
+platform = None
+osdist = None
 python = '2.5'
 packages = [
-  'AppInst 2.0.1',
+  'AppInst 2.0.3',
 ]
 
 ==> Jinja2-2.1.1-1.egg <==
-size = 324619
-md5 = 'f35259c98c508ffff3bf974cc3e519c6'
+size = 219508
+md5 = '4eb16b4694e26d4c133a5a14bd214eca'
 
 metadata_version = '1.1'
 name = 'Jinja2'
@@ -985,9 +1181,39 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = None
 packages = []
 
+==> libjpeg-7.0-1.egg <==
+size = 634644
+md5 = '8443ebefac13b721f4c002f30af8aecb'
+
+metadata_version = '1.1'
+name = 'libjpeg'
+version = '7.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = None
+packages = []
+
+==> libpng-1.2.25-1.egg <==
+size = 590478
+md5 = 'a2f6fdc62166146ee0a8abb10ae5113a'
+
+metadata_version = '1.1'
+name = 'libpng'
+version = '1.2.25'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = None
+packages = []
+
 ==> libxml2-2.7.3-1.egg <==
-size = 2211949
-md5 = 'c0dd5576a85e3e3acd2dace740f362d7'
+size = 1300745
+md5 = 'dbf443a1339d77958c6d510f949d2661'
 
 metadata_version = '1.1'
 name = 'libxml2'
@@ -1001,8 +1227,8 @@ python = None
 packages = []
 
 ==> libxslt-1.1.24-3.egg <==
-size = 737261
-md5 = '2d63eedc710b038613a12ef42e8759c5'
+size = 316244
+md5 = '123ef043badbd58a998919a0fa80d2b6'
 
 metadata_version = '1.1'
 name = 'libxslt'
@@ -1015,40 +1241,6 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = None
 packages = [
   'libxml2 2.7.3',
-]
-
-==> lxml-2.1.1-1.egg <==
-size = 1981857
-md5 = '3e59985ae4bbbdfe3514c2e11319cce7'
-
-metadata_version = '1.1'
-name = 'lxml'
-version = '2.1.1'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = [
-  'libxslt 1.1.24',
-]
-
-==> lxml-2.1.1-2.egg <==
-size = 1038641
-md5 = '2b41f468634b5354d7c93d7678abb096'
-
-metadata_version = '1.1'
-name = 'lxml'
-version = '2.1.1'
-build = 2
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = [
-  'libxslt 1.1.24',
 ]
 
 ==> lxml-2.2.2-1.egg <==
@@ -1091,8 +1283,8 @@ packages = [
 ]
 
 ==> matplotlib-0.98.5.2-2.egg <==
-size = 5860086
-md5 = '5861a652e397b16254bee88f36975ae4'
+size = 6322141
+md5 = 'b3819b8363b687c61b87817329e07af5'
 
 metadata_version = '1.1'
 name = 'matplotlib'
@@ -1105,8 +1297,33 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = [
   'configobj 4.5.3',
+  'freetype 2.3.7',
+  'libpng 1.2.25',
   'numpy 1.3.0',
-  'python_dateutil 1.4',
+  'python_dateutil 1.4.1',
+  'pytz 2009j',
+  'wxPython 2.8.7.1',
+]
+
+==> matplotlib-0.99.0-1.egg <==
+size = 6180786
+md5 = '820dd9ed0e07be11571feec00ab48efc'
+
+metadata_version = '1.1'
+name = 'matplotlib'
+version = '0.99.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'configobj 4.5.3',
+  'freetype 2.3.7',
+  'libpng 1.2.25',
+  'numpy 1.3.0',
+  'python_dateutil 1.4.1',
   'pytz 2009j',
   'wxPython 2.8.7.1',
 ]
@@ -1180,49 +1397,26 @@ packages = [
   'VTK 5.4.0',
 ]
 
-==> Mayavi-3.2.0-3.egg <==
-size = 15900647
-md5 = 'bb52c225ce2280da1e8c0cca2e658017'
+==> Mayavi-3.3.0-1.egg <==
+size = 16988401
+md5 = 'c36eed2e335235b9e1bf846b94fad76c'
 
 metadata_version = '1.1'
 name = 'Mayavi'
-version = '3.2.0'
-build = 3
+version = '3.3.0'
+build = 1
 
 arch = 'x86'
 platform = 'darwin'
 osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = [
-  'AppInst 2.0.1',
-  'AppTools 3.2.0',
-  'EnthoughtBase 3.0.2',
-  'EnvisagePlugins 3.1.0',
-  'Traits 3.1.0',
-  'TraitsGUI 3.0.4',
-  'VTK 5.4.0',
-]
-
-==> Mayavi-3.2.0-4.egg <==
-size = 15900647
-md5 = 'bb52c225ce2280da1e8c0cca2e658017'
-
-metadata_version = '1.1'
-name = 'Mayavi'
-version = '3.2.0'
-build = 4
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = [
-  'AppInst 2.0.1',
-  'AppTools 3.2.0',
-  'EnthoughtBase 3.0.2',
-  'EnvisagePlugins 3.1.0',
-  'Traits 3.1.0',
-  'TraitsGUI 3.0.4',
+  'AppInst 2.0.3',
+  'AppTools 3.3.0',
+  'EnthoughtBase 3.0.3',
+  'EnvisagePlugins 3.1.1',
+  'Traits 3.2.0',
+  'TraitsGUI 3.1.0',
   'VTK 5.4.2',
 ]
 
@@ -1241,6 +1435,21 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
+==> mpi4py-1.1.0-1.egg <==
+size = 1087726
+md5 = '1fb8fafecc4b2831960bf9cbe14c1526'
+
+metadata_version = '1.1'
+name = 'mpi4py'
+version = '1.1.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
 ==> mpich2-1.0.7-2.egg <==
 size = 5746717
 md5 = '8f716328474d789509e5188d9141bd15'
@@ -1249,6 +1458,21 @@ metadata_version = '1.1'
 name = 'mpich2'
 version = '1.0.7'
 build = 2
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = None
+packages = []
+
+==> mpich2-1.1-1.egg <==
+size = 10900461
+md5 = '58e289c32b705e0af581e3b7d6c5bec7'
+
+metadata_version = '1.1'
+name = 'mpich2'
+version = '1.1'
+build = 1
 
 arch = 'x86'
 platform = 'darwin'
@@ -1477,8 +1701,8 @@ python = '2.5'
 packages = []
 
 ==> numpy-1.3.0-1.egg <==
-size = 3046346
-md5 = '0b970f88bd5f37223fc1771bedf92210'
+size = 3046328
+md5 = '9abc63827999dc305a8352d5f9f48ab4'
 
 metadata_version = '1.1'
 name = 'numpy'
@@ -1489,13 +1713,11 @@ arch = 'x86'
 platform = 'darwin'
 osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
-packages = [
-  'nose 0.11.1',
-]
+packages = []
 
 ==> PIL-1.1.6-4.egg <==
-size = 978170
-md5 = '7ba240eb8faf4a932567a596dcf1b594'
+size = 708250
+md5 = '0343895b6a0e34b4fabe8cad79bb8c9a'
 
 metadata_version = '1.1'
 name = 'PIL'
@@ -1508,6 +1730,7 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = [
   'freetype 2.3.7',
+  'libjpeg 7.0',
 ]
 
 ==> ply-2.5-1.egg <==
@@ -1585,32 +1808,14 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
-==> pycdf-0.6_3b-1.egg <==
-size = 170030
-md5 = 'f3a39cfbf88d2e80c722d88c7f6aead0'
+==> pycdf-0.6.3b0-1.egg <==
+size = 127834
+md5 = '645a02faff3a9d00f5777a6c2ad1e5ba'
 
 metadata_version = '1.1'
 name = 'pycdf'
-version = '0.6_3b'
+version = '0.6.3b0'
 build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = [
-  'netcdf 3.6.2',
-  'numpy 1.2.1',
-]
-
-==> pycdf-0.6_3b-2.egg <==
-size = 127833
-md5 = '80457dc45e01a85303fbe7e36c5ce47b'
-
-metadata_version = '1.1'
-name = 'pycdf'
-version = '0.6_3b'
-build = 2
 
 arch = 'x86'
 platform = 'darwin'
@@ -1637,17 +1842,17 @@ python = '2.5'
 packages = []
 
 ==> pydot-1.0.2-1.egg <==
-size = 42635
-md5 = 'f95fe1da4415dc79a1be98ec5a1f17ed'
+size = 40672
+md5 = 'b08f6a5151f23afe37e6adafee01a395'
 
 metadata_version = '1.1'
 name = 'pydot'
 version = '1.0.2'
 build = 1
 
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
+arch = None
+platform = None
+osdist = None
 python = '2.5'
 packages = [
   'pyparsing 1.5.0',
@@ -1671,8 +1876,8 @@ packages = [
 ]
 
 ==> pygarrayimage-0.0.7-1.egg <==
-size = 8601
-md5 = '265156c429d94cd09721a78d859397a3'
+size = 8632
+md5 = '1d1fb9e66058193bdb6118c0aa95185f'
 
 metadata_version = '1.1'
 name = 'pygarrayimage'
@@ -1684,7 +1889,9 @@ platform = None
 osdist = None
 python = '2.5'
 packages = [
-  'pyglet 1.1.1',
+  'numpy 1.3.0',
+  'PIL 1.1.6',
+  'pyglet 1.1.3',
 ]
 
 ==> pyglet-1.1.1-1.egg <==
@@ -1694,6 +1901,21 @@ md5 = '197d6bd4e4e64ee56554b65198e8cbe8'
 metadata_version = '1.1'
 name = 'pyglet'
 version = '1.1.1'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> pyglet-1.1.3-1.egg <==
+size = 1541188
+md5 = '3110ed3bafa338274c15f9d0d4763bf4'
+
+metadata_version = '1.1'
+name = 'pyglet'
+version = '1.1.3'
 build = 1
 
 arch = 'x86'
@@ -1735,8 +1957,8 @@ packages = [
 ]
 
 ==> pyhdf-0.8.3-2.egg <==
-size = 483624
-md5 = 'afa0a5b88176f98e31fa49d4a687b291'
+size = 483731
+md5 = '99ea0bec087779a59954ba280d796a2f'
 
 metadata_version = '1.1'
 name = 'pyhdf'
@@ -1750,6 +1972,21 @@ python = '2.5'
 packages = [
   'numpy 1.3.0',
 ]
+
+==> PyOpenGL-3.0.0-1.egg <==
+size = 1714935
+md5 = '14275323502f600524c2b17dded90e73'
+
+metadata_version = '1.1'
+name = 'PyOpenGL'
+version = '3.0.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
 
 ==> PyOpenGL-3.0.0b5-2.egg <==
 size = 1802872
@@ -2104,6 +2341,24 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
+==> SciMath-3.0.4-1.egg <==
+size = 191350
+md5 = '455b900f7f8e6420501aa9ea37a86ad5'
+
+metadata_version = '1.1'
+name = 'SciMath'
+version = '3.0.4'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'numpy 1.3.0',
+  'scipy 0.8.0.dev5698',
+]
+
 ==> scipy-0.7.0-1.egg <==
 size = 21659616
 md5 = '004704c213a1bad618144c554fa53f3f'
@@ -2122,8 +2377,8 @@ packages = [
 ]
 
 ==> scipy-0.8.0.dev5698-1.egg <==
-size = 12897200
-md5 = '2d7e2cecf1489981861ff5a21a3e3b2c'
+size = 12943573
+md5 = '95679c1ea669bf7ea387ba147c747087'
 
 metadata_version = '1.1'
 name = 'scipy'
@@ -2135,7 +2390,6 @@ platform = 'darwin'
 osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = [
-  'nose 0.11.1',
   'numpy 1.3.0',
   'PIL 1.1.6',
 ]
@@ -2155,6 +2409,21 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
+==> scons-1.2.0-1.egg <==
+size = 1249123
+md5 = 'cf6cb33e35125babd8f13a866dae9463'
+
+metadata_version = '1.1'
+name = 'scons'
+version = '1.2.0'
+build = 1
+
+arch = None
+platform = None
+osdist = None
+python = '2.5'
+packages = []
+
 ==> SetupDocs-1.0.2-2.egg <==
 size = 14896
 md5 = '51e38094ba19b2729576092a99f29af1'
@@ -2170,6 +2439,23 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = [
   'Sphinx 0.6.1',
+]
+
+==> SetupDocs-1.0.3-1.egg <==
+size = 15106
+md5 = 'a591c790c54cbf0b2dca23fdc9da80f4'
+
+metadata_version = '1.1'
+name = 'SetupDocs'
+version = '1.0.3'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'Sphinx 0.6.2',
 ]
 
 ==> simplejson-1.9.2-1.egg <==
@@ -2246,6 +2532,25 @@ md5 = 'c59fd0e19b69da80e4ffa94c59a1f173'
 metadata_version = '1.1'
 name = 'Sphinx'
 version = '0.6.1'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'docutils 0.5',
+  'Jinja2 2.1.1',
+  'Pygments 1.0',
+]
+
+==> Sphinx-0.6.2-1.egg <==
+size = 652291
+md5 = '28f771578b96f6223fcbc551332d2fcc'
+
+metadata_version = '1.1'
+name = 'Sphinx'
+version = '0.6.2'
 build = 1
 
 arch = 'x86'
@@ -2378,6 +2683,23 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
+==> Traits-3.2.0-1.egg <==
+size = 936486
+md5 = 'f9a97cc8c844d73ff3ec1671850bfcde'
+
+metadata_version = '1.1'
+name = 'Traits'
+version = '3.2.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'numpy 1.3.0',
+]
+
 ==> TraitsBackendQt-3.1.0-1.egg <==
 size = 381821
 md5 = '74ec6c24a768966671f2d70da059b37a'
@@ -2385,6 +2707,21 @@ md5 = '74ec6c24a768966671f2d70da059b37a'
 metadata_version = '1.1'
 name = 'TraitsBackendQt'
 version = '3.1.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> TraitsBackendQt-3.2.0-1.egg <==
+size = 421545
+md5 = 'd6113da7e3ad7c5cea88a8570372af35'
+
+metadata_version = '1.1'
+name = 'TraitsBackendQt'
+version = '3.2.0'
 build = 1
 
 arch = 'x86'
@@ -2411,6 +2748,24 @@ packages = [
   'wxPython 2.8.7.1',
 ]
 
+==> TraitsBackendWX-3.2.0-1.egg <==
+size = 864495
+md5 = '39425e760c5c83b88e60317ab40e2463'
+
+metadata_version = '1.1'
+name = 'TraitsBackendWX'
+version = '3.2.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'Traits 3.2.0',
+  'wxPython 2.8.7.1',
+]
+
 ==> TraitsGUI-3.0.4-1.egg <==
 size = 967694
 md5 = 'f8764ffd87c72a04538a46e4454a6500'
@@ -2418,6 +2773,21 @@ md5 = 'f8764ffd87c72a04538a46e4454a6500'
 metadata_version = '1.1'
 name = 'TraitsGUI'
 version = '3.0.4'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> TraitsGUI-3.1.0-1.egg <==
+size = 884179
+md5 = '88e7581631e1de35b11f8bcc43882a8a'
+
+metadata_version = '1.1'
+name = 'TraitsGUI'
+version = '3.1.0'
 build = 1
 
 arch = 'x86'
@@ -2441,6 +2811,24 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = [
   'zope.interface 3.4.1',
+]
+
+==> Twisted-8.2.0-1.egg <==
+size = 5340530
+md5 = '665946d1862b7e28e182cf9c78d03d9a'
+
+metadata_version = '1.1'
+name = 'Twisted'
+version = '8.2.0'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = [
+  'pyOpenSSL 0.7',
+  'zope.interface 3.5.2',
 ]
 
 ==> VTK-5.2.0-1.egg <==
@@ -2474,8 +2862,8 @@ python = '2.5'
 packages = []
 
 ==> VTK-5.4.2-1.egg <==
-size = 22504289
-md5 = 'fbbc3a230a260c01ee2cfd8b91b0c09e'
+size = 25033810
+md5 = '8349e3732bb82aff5fc6aceb5bb8adfd'
 
 metadata_version = '1.1'
 name = 'VTK'
@@ -2504,32 +2892,47 @@ python = '2.5'
 packages = []
 
 ==> WhooshDoc-1.0-1.egg <==
-size = 41581
-md5 = '8920e8c11fb1c1816aa34cb75f1c5034'
+size = 41578
+md5 = '637ab672cd945e1cfe4b2d322337b39b'
 
 metadata_version = '1.1'
 name = 'WhooshDoc'
 version = '1.0'
 build = 1
 
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
+arch = None
+platform = None
+osdist = None
 python = '2.5'
 packages = [
-  'argparse 0.8.0',
+  'argparse 1.0',
   'epydoc 3.0.1',
   'Whoosh 0.1.12',
 ]
 
 ==> wxPython-2.8.7.1-3.egg <==
-size = 22735877
-md5 = '63c16765488be9703034c5508aa42d3f'
+size = 22709669
+md5 = '1dc7a7c82baf0e7bc18b7217889285f1'
 
 metadata_version = '1.1'
 name = 'wxPython'
 version = '2.8.7.1'
 build = 3
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
+==> wxPython-2.8.7.1-4.egg <==
+size = 22733163
+md5 = 'a79a1945a679fb24cee046111e29ecfa'
+
+metadata_version = '1.1'
+name = 'wxPython'
+version = '2.8.7.1'
+build = 4
 
 arch = 'x86'
 platform = 'darwin'
@@ -2582,66 +2985,6 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
-==> zope.interface-3.4.1-1.egg <==
-size = 273910
-md5 = '582b7c5b8143bc5279b031bac3e46ad9'
-
-metadata_version = '1.1'
-name = 'zope.interface'
-version = '3.4.1'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = []
-
-==> zope.proxy-3.4.2-1.egg <==
-size = 51557
-md5 = '3db6d7fda7dd415bfa5a5bf2ae6f9af3'
-
-metadata_version = '1.1'
-name = 'zope.proxy'
-version = '3.4.2'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = []
-
-==> zope.testing-3.5.4-1.egg <==
-size = 436147
-md5 = '5c9a2ee25f58eb468ce28306b839e1c5'
-
-metadata_version = '1.1'
-name = 'zope.testing'
-version = '3.5.4'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = []
-
-==> scons-1.2.0-1.egg <==
-size = 1249123
-md5 = 'cf6cb33e35125babd8f13a866dae9463'
-
-metadata_version = '1.1'
-name = 'scons'
-version = '1.2.0'
-build = 1
-
-arch = None
-platform = None
-osdist = None
-python = '2.5'
-packages = []
-
 ==> ZODB3-3.8.1-1.egg <==
 size = 2076376
 md5 = 'ed1bd92747637b1e0129eeb381e4a5f5'
@@ -2661,9 +3004,24 @@ packages = [
   'zope.testing 3.7.6',
 ]
 
+==> zope.interface-3.4.1-1.egg <==
+size = 273910
+md5 = '582b7c5b8143bc5279b031bac3e46ad9'
+
+metadata_version = '1.1'
+name = 'zope.interface'
+version = '3.4.1'
+build = 1
+
+arch = 'x86'
+platform = 'darwin'
+osdist = 'MacOS_10.4, MacOS_10.5'
+python = '2.5'
+packages = []
+
 ==> zope.interface-3.5.2-1.egg <==
-size = 277666
-md5 = 'f6c9f9edd9b21f3e4068b477f4f989c9'
+size = 277691
+md5 = '394bb3ce58b5a156d085ae2af8b76e7e'
 
 metadata_version = '1.1'
 name = 'zope.interface'
@@ -2674,87 +3032,22 @@ arch = 'x86'
 platform = 'darwin'
 osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
-packages = []
+packages = [
+  'zope.testing 3.7.6',
+]
 
-==> zope.proxy-3.5.0-1.egg <==
-size = 51591
-md5 = 'c91f72a774dd2d8c47d1548c5a466104'
+==> zope.proxy-3.4.2-1.egg <==
+size = 51557
+md5 = '3db6d7fda7dd415bfa5a5bf2ae6f9af3'
 
 metadata_version = '1.1'
 name = 'zope.proxy'
-version = '3.5.0'
+version = '3.4.2'
 build = 1
 
 arch = 'x86'
 platform = 'darwin'
 osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = [
-  'zope.interface 3.5.2',
-]
-
-==> zope.testing-3.7.6-1.egg <==
-size = 500709
-md5 = '6263b540814f951eb11a923da12d95e7'
-
-metadata_version = '1.1'
-name = 'zope.testing'
-version = '3.7.6'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = []
-
-==> zope.interface-3.5.2-1.egg <==
-size = 271001
-md5 = 'b462788c89f60c585c8f660f3ca4642d'
-
-metadata_version = '1.1'
-name = 'zope.interface'
-version = '3.5.2'
-build = 1
-
-arch = None
-platform = None
-osdist = None
-python = '2.5'
-packages = [
-  'zope.testing 3.7.6',
-]
-
-==> zope.proxy-3.5.0-1.egg <==
-size = 46576
-md5 = 'c9606a9d74040a4ae1106c1bb855ed02'
-
-metadata_version = '1.1'
-name = 'zope.proxy'
-version = '3.5.0'
-build = 1
-
-arch = None
-platform = None
-osdist = None
-python = '2.5'
-packages = [
-  'zope.interface 3.5.2',
-  'zope.testing 3.7.6',
-]
-
-==> zope.testing-3.7.6-1.egg <==
-size = 500009
-md5 = 'aa2e333a0752d3121ae7ef99478488e6'
-
-metadata_version = '1.1'
-name = 'zope.testing'
-version = '3.7.6'
-build = 1
-
-arch = None
-platform = None
-osdist = None
 python = '2.5'
 packages = []
 
@@ -2776,30 +3069,13 @@ packages = [
   'zope.testing 3.7.6',
 ]
 
-==> zope.interface-3.5.2-1.egg <==
-size = 277691
-md5 = '394bb3ce58b5a156d085ae2af8b76e7e'
+==> zope.testing-3.5.4-1.egg <==
+size = 436147
+md5 = '5c9a2ee25f58eb468ce28306b839e1c5'
 
 metadata_version = '1.1'
-name = 'zope.interface'
-version = '3.5.2'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = '2.5'
-packages = [
-  'zope.testing 3.7.6',
-]
-
-==> CherryPy-3.1.2-1.egg <==
-size = 676511
-md5 = '9bcdca67b93122e5661df95adaf10c08'
-
-metadata_version = '1.1'
-name = 'CherryPy'
-version = '3.1.2'
+name = 'zope.testing'
+version = '3.5.4'
 build = 1
 
 arch = 'x86'
@@ -2808,181 +3084,18 @@ osdist = 'MacOS_10.4, MacOS_10.5'
 python = '2.5'
 packages = []
 
-==> mpich2-1.1-1.egg <==
-size = 10900461
-md5 = '58e289c32b705e0af581e3b7d6c5bec7'
+==> zope.testing-3.7.6-1.egg <==
+size = 500009
+md5 = 'aa2e333a0752d3121ae7ef99478488e6'
 
 metadata_version = '1.1'
-name = 'mpich2'
-version = '1.1'
+name = 'zope.testing'
+version = '3.7.6'
 build = 1
 
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = None
-packages = []
-
-==> mpi4py-1.1.0-1.egg <==
-size = 1087726
-md5 = '1fb8fafecc4b2831960bf9cbe14c1526'
-
-metadata_version = '1.1'
-name = 'mpi4py'
-version = '1.1.0'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
+arch = None
+platform = None
+osdist = None
 python = '2.5'
 packages = []
-
-==> EPDCore-1.2.0-1.egg <==
-size = 1365
-md5 = '2c70ceb40689d22a79a280f0957e2338'
-
-metadata_version = '1.1'
-name = 'EPDCore'
-version = '1.2.0'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = None
-packages = [
-  'AppInst 2.0.1-3',
-  'configobj 4.5.3-1',
-  'Cython 0.11.2-1',
-  'freetype 2.3.7-1',
-  'hdf5 1.8.1-1',
-  'ipython 0.9.1-2',
-  'matplotlib 0.98.5.2-2',
-  'nose 0.11.1-1',
-  'numpy 1.3.0-1',
-  'PIL 1.1.6-4',
-  'pytables 2.1.1-1',
-  'python_dateutil 1.4.1-1',
-  'pytz 2009j-1',
-  'scipy 0.8.0.dev5698-1',
-  'swig 1.3.39-1',
-  'sympy 0.6.4-1',
-  'VTK 5.4.2-1',
-  'wxPython 2.8.7.1-3',
-]
-
-==> EPD-5.0.0-1.egg <==
-size = 2677
-md5 = '097b7dffc1345238975187104448074c'
-
-metadata_version = '1.1'
-name = 'EPD'
-version = '5.0.0'
-build = 1
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = None
-packages = [
-  'argparse 0.8.0-1',
-  'basemap 0.99.1-2',
-  'bitarray 0.3.5-1',
-  'CherryPy 3.1.2-1',
-  'coverage 2.80-1',
-  'docutils 0.5-1',
-  'EPDLab 3.0.1-1',
-  'epydoc 3.0.1-1',
-  'ETS 3.2.0-3',
-  'foolscap 0.2.9-1',
-  'fpconst 0.7.2-1',
-  'gadfly 1.0.0-4',
-  'grin 1.1.1-1',
-  'idle 2.5.4-2',
-  'Jinja2 2.1.1-1',
-  'lib_netcdf3 3.6.2-6',
-  'lib_netcdf4 4.0-1',
-  'libxml2 2.7.3-1',
-  'libxslt 1.1.24-3',
-  'lxml 2.2.2-1',
-  'mpi4py 1.1.0-1',
-  'multiprocessing 2.6.1.1-1',
-  'MySQL_python 1.2.2-4',
-  'netCDF4 0.7.6-2',
-  'networkx 0.99-1',
-  'numarray 1.5.2-2',
-  'ply 3.2-1',
-  'pyaudio 0.2.3-1',
-  'pycdf 0.6_3b-2',
-  'pycrypto 2.0.1-2',
-  'pydot 1.0.2-1',
-  'pygarrayimage 0.0.7-1',
-  'pyglet 1.1.1-1',
-  'Pygments 1.0-1',
-  'pyhdf 0.8.3-2',
-  'PyOpenGL 3.0.0b5-2',
-  'pyOpenSSL 0.7-1',
-  'pyparsing 1.5.0-1',
-  'pyproj 1.8.5-1',
-  'Pyrex 0.9.8.5-1',
-  'pyserial 2.4-1',
-  'PyVISA 1.3-1',
-  'Reportlab 2.1-4',
-  'ScientificPython 2.7.9-3',
-  'scikits.rsformats 0.1-2',
-  'scons 1.2.0-1',
-  'simplejson 1.9.2-1',
-  'soaplib 0.7.2-2',
-  'SOAPpy 0.11.6-2',
-  'Sphinx 0.6.1-1',
-  'SQLAlchemy 0.4.6-1',
-  'Twisted 8.1.0-1',
-  'Whoosh 0.1.12-1',
-  'WhooshDoc 1.0-1',
-  'ZConfig 2.6.0-1',
-  'zdaemon 2.0.2-1',
-  'ZODB3 3.8.1-1',
-  'zope.interface 3.5.2-1',
-  'zope.proxy 3.5.0-1',
-  'zope.testing 3.7.6-1',
-]
-
-==> ETS-3.2.0-3.egg <==
-size = 3421
-md5 = '6ad5f642e539b98918494de1ddf1458c'
-
-metadata_version = '1.1'
-name = 'ETS'
-version = '3.2.0'
-build = 3
-
-arch = 'x86'
-platform = 'darwin'
-osdist = 'MacOS_10.4, MacOS_10.5'
-python = None
-packages = [
-  'AppTools 3.2.0-1',
-  'BlockCanvas 3.0.2-1',
-  'Chaco 3.1.0-2',
-  'CodeTools 3.0.2-1',
-  'docutils 0.5-1',
-  'Enable 3.1.0-3',
-  'EnthoughtBase 3.0.2-1',
-  'EnvisageCore 3.1.0-1',
-  'EnvisagePlugins 3.1.0-1',
-  'EPDCore 1.2.0-1',
-  'ETSDevTools 3.0.2-2',
-  'ETSProjectTools 0.5.0-1',
-  'Jinja2 2.1.1-1',
-  'Mayavi 3.2.0-4',
-  'Pygments 1.0-1',
-  'SciMath 3.0.3-2',
-  'SetupDocs 1.0.2-2',
-  'Sphinx 0.6.1-1',
-  'Traits 3.1.0-1',
-  'TraitsBackendQt 3.1.0-1',
-  'TraitsBackendWX 3.1.0-1',
-  'TraitsGUI 3.0.4-1',
-]
 

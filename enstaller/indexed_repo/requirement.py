@@ -15,23 +15,22 @@ class Req(object):
         2   name and version must match
         3   name, version and build must match
     """
-    py_pat = re.compile(r'\d+\.\d+$')
-
-    def __init__(self, req_string, py=PY_VER):
-        assert self.py_pat.match(py), py
+    def __init__(self, req_string):
         for c in '<>=,':
             assert c not in req_string, req_string
         lst = req_string.split()
         assert len(lst) <= 2, req_string
         self.strictness = 0
-        self.name = self.version = None
+        self.name = self.version = self.build = None
         if lst:
             self.name = canonical(lst[0])
             self.strictness = 1
         if len(lst) == 2:
-            self.version = lst[1]
-            self.strictness = 2 + bool('-' in self.version)
-        self.py = py
+            tmp = lst[1]
+            self.version = tmp.split('-')[0]
+            self.strictness = 2 + bool('-' in tmp)
+            if self.strictness ==  3:
+                self.build = int(tmp.split('-')[1])
 
     def matches(self, spec):
         """
@@ -40,7 +39,7 @@ class Req(object):
         must be in the list of required versions.
         """
         assert spec['metadata_version'] >= '1.1', spec
-        if spec['python'] not in (None, self.py):
+        if spec['python'] not in (None, PY_VER):
             return False
         if self.strictness == 0:
             return True
@@ -48,24 +47,28 @@ class Req(object):
             return False
         if self.strictness == 1:
             return True
+        if spec['version'] != self.version:
+            return False
         if self.strictness == 2:
-            return spec['version'] == self.version
+            return True
         assert self.strictness == 3
-        return '%(version)s-%(build)i' % spec == self.version
+        return spec['build'] == self.build
 
     def __str__(self):
         if self.strictness == 0:
             return ''
         res = self.name
         if self.version:
-            res += ' ' + self.version
+            res += ' %s' % self.version
+        if self.build:
+            res += '-%i' % self.build
         return res
 
     def __repr__(self):
         """
         return a canonical representation of the object
         """
-        return 'Req(%r, py=%r)' % (str(self), self.py)
+        return 'Req(%r)' % str(self)
 
     def __cmp__(self, other):
         return cmp(str(self), str(other))
@@ -87,7 +90,7 @@ def dist_as_req(dist, strictness=3):
     Return the distribution in terms of the a requirement object.
     That is: What requirement gives me the distribution?
     """
-    assert strictness >= 1
+    assert 1 <= strictness <= 3
     name, version, build = split_eggname(filename_dist(dist))
     req_string = name
     if strictness >= 2:

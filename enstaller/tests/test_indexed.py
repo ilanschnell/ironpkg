@@ -2,7 +2,8 @@ import random
 import unittest
 
 import enstaller.indexed_repo.dist_naming as dist_naming
-from enstaller.indexed_repo.requirement import Req, dist_as_req
+from enstaller.indexed_repo.requirement import (Req, dist_as_req,
+                                                add_Reqs_to_spec)
 
 
 class TestDistNaming(unittest.TestCase):
@@ -73,16 +74,17 @@ class TestDistNaming(unittest.TestCase):
 class TestReq(unittest.TestCase):
 
     def test_init(self):
-        for req_string, name, version, strictness in [
-            ('', None, None, 0),
-            ('foo', 'foo', None, 1),
-            ('bar 1.9', 'bar', '1.9', 2),
-            ('baz 1.8-2', 'baz', '1.8-2', 3),
-            (' bazar  1.8-2 ', 'bazar', '1.8-2', 3),
+        for req_string, name, version, build, strictness in [
+            ('',          None,  None,  None, 0),
+            (' \t',       None,  None,  None, 0),
+            ('foo',       'foo', None,  None, 1),
+            ('bar 1.9',   'bar', '1.9', None, 2),
+            ('baz 1.8-2', 'baz', '1.8', 2,    3),
             ]:
             r = Req(req_string)
             self.assertEqual(r.name, name)
             self.assertEqual(r.version, version)
+            self.assertEqual(r.build, build)
             self.assertEqual(r.strictness, strictness)
 
     def test_misc_methods(self):
@@ -96,13 +98,8 @@ class TestReq(unittest.TestCase):
         self.assertNotEqual(Req('foo 1.4'), Req('foo 1.4-5'))
 
     def test_matches(self):
-        spec = dict(
-            metadata_version = '1.1',
-            name = 'foo-bar',
-            version = '2.4.1',
-            build = 3,
-            python = None,
-        )
+        spec = dict(metadata_version='1.1', name='foo-bar', version='2.4.1',
+                    build=3, python=None)
         for req_string, m in [
             ('', True),
             ('foo', False),
@@ -114,12 +111,28 @@ class TestReq(unittest.TestCase):
             ]:
             self.assertEqual(Req(req_string).matches(spec), m, req_string)
 
-        for py in ['2.4', '2.5', '2.6', '3.1']:
-            self.assertEqual(Req('foo_bar', py).matches(spec), True)
+    def test_matches_py(self):
+        import enstaller.indexed_repo.requirement as requirement
 
-        spec['python'] = '2.5'
-        self.assertEqual(Req('foo_bar', '2.5').matches(spec), True)
-        self.assertEqual(Req('foo_bar', '2.6').matches(spec), False)
+        spec = dict(metadata_version='1.1', name='foo', version='2.4.1',
+                    build=3, python=None)
+        for py in ['2.4', '2.5', '2.6', '3.1']:
+            requirement.PY_VER = py
+            self.assertEqual(Req('foo').matches(spec), True)
+
+        spec25 = dict(spec)
+        spec25.update(dict(python='2.5'))
+
+        spec26 = dict(spec)
+        spec26.update(dict(python='2.6'))
+
+        requirement.PY_VER = '2.5'
+        self.assertEqual(Req('foo').matches(spec25), True)
+        self.assertEqual(Req('foo').matches(spec26), False)
+
+        requirement.PY_VER = '2.6'
+        self.assertEqual(Req('foo').matches(spec25), False)
+        self.assertEqual(Req('foo').matches(spec26), True)
 
     def test_dist_as_req(self):
         for req_string, s in [
@@ -130,6 +143,17 @@ class TestReq(unittest.TestCase):
             req = dist_as_req('file:///numpy-1.3.0-2.egg', s)
             self.assertEqual(req, Req(req_string))
             self.assertEqual(req.strictness, s)
+
+    def test_add_Reqs_to_spec(self):
+        spec = dict(packages=[])
+        add_Reqs_to_spec(spec)
+        self.assertEqual(spec['Reqs'], set())
+
+        spec = dict(packages=['numpy 1.3.0'])
+        add_Reqs_to_spec(spec)
+        Reqs = spec['Reqs']
+        self.assertEqual(len(Reqs), 1)
+        self.assertEqual(Reqs, set([Req('numpy 1.3.0')]))
 
 
 if __name__ == '__main__':

@@ -30,7 +30,7 @@ class TestUtils(unittest.TestCase):
         random.shuffle(versions)
         versions.sort(key=comparable_version)
         self.assertEqual(versions, org)
-        
+
 
 if __name__ == '__main__':
     unittest.main()
