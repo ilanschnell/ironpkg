@@ -1,7 +1,9 @@
 
-4.0.1
+4.1.0
 -----
 * removed the setuptools patch
+
+* added more tests
 
 
 4.0.0

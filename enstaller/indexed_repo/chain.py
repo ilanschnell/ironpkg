@@ -10,9 +10,8 @@ from os.path import basename, getsize, isfile, isdir, join
 import metadata
 import dist_naming
 from requirement import Req, add_Reqs_to_spec, filter_name, dist_as_req
-from enstaller.utils import (canonical, comparable_version, md5_file,
-                             pprint_fn_action, rm_rf, write_data_from_url)
-
+from enstaller.utils import (comparable_version, md5_file, pprint_fn_action,
+                             rm_rf, write_data_from_url)
 
 
 class Chain(object):
@@ -263,7 +262,7 @@ class Chain(object):
                 # see if all required packages were added already
                 if all(bool(n in names_inst) for n in rns[dist]):
                     res.append(dist)
-                    names_inst.add(canonical(self.index[dist]['name']))
+                    names_inst.add(self.index[dist]['cname'])
                     assert len(names_inst) == len(res)
             if len(res) == n:
                 # nothing was added
@@ -278,9 +277,9 @@ class Chain(object):
         """
         versions = set()
 
-        cname = canonical(name)
+        req = Req(name)
         for spec in self.index.itervalues():
-            if canonical(spec['name']) == cname:
+            if req.matches(spec):
                 versions.add(spec['version'])
 
         return sorted(versions, key=comparable_version)

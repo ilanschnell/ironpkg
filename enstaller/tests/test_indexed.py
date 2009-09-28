@@ -1,4 +1,3 @@
-import random
 import unittest
 
 import enstaller.indexed_repo.dist_naming as dist_naming
@@ -98,7 +97,7 @@ class TestReq(unittest.TestCase):
         self.assertNotEqual(Req('foo 1.4'), Req('foo 1.4-5'))
 
     def test_matches(self):
-        spec = dict(metadata_version='1.1', name='foo-bar', version='2.4.1',
+        spec = dict(metadata_version='1.1', cname='foo_bar', version='2.4.1',
                     build=3, python=None)
         for req_string, m in [
             ('', True),
@@ -114,7 +113,7 @@ class TestReq(unittest.TestCase):
     def test_matches_py(self):
         import enstaller.indexed_repo.requirement as requirement
 
-        spec = dict(metadata_version='1.1', name='foo', version='2.4.1',
+        spec = dict(metadata_version='1.1', cname='foo', version='2.4.1',
                     build=3, python=None)
         for py in ['2.4', '2.5', '2.6', '3.1']:
             requirement.PY_VER = py
@@ -145,11 +144,11 @@ class TestReq(unittest.TestCase):
             self.assertEqual(req.strictness, s)
 
     def test_add_Reqs_to_spec(self):
-        spec = dict(packages=[])
+        spec = dict(name='dummy', packages=[])
         add_Reqs_to_spec(spec)
         self.assertEqual(spec['Reqs'], set())
 
-        spec = dict(packages=['numpy 1.3.0'])
+        spec = dict(name='dumy', packages=['numpy 1.3.0'])
         add_Reqs_to_spec(spec)
         Reqs = spec['Reqs']
         self.assertEqual(len(Reqs), 1)

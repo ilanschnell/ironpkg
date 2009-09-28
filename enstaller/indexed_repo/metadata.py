@@ -10,8 +10,7 @@ from collections import defaultdict
 from os.path import basename, dirname, join, getsize
 
 from dist_naming import is_valid_eggname
-
-from enstaller.utils import canonical
+from requirement import Req
 
 
 def parse_index(data):
@@ -52,12 +51,13 @@ def data_from_spec(spec):
             assert s != '', spec
     assert spec['build'] >= 0, spec
 
-    canon_names = set()
+    cnames = set()
     for req_string in spec['packages']:
-        assert isinstance(req_string, str), req_string
-        canon_names.add(canonical(req_string.split()[0]))
+        r = Req(req_string)
+        assert r.strictness >= 1
+        cnames.add(r.name)
     # make sure no project is listed more than once
-    assert len(canon_names) == len(spec['packages'])
+    assert len(cnames) == len(spec['packages'])
 
     lst = ["""\
 metadata_version = '1.1'

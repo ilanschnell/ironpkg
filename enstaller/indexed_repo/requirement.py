@@ -1,4 +1,3 @@
-import re
 from dist_naming import split_eggname, filename_dist
 
 from enstaller.utils import PY_VER, canonical
@@ -43,7 +42,7 @@ class Req(object):
             return False
         if self.strictness == 0:
             return True
-        if canonical(spec['name']) != self.name:
+        if spec['cname'] != self.name:
             return False
         if self.strictness == 1:
             return True
@@ -82,6 +81,7 @@ def add_Reqs_to_spec(spec):
     Add the 'Reqs' key, which maps to a set of requirement objects,
     to a spec dictionary.
     """
+    spec['cname'] = canonical(spec['name'])
     spec['Reqs'] = set(Req(s) for s in spec['packages'])
 
 
