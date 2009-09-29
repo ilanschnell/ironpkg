@@ -121,17 +121,25 @@ def parse_depend_index(data):
     return d
 
 
-def spec_from_dist(zip_path):
+def rawspec_from_dist(zip_path):
     """
-    Returns the spec dictionary from a zip-file distribution.
+    Returns the raw spec data, i.e. content of spec/depend as a string.
     """
     arcname = 'EGG-INFO/spec/depend'
     z = zipfile.ZipFile(zip_path)
     if arcname not in z.namelist():
+        z.close()
         raise KeyError("%r not in %r" % (arcname, zip_path))
-    spec = parse_data(z.read(arcname))
+    data = z.read(arcname)
     z.close()
-    return spec
+    return data
+
+
+def spec_from_dist(zip_path):
+    """
+    Returns the spec dictionary from a zip-file distribution.
+    """
+    return parse_data(rawspec_from_dist(zip_path))
 
 
 def index_section(zip_path):
@@ -139,8 +147,6 @@ def index_section(zip_path):
     Returns a section corresponding to the zip-file, which can be appended
     to an index.
     """
-    spec = spec_from_dist(zip_path)
-
     h = hashlib.new('md5')
     fi = open(zip_path, 'rb')
     while True:
@@ -153,7 +159,7 @@ def index_section(zip_path):
     return ('==> %s <==\n' % basename(zip_path) +
             'size = %i\n'  % getsize(zip_path) +
             'md5 = %r\n\n' % h.hexdigest() +
-            data_from_spec(spec) + '\n')
+            rawspec_from_dist(zip_path) + '\n')
 
 
 def compress_txt(src):
