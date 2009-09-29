@@ -5,6 +5,8 @@
 
 * added more tests
 
+* added enpkg --proxy option which uses the proxy package from ensetuptools
+
 
 4.0.0
 -----
