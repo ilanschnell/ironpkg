@@ -7,6 +7,7 @@ from os.path import basename, expanduser, isdir, isfile, join
 import egginst
 
 import config
+from proxy.api import setup_proxy
 from utils import cname_eggname, pprint_fn_action
 from indexed_repo import filename_dist, Chain, Req
 
@@ -133,6 +134,10 @@ def main():
                  action="store_true",
                  help="neither download nor install dependencies")
 
+    p.add_option("--proxy",
+                 action="store",
+                 help="use a proxy for downloads")
+
     p.add_option("--remove",
                  action="store_true",
                  help="remove a package")
@@ -175,6 +180,11 @@ def main():
     if opts.list:
         egginst.print_active()
         return
+
+    # Try to set up a proxy server, either from options or environment vars.
+    # This makes urllib2 calls do the right thing.
+    if opts.proxy:
+        setup_proxy(opts.proxy)
 
     local, repos = configure(opts.verbose)
     c = Chain(repos, opts.verbose)
