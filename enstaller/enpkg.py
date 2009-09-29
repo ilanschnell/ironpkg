@@ -183,8 +183,11 @@ def main():
 
     # Try to set up a proxy server, either from options or environment vars.
     # This makes urllib2 calls do the right thing.
-    if opts.proxy:
-        setup_proxy(opts.proxy)
+    try:
+        installed = setup_proxy(opts.proxy)
+    except ValueError, e:
+        print 'Proxy configuration error: %s' % e
+        sys.exit(1)
 
     local, repos = configure(opts.verbose)
     c = Chain(repos, opts.verbose)
