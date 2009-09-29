@@ -23,7 +23,12 @@ setup(
     url = "http://code.enthought.com/projects/enstaller",
     license="BSD",
     description = "Install and managing tool for egg-based Python packages",
-    packages = ['egginst', 'enstaller', 'enstaller/indexed_repo'],
+    packages = [
+        'egginst',
+        'enstaller',
+        'enstaller/indexed_repo',
+        'enstaller/proxy',
+    ],
     entry_points = {
         "console_scripts": [
              "enpkg = enstaller.enpkg:main",
