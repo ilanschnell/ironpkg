@@ -82,11 +82,11 @@ def remove_req(req, opts):
     for pkg in egginst.get_active():
         if req.name != cname_eggname(pkg):
             continue
-        if req.versions:
+        if req.version:
             v_a, b_a = pkg.split('-')[1:3]
-            if req.versions[0] not in [v_a, '%s-%s' % (v_a, b_a)]:
-                print("%s is installed cannot remove version %s." %
-                      (pkg, req.versions[0]))
+            if req.version != v_a or (req.build and req.build != int(b_a)):
+                print("Version mismatch: %s is installed cannot remove %s." %
+                      (pkg, req))
                 return
         break
     else:
