@@ -4,14 +4,11 @@ import zipfile
 import shutil
 import ConfigParser
 from os.path import basename, getsize, isfile, isdir, join
-from distutils.sysconfig import get_python_lib
 
 import egginst.scripts
 import egginst.utils
 
 
-site_dir = get_python_lib()
-bin_dir = egginst.scripts.bin_dir
 
 class Dummy(object):
     pass
@@ -37,7 +34,7 @@ def fix_easy_pth(pth):
         print "Removed Enstaller entry from", basename(pth)
 
 
-def create_scripts(egg_path):
+def create_scripts(egg_path, bin_dir):
     """
     Install the scripts of the Enstaller egg
     """
@@ -45,27 +42,28 @@ def create_scripts(egg_path):
     egg = Dummy()
     egg.fpath = egg_path
     egg.files = []
+    egg.bin_dir = bin_dir
 
     z = zipfile.ZipFile(egg_path)
     txt = z.read('EGG-INFO/entry_points.txt')
     z.close()
 
-    # Create a ConfigParser object
-    conf = ConfigParser.ConfigParser()
-    tmp_pth = join(site_dir, 'Enstaller_entry.txt')
-    open(tmp_pth, 'w').write(txt)
-    conf.read(tmp_pth)
-    egginst.utils.rm_rf(tmp_pth)
-
     # Make sure the target directory exists
     if not isdir(bin_dir):
         os.mkdir(bin_dir)
+
+    # Create a ConfigParser object
+    conf = ConfigParser.ConfigParser()
+    tmp_pth = join(bin_dir, 'Enstaller_entry.txt')
+    open(tmp_pth, 'w').write(txt)
+    conf.read(tmp_pth)
+    egginst.utils.rm_rf(tmp_pth)
 
     # Create the actual scripts
     egginst.scripts.create(egg, conf)
 
 
-def main():
+def main(prefix=sys.prefix):
     """
     To bootstrap Enstaller into a Python environment, used the following
     code:
@@ -79,6 +77,11 @@ def main():
     # from of sys.path
     egg_path = sys.path[0]
     egg_name = basename(egg_path)
+
+    site_dir = join(prefix,
+                    'Lib' if sys.platform == 'win32' else
+                    ('lib/python%i.%i' % sys.version_info[:2]),
+                    'site-packages')
 
     # Some sanity checks
     if not isfile(egg_path):
@@ -110,7 +113,9 @@ def main():
     sys.stdout.write(5 * '.')
 
     # Create the scripts
-    create_scripts(egg_path)
+    create_scripts(egg_path,
+                   join(prefix,
+                        ('Scripts' if sys.platform == 'win32' else 'bin')))
     sys.stdout.write(20 * '.' + ']\n')
     sys.stdout.flush()
 

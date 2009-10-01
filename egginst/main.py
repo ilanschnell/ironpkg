@@ -312,7 +312,7 @@ class EggInst(object):
         rm_rf(self.meta_dir)
 
 
-def activate(dn, prefix):
+def activate(dn, prefix=sys.prefix):
     """
     Activate a package which was previously deactivated.  'dn' is the
     directory name inside the deactive folder, which is simply the egg
@@ -336,7 +336,7 @@ def activate(dn, prefix):
     shutil.rmtree(deact_dir)
 
 
-def get_active(prefix):
+def get_active(prefix=sys.prefix):
     """
     Returns a sorted list of all installed (active) packages.  Each
     element is the filename, excluding the .egg extension, of the egg
@@ -357,7 +357,7 @@ def get_active(prefix):
     return res
 
 
-def get_deactive(prefix):
+def get_deactive(prefix=sys.prefix):
     """
     Returns a sorted list of all deactivated projects, the format of each
     element in the set is the as the get_active() function uses.
@@ -371,7 +371,7 @@ def get_deactive(prefix):
     return res
 
 
-def print_all(prefix):
+def print_all(prefix=sys.prefix):
     fmt = '%-20s %-20s %s'
     print fmt % ('Project name', 'Version', 'Active')
     print 50 * '='
@@ -396,7 +396,7 @@ def print_all(prefix):
         names.add(row[0])
 
 
-def print_active(prefix):
+def print_active(prefix=sys.prefix):
     fmt = '%-20s %s'
     print fmt % ('Project name', 'Version')
     print 40 * '='
