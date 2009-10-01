@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import string
+import subprocess
 from os.path import basename, expanduser, isdir, isfile, join
 
 import egginst
@@ -35,6 +36,14 @@ def configure(verbose=False):
             print '\t    %r' % repo
 
     return local, repos
+
+
+def call_egginst(args):
+    fn = 'egginst'
+    if sys.platform == 'win32':
+        fn += '-script.py'
+    path = join(egginst.scripts.bin_dir, fn)
+    subprocess.call([sys.executable, path] + args)
 
 
 def check_write():
@@ -85,7 +94,7 @@ def remove_req(req, opts):
         return
     pprint_fn_action(pkg, 'removing')
     if not opts.dry_run:
-        egginst.EggInst(pkg, opts.verbose).remove()
+        call_egginst(['--remove', pkg])
 
 
 def iter_dists_excl(dists, exclude_fn):
@@ -255,14 +264,14 @@ def main():
             if cname == cname_eggname(egg_a):
                 pprint_fn_action(egg_a, 'removing')
                 if not opts.dry_run:
-                    egginst.EggInst(egg_a, opts.verbose).remove()
+                    call_egginst(['--remove', egg_a])
 
     # Install packages
     for dist, egg_name in iter_dists_excl(dists, exclude):
         pprint_fn_action(egg_name, 'installing')
         egg_path = join(local, egg_name)
         if not opts.dry_run:
-            egginst.EggInst(egg_path, opts.verbose).install()
+            call_egginst([egg_path])
 
 
 if __name__ == '__main__':

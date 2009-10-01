@@ -445,15 +445,18 @@ def main():
     for name in args:
         ei = EggInst(name, opts.verbose)
         if opts.remove:
-            print "Removing:", name
+            if opts.verbose:
+                print "Removing:", name
             ei.remove()
 
         elif opts.deactivate:
-            print "Deactivating:", name
+            if opts.verbose:
+                print "Deactivating:", name
             ei.deactivate()
 
         else: # default is always install
-            print "Installing:", name
+            if opts.verbose:
+                print "Installing:", name
             ei.install()
 
 
