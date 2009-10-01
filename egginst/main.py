@@ -11,21 +11,18 @@ import shutil
 import string
 import zipfile
 import ConfigParser
-from distutils.sysconfig import get_python_lib
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from egginst.utils import on_win, rel_prefix, rmdir_er, rm_rf, human_bytes
+from egginst.utils import on_win, rmdir_er, rm_rf, human_bytes
 import egginst.scripts as scripts
 
 
-# This is the directory which contains the EGG-INFO directories of all
-# installed packages
-EGG_INFO_DIR = join(sys.prefix, 'EGG-INFO')
-
-# This is the directory to which deactivated installed are moved to
-DEACTIVE_DIR = join(sys.prefix, 'DEACTIVE')
-
-SITE_PACKAGES = get_python_lib()
+if on_win:
+    BIN_DIR_NAME = 'Scripts'
+    SITE_PACKAGES = 'Lib\\site-packages'
+else:
+    BIN_DIR_NAME = 'bin'
+    SITE_PACKAGES = 'lib/python%i.%i/site-packages' % sys.version_info[:2]
 
 NS_PKG_PAT = re.compile(
     r'\s*__import__\([\'"]pkg_resources[\'"]\)\.declare_namespace'
@@ -38,13 +35,26 @@ def projname(fn):
 
 class EggInst(object):
 
-    def __init__(self, fpath, verbose=False):
+    def __init__(self, fpath, verbose=False, prefix=sys.prefix):
         self.fpath = fpath
         self.name = projname(basename(fpath))
-        self.meta_dir = join(EGG_INFO_DIR, self.name)
+        self.prefix = prefix
+
+        # This is the directory which contains the EGG-INFO directories of all
+        # installed packages
+        self.meta_dir = join(self.prefix, 'EGG-INFO', self.name)
         self.meta_txt = join(self.meta_dir, '__egginst__.txt')
+
+        self.bin_dir = join(self.prefix, BIN_DIR_NAME)
+        self.site_packages = join(self.prefix, SITE_PACKAGES)
+
         self.files = []
         self.verbose = verbose
+
+    def rel_prefix(self, path):
+        assert abspath(path).startswith(self.prefix)
+        return path[len(self.prefix) + 1:]
+
 
     def install(self):
         if not isdir(self.meta_dir):
@@ -106,12 +116,12 @@ class EggInst(object):
         fo = open(self.meta_txt, 'w')
         fo.write('# egginst metadata\n')
         fo.write('egg_name = %r\n' % basename(self.fpath))
-        fo.write('prefix = %r\n' % sys.prefix)
+        fo.write('prefix = %r\n' % self.prefix)
         fo.write('installed_size = %i\n' % self.installed_size)
         fo.write('rel_files = [\n')
-        fo.write('  %r,\n' % rel_prefix(self.meta_txt))
+        fo.write('  %r,\n' % self.rel_prefix(self.meta_txt))
         for f in self.files:
-            fo.write('  %r,\n' % rel_prefix(f))
+            fo.write('  %r,\n' % self.rel_prefix(f))
         fo.write(']\n')
         fo.close()
 
@@ -157,11 +167,11 @@ class EggInst(object):
 
     def get_dst(self, arcname):
         dispatch = [
-            ('EGG-INFO/prefix/',  True,       sys.prefix),
-            ('EGG-INFO/usr/',     not on_win, sys.prefix),
-            ('EGG-INFO/scripts/', True,       scripts.bin_dir),
+            ('EGG-INFO/prefix/',  True,       self.prefix),
+            ('EGG-INFO/usr/',     not on_win, self.prefix),
+            ('EGG-INFO/scripts/', True,       self.bin_dir),
             ('EGG-INFO/',         True,       self.meta_dir),
-            ('',                  True,       SITE_PACKAGES),
+            ('',                  True,       self.site_packages),
         ]
         for start, cond, dst_dir in dispatch:
             if arcname.startswith(start) and cond:
@@ -191,7 +201,7 @@ class EggInst(object):
         self.files.append(path)
         if not isdir(dn):
             os.makedirs(dn)
-        rm_rf(path, self.verbose)
+        rm_rf(path)
         fo = open(path, 'wb')
         fo.write(data)
         fo.close()
@@ -284,7 +294,7 @@ class EggInst(object):
             return
         self.read_meta()
         dn = self.egg_name[:-4]
-        deact_dir = join(DEACTIVE_DIR, dn)
+        deact_dir = join(self.prefix, 'DEACTIVE', dn)
         if isdir(deact_dir):
             print "Error: Deactive data already exists for:", dn
             return
@@ -302,14 +312,14 @@ class EggInst(object):
         rm_rf(self.meta_dir)
 
 
-def activate(dn):
+def activate(dn, prefix):
     """
     Activate a package which was previously deactivated.  'dn' is the
     directory name inside the deactive folder, which is simply the egg
     name, without the .egg extension, of the egg which was used to install
     the package in the first place.
     """
-    deact_dir = join(DEACTIVE_DIR, dn)
+    deact_dir = join(prefix, 'DEACTIVE', dn)
     if not isdir(deact_dir):
         print "Error: Can't find stored data for:", dn
         return
@@ -317,7 +327,7 @@ def activate(dn):
         for fn in files:
             src = join(root, fn)
             rel_src = src[len(deact_dir) + 1:]
-            dst = join(sys.prefix, rel_src)
+            dst = join(prefix, rel_src)
             dst_dir = dirname(dst)
             if not isdir(dst_dir):
                 os.makedirs(dst_dir)
@@ -326,45 +336,48 @@ def activate(dn):
     shutil.rmtree(deact_dir)
 
 
-def get_active():
+def get_active(prefix):
     """
     Returns a sorted list of all installed (active) packages.  Each
     element is the filename, excluding the .egg extension, of the egg
     which was used to install the package.
     """
-    if not isdir(EGG_INFO_DIR):
+    egg_info_dir = join(prefix, 'EGG-INFO')
+    if not isdir(egg_info_dir):
         return []
     res = []
-    for fn in os.listdir(EGG_INFO_DIR):
-        meta_txt = join(EGG_INFO_DIR, fn, '__egginst__.txt')
-        if isfile(meta_txt):
-            d = {}
-            execfile(meta_txt, d)
-            res.append(d['egg_name'][:-4])
+    for fn in os.listdir(egg_info_dir):
+        meta_txt = join(egg_info_dir, fn, '__egginst__.txt')
+        if not isfile(meta_txt):
+            continue
+        d = {}
+        execfile(meta_txt, d)
+        res.append(d['egg_name'][:-4])
     res.sort(key=string.lower)
     return res
 
 
-def get_deactive():
+def get_deactive(prefix):
     """
     Returns a sorted list of all deactivated projects, the format of each
     element in the set is the as the get_active() function uses.
     """
-    if not isdir(DEACTIVE_DIR):
+    deactive_dir = join(prefix, 'DEACTIVE')
+    if not isdir(deactive_dir):
         return []
-    res = [fn for fn in os.listdir(DEACTIVE_DIR)
-           if isdir(join(DEACTIVE_DIR, fn))]
+    res = [fn for fn in os.listdir(deactive_dir)
+           if isdir(join(deactive_dir, fn))]
     res.sort(key=string.lower)
     return res
 
 
-def print_all():
+def print_all(prefix):
     fmt = '%-20s %-20s %s'
     print fmt % ('Project name', 'Version', 'Active')
     print 50 * '='
 
-    active = get_active()
-    deactive = get_deactive()
+    active = get_active(prefix)
+    deactive = get_deactive(prefix)
     names = set(projname(fn) for fn in active + deactive)
     output = []
     for name in sorted(names, key=string.lower):
@@ -383,12 +396,12 @@ def print_all():
         names.add(row[0])
 
 
-def print_active():
+def print_active(prefix):
     fmt = '%-20s %s'
     print fmt % ('Project name', 'Version')
     print 40 * '='
 
-    for fn in get_active():
+    for fn in get_active(prefix):
         print fmt % tuple(fn.split('-', 1))
 
 
@@ -416,6 +429,12 @@ def main():
                  action="store_true",
                  help="list packages, both active and deactive")
 
+    p.add_option('-p', "--prefix",
+                 action="store",
+                 default=sys.prefix,
+                 help="install prefix, defaults to %default")
+
+  
     p.add_option('-r', "--remove",
                  action="store_true",
                  help="remove package(s), requires the egg or project name(s)")
@@ -433,17 +452,17 @@ def main():
 
     if opts.activate:
         for name in args:
-            activate(name)
+            activate(name, opts.prefix)
         return
 
     if opts.list:
         if args:
             p.error("--list takes no arguments")
-        print_all()
+        print_all(opts.prefix)
         return
 
     for name in args:
-        ei = EggInst(name, opts.verbose)
+        ei = EggInst(name, verbose=opts.verbose, prefix=opts.prefix)
         if opts.remove:
             if opts.verbose:
                 print "Removing:", name

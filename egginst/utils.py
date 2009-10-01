@@ -1,15 +1,10 @@
 import sys
 import os
 import shutil
-from os.path import abspath, dirname, isdir, isfile, islink, join
+from os.path import isdir, isfile, islink, join
 
 
 on_win = sys.platform.startswith('win')
-
-
-def rel_prefix(path):
-    assert abspath(path).startswith(sys.prefix)
-    return path[len(sys.prefix) + 1:]
 
 
 def rmdir_er(dn):

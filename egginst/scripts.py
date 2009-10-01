@@ -7,7 +7,6 @@ from egginst.utils import on_win, rm_rf
 
 
 verbose = False
-bin_dir = join(sys.prefix, 'Scripts' if on_win else 'bin')
 
 
 def write_exe(dst, script_type='console_scripts'):
@@ -40,7 +39,10 @@ def write_exe(dst, script_type='console_scripts'):
     os.chmod(dst, 0755)
 
 
-def create_proxy(src):
+def create_proxy(src, bin_dir):
+    """
+    create a proxy of src in bin_dir (Windows only)
+    """
     if verbose:
         print "Creating proxy executable to: %r" % src
     assert src.endswith('.exe')
@@ -72,6 +74,9 @@ sys.exit(subprocess.call([src] + sys.argv[1:]))
 
 
 def create_proxies(egg):
+    """
+    (Windows only)
+    """
     for line in egg.lines_from_arcname('EGG-INFO/inst/files_to_install.txt'):
         arcname, action = line.split()
         if verbose:
@@ -83,10 +88,10 @@ def create_proxies(egg):
             src = abspath(join(egg.meta_dir, arcname[len(ei):]))
             if verbose:
                 print "     src: %r" % src
-            egg.files.extend(create_proxy(src))
+            egg.files.extend(create_proxy(src, egg.bin_dir))
         else:
             data = egg.z.read(arcname)
-            dst = abspath(join(sys.prefix, action, basename(arcname)))
+            dst = abspath(join(egg.prefix, action, basename(arcname)))
             if verbose:
                 print "     dst: %r" % dst
             rm_rf(dst)
@@ -133,7 +138,7 @@ def create(egg, conf):
         for name, entry_pt in conf.items(script_type):
             fname = name
             if on_win:
-                exe_path = join(sys.prefix, r'Scripts\%s.exe' % name)
+                exe_path = join(egg.bin_dir, '%s.exe' % name)
                 try:
                     rm_rf(exe_path)
                 except WindowsError:
@@ -143,7 +148,7 @@ def create(egg, conf):
                 fname += '-script.py'
                 if script_type == 'gui_scripts':
                     fname += 'w'
-            path = join(bin_dir, fname)
+            path = join(egg.bin_dir, fname)
             write_script(path, entry_pt, basename(egg.fpath))
             egg.files.append(path)
 
@@ -186,7 +191,7 @@ def fix_script(path):
 
 def fix_scripts(egg):
     for fpath in egg.files:
-        if fpath.startswith(bin_dir):
+        if fpath.startswith(egg.bin_dir):
             fix_script(fpath)
 
 

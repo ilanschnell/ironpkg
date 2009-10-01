@@ -3,7 +3,7 @@
 import os
 import sys
 import re
-from os.path import abspath, basename, join, islink, isfile, exists
+from os.path import basename, join, islink, isfile, exists
 
 
 verbose = False
@@ -94,9 +94,16 @@ def fix_files(egg):
     """
     global _targets
 
-    _targets = [join(sys.prefix, 'lib')]
+    prefixes = [sys.prefix]
+    if egg.prefix != sys.prefix:
+        prefixes.append(egg.prefix)
+
+    _targets = [join(prefix, 'lib') for prefix in prefixes]
+
     for line in egg.lines_from_arcname('EGG-INFO/inst/targets.dat'):
-        _targets.append(abspath(join(sys.prefix, line)))
+        for prefix in prefixes:
+            _targets.append(join(prefix, line))
+
     if verbose:
         print 'Target directories:'
         for tgt in _targets:

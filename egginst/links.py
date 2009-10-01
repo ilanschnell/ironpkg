@@ -8,10 +8,10 @@ from egginst.utils import rm_rf
 verbose = False
 
 
-def create_link(arcname, link):
+def create_link(arcname, link, prefix):
     usr = 'EGG-INFO/usr/'
     assert arcname.startswith(usr), arcname
-    dst = join(sys.prefix, arcname[len(usr):])
+    dst = join(prefix, arcname[len(usr):])
 
     # Create the destination directory if it does not exist.  In most cases
     # it will exist, but you never know.
@@ -34,4 +34,4 @@ def create(egg):
         arcname, link = line.split()
         if link == 'False':
             continue
-        egg.files.append(create_link(arcname, link))
+        egg.files.append(create_link(arcname, link, egg.prefix))
