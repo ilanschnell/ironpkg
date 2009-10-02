@@ -6,6 +6,13 @@ from os.path import isdir, isfile, islink, join
 
 on_win = sys.platform.startswith('win')
 
+if on_win:
+    bin_dir_name = 'Scripts'
+    rel_site_packages = 'Lib\\site-packages'
+else:
+    bin_dir_name = 'bin'
+    rel_site_packages = 'lib/python%i.%i/site-packages' % sys.version_info[:2]
+
 
 def rmdir_er(dn):
     """

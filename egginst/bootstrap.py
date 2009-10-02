@@ -78,25 +78,25 @@ def main(prefix=sys.prefix):
     egg_path = sys.path[0]
     egg_name = basename(egg_path)
 
-    site_dir = join(prefix,
-                    'Lib' if sys.platform == 'win32' else
-                    ('lib/python%i.%i' % sys.version_info[:2]),
-                    'site-packages')
+    # Make sure we're modules from the new Enstaller egg
+    reload(egginst.scripts)
+    reload(egginst.utils)
+
+    site_dir = join(prefix, egginst.utils.rel_site_packages)
 
     # Some sanity checks
     if not isfile(egg_path):
         raise Exception("Not a file: %r" % egg_path)
     assert egg_name.startswith("Enstaller-"), egg_name
 
+    if not isdir(site_dir):
+        os.makedirs(site_dir)
+
     # Remove old Enstaller files which could cause problems for this
     # install, and which we don't want on the system
     for fn in ['enstaller', 'egginst', 'Enstaller.egg-link']:
         path = join(site_dir, fn)
         egginst.utils.rm_rf(path)
-
-    # Make sure we're modules from the new Enstaller egg
-    reload(egginst.scripts)
-    reload(egginst.utils)
 
     sys.stdout.write('%9s [' % egginst.utils.human_bytes(getsize(egg_path)))
 
@@ -113,9 +113,7 @@ def main(prefix=sys.prefix):
     sys.stdout.write(5 * '.')
 
     # Create the scripts
-    create_scripts(egg_path,
-                   join(prefix,
-                        ('Scripts' if sys.platform == 'win32' else 'bin')))
+    create_scripts(egg_path, join(prefix, egginst.utils.bin_dir_name))
     sys.stdout.write(20 * '.' + ']\n')
     sys.stdout.flush()
 

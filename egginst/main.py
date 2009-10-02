@@ -13,16 +13,10 @@ import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
-from egginst.utils import on_win, rmdir_er, rm_rf, human_bytes
+from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
+                           rmdir_er, rm_rf, human_bytes)
 import egginst.scripts as scripts
 
-
-if on_win:
-    BIN_DIR_NAME = 'Scripts'
-    SITE_PACKAGES = 'Lib\\site-packages'
-else:
-    BIN_DIR_NAME = 'bin'
-    SITE_PACKAGES = 'lib/python%i.%i/site-packages' % sys.version_info[:2]
 
 NS_PKG_PAT = re.compile(
     r'\s*__import__\([\'"]pkg_resources[\'"]\)\.declare_namespace'
@@ -45,8 +39,8 @@ class EggInst(object):
         self.meta_dir = join(self.prefix, 'EGG-INFO', self.name)
         self.meta_txt = join(self.meta_dir, '__egginst__.txt')
 
-        self.bin_dir = join(self.prefix, BIN_DIR_NAME)
-        self.site_packages = join(self.prefix, SITE_PACKAGES)
+        self.bin_dir = join(self.prefix, bin_dir_name)
+        self.site_packages = join(self.prefix, rel_site_packages)
 
         self.files = []
         self.verbose = verbose
@@ -57,13 +51,13 @@ class EggInst(object):
 
 
     def install(self):
-        if not isdir(self.meta_dir):
-            os.makedirs(self.meta_dir)
-
         if self.name == 'Enstaller':
             sys.path.insert(0, self.fpath)
             from egginst.bootstrap import main
-            return main()
+            return main(self.prefix)
+
+        if not isdir(self.meta_dir):
+            os.makedirs(self.meta_dir)
 
         self.z = zipfile.ZipFile(self.fpath)
         self.arcnames = self.z.namelist()
