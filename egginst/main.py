@@ -38,7 +38,7 @@ class EggInst(object):
     def __init__(self, fpath, verbose=False, prefix=sys.prefix):
         self.fpath = fpath
         self.name = projname(basename(fpath))
-        self.prefix = prefix
+        self.prefix = abspath(prefix)
 
         # This is the directory which contains the EGG-INFO directories of all
         # installed packages
@@ -244,7 +244,8 @@ class EggInst(object):
         if not isfile(path):
             return
         from subprocess import call
-        call([sys.executable, path], cwd=dirname(path))
+        call([sys.executable, path, '--prefix', self.prefix],
+             cwd=dirname(path))
 
     def rmdirs(self):
         """
@@ -429,12 +430,11 @@ def main():
                  action="store_true",
                  help="list packages, both active and deactive")
 
-    p.add_option('-p', "--prefix",
+    p.add_option("--prefix",
                  action="store",
                  default=sys.prefix,
                  help="install prefix, defaults to %default")
 
-  
     p.add_option('-r', "--remove",
                  action="store_true",
                  help="remove package(s), requires the egg or project name(s)")
