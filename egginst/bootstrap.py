@@ -6,7 +6,7 @@ from os.path import isfile, join
 
 
 
-def main(prefix=sys.prefix):
+def main(prefix=sys.prefix, verbose=False):
     """
     To bootstrap Enstaller into a Python environment, used the following
     code:
@@ -23,7 +23,7 @@ def main(prefix=sys.prefix):
     egg_path = sys.path[0]
 
     print "Bootstraping:", egg_path
-    ei = egginst.EggInst(egg_path, prefix=prefix)
+    ei = egginst.EggInst(egg_path, prefix, verbose)
     ei.install()
 
 
@@ -59,9 +59,18 @@ def cli():
                  default=sys.prefix,
                  help="install prefix, defaults to %default")
 
+    p.add_option('-v', "--verbose", action="store_true")
+
+    p.add_option('--version', action="store_true")
+
     opts, args = p.parse_args()
 
-    main(opts.prefix)
+    if opts.version:
+        from enstaller import __version__
+        print "Enstaller version:", __version__
+        return
+
+    main(opts.prefix, opts.verbose)
 
     # If there an easy-install.pth in site-packages, remove and
     # occurrences of Enstaller from it.

@@ -29,7 +29,7 @@ def projname(fn):
 
 class EggInst(object):
 
-    def __init__(self, fpath, verbose=False, prefix=sys.prefix):
+    def __init__(self, fpath, prefix=sys.prefix, verbose=False):
         self.fpath = fpath
         self.name = projname(basename(fpath))
         self.prefix = abspath(prefix)
@@ -454,7 +454,7 @@ def main():
         return
 
     for name in args:
-        ei = EggInst(name, verbose=opts.verbose, prefix=prefix)
+        ei = EggInst(name, prefix, opts.verbose)
         if opts.remove:
             if opts.verbose:
                 print "Removing:", name
