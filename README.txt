@@ -6,6 +6,13 @@ Enstaller consists of the sub-packages:
 egginst:
 --------
 
+egginst is a tool for installing and uninstalling eggs.
+The tool it brain dead in the sense that it does not care if the eggs
+it installs are for the correct platform, it's dependencies got installed,
+another package needs to be uninstalled prior to the install, and so on.
+Those tasks are responsibilities of a package manager, and are outside
+the scope of egginst.
+
 egginst installs modules and packages directly into site-packages, i.e.
 no .egg directories are created, hence there is no extra .pth-file which
 results in a sorter python path and faster import times (which seems to
@@ -17,7 +24,7 @@ scripts if (Enstaller) easy_install installs them.
 enstaller:
 ----------
 
-enstaller is the managing tool for egg-based installs, and the CLI is
+enstaller is a managing tool for egginst-based installs, and the CLI is
 called enpkg which calls out to egginst to do the actual install.
 enpkg can access distributions from local and HTTP repositories, which
 are pre-indexed.  The point of the index file, usually index-depend.bz2,

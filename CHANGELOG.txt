@@ -7,6 +7,8 @@
 
 * added enpkg --proxy option which uses the proxy package from ensetuptools
 
+* added egginst --prefix option to specify install prefix
+
 
 4.0.0
 -----
