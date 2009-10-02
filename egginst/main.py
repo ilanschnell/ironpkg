@@ -51,11 +51,6 @@ class EggInst(object):
 
 
     def install(self):
-        if self.name == 'Enstaller':
-            # Remove old Enstaller files which could cause problems
-            for fn in ['Enstaller.pth', 'Enstaller.egg-link']:
-                rm_rf(join(self.site_packages, fn))
-
         if not isdir(self.meta_dir):
             os.makedirs(self.meta_dir)
 

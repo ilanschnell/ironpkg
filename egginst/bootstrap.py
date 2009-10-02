@@ -45,12 +45,28 @@ def fix_easy_pth(pth):
         print "Removed Enstaller entry from", pth
 
 
+def remove_and_fix():
+    # Remove and fix some files in site-packages
+    from egginst.utils import rm_rf, rel_site_packages
+
+    site_dir = join(sys.prefix, rel_site_packages)
+     
+    # Remove old Enstaller files which could cause problems
+    for fn in ['Enstaller.pth', 'Enstaller.egg-link']:
+        rm_rf(join(site_dir, fn))
+
+    # If there an easy-install.pth in site-packages, remove and
+    # occurrences of Enstaller from it.
+    pth = join(site_dir, 'easy-install.pth')
+    if isfile(pth):
+        fix_easy_pth(pth)
+
+
 def cli():
     """
     CLI (for executable egg)
     """
     from optparse import OptionParser
-    from distutils.sysconfig import get_python_lib
 
     p = OptionParser(description=__doc__)
 
@@ -72,8 +88,4 @@ def cli():
 
     main(opts.prefix, opts.verbose)
 
-    # If there an easy-install.pth in site-packages, remove and
-    # occurrences of Enstaller from it.
-    pth = join(get_python_lib(), 'easy-install.pth')
-    if isfile(pth):
-        fix_easy_pth(pth)
+    remove_and_fix()

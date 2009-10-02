@@ -42,7 +42,7 @@ def call_egginst(args):
     fn = 'egginst'
     if sys.platform == 'win32':
         fn += '-script.py'
-    path = join(sys.prefix, egginst.main.BIN_DIR_NAME, fn)
+    path = join(sys.prefix, egginst.utils.bin_dir_name, fn)
     subprocess.call([sys.executable, path] + args)
 
 
