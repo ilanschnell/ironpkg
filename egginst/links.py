@@ -1,5 +1,4 @@
 import os
-import sys
 from os.path import dirname, isdir, join
 
 from egginst.utils import rm_rf

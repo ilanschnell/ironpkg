@@ -1,7 +1,7 @@
 import os
 import sys
 import re
-from os.path import abspath, basename, join, islink, isfile
+from os.path import abspath, basename, join, isdir, isfile, islink
 
 from egginst.utils import on_win, rm_rf
 
@@ -132,6 +132,9 @@ sys.exit(%(func)s())
 
 
 def create(egg, conf):
+    if not isdir(egg.bin_dir):
+        os.makedirs(egg.bin_dir)
+
     for script_type in ['gui_scripts', 'console_scripts']:
         if script_type not in conf.sections():
             continue

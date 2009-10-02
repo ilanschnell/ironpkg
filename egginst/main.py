@@ -52,9 +52,9 @@ class EggInst(object):
 
     def install(self):
         if self.name == 'Enstaller':
-            sys.path.insert(0, self.fpath)
-            from egginst.bootstrap import main
-            return main(self.prefix)
+            # Remove old Enstaller files which could cause problems
+            for fn in ['Enstaller.pth', 'Enstaller.egg-link']:
+                rm_rf(join(self.site_packages, fn))
 
         if not isdir(self.meta_dir):
             os.makedirs(self.meta_dir)
@@ -404,13 +404,8 @@ def print_active(prefix=sys.prefix):
 def main():
     from optparse import OptionParser
 
-    usage = "usage: %prog [options] [ARGS ...]"
-
-    description = __doc__
-
-    p = OptionParser(usage = usage,
-                     description = description,
-                     prog = basename(sys.argv[0]))
+    p = OptionParser(usage="usage: %prog [options] [EGGS ...]",
+                     description=__doc__)
 
     p.add_option('-a', "--activate",
                  action="store_true",
@@ -444,19 +439,22 @@ def main():
         print "Enstaller version:", __version__
         return
 
+    prefix = abspath(opts.prefix)
+    print 'prefix:', prefix
+
     if opts.activate:
         for name in args:
-            activate(name, opts.prefix)
+            activate(name, prefix)
         return
 
     if opts.list:
         if args:
             p.error("--list takes no arguments")
-        print_all(opts.prefix)
+        print_all(prefix)
         return
 
     for name in args:
-        ei = EggInst(name, verbose=opts.verbose, prefix=opts.prefix)
+        ei = EggInst(name, verbose=opts.verbose, prefix=prefix)
         if opts.remove:
             if opts.verbose:
                 print "Removing:", name

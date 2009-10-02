@@ -22,7 +22,13 @@ EOF
 EGG=dist/Enstaller-$VER-1.egg
 rm -rf build dist
 python setup.py bdist_egg
-mv dist/Enstaller-*.egg $EGG
+cat <<EOF >header.sh
+#!/bin/sh
+exec python -c "import sys, os; sys.path.insert(0, os.path.abspath('\$0')); from egginst.bootstrap import cli; cli()" "\$@"
+EOF
+cat header.sh dist/Enstaller-*-py*.egg >$EGG
+rm -f dist/Enstaller-*-py*.egg
+chmod +x $EGG
 
 # egginfo --sd $EGG
 # repo-upload --force --no-confirm $EGG

@@ -3,7 +3,7 @@ import re
 import sys
 import string
 import subprocess
-from os.path import basename, expanduser, isdir, isfile, join
+from os.path import expanduser, isdir, isfile, join
 
 import egginst
 
@@ -114,7 +114,6 @@ def main():
 
     p = OptionParser(
         usage="usage: %prog [options] [name] [version]",
-        prog=basename(sys.argv[0]),
         description=("download and install eggs ..."))
 
     p.add_option("--config",
