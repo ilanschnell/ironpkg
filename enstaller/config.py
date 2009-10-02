@@ -62,9 +62,9 @@ RC_TMPL = """\
 # ============================
 #
 # This file contains the default package repositories used by
-# Enstaller (version 4) for Python %(py_ver)s installed in:
+# Enstaller %(version)s for Python %(py_ver)s envirmonment:
 #
-#     %(prefix)s
+#   sys.prefix = %(prefix)r
 #
 # This file was created by initially running the enpkg command.
 
@@ -77,6 +77,9 @@ RC_TMPL = """\
 # only indexed repositories, i.e. HTTP directories which contain a file
 # 'index-depend.bz2', can be listed here.
 IndexedRepos = %(repos)s
+
+# Install prefix (--no-prefix and --prefix options overwrite this):
+prefix='%(prefix)s'
 """
 
 def write():
@@ -110,6 +113,7 @@ def write():
 
     py_ver = PY_VER
     prefix = sys.prefix
+    version = __version__
     if openid:
         openid_line = "EPD_OpenID = %r" % openid
     else:
@@ -136,7 +140,7 @@ def read():
     d = {}
     execfile(path, d)
     read.cache = {}
-    for k in ['EPD_OpenID', 'IndexedRepos', 'LOCAL']:
+    for k in ['EPD_OpenID', 'IndexedRepos', 'prefix', 'LOCAL']:
         if d.has_key(k):
             read.cache[k] = d[k]
     return read()

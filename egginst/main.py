@@ -121,6 +121,7 @@ class EggInst(object):
             setattr(self, name, d[name])
         self.files = [join(self.prefix, f) for f in d['rel_files']]
 
+
     def lines_from_arcname(self, arcname,
                            ignore_empty=True,
                            ignore_comments=True):
@@ -423,6 +424,8 @@ def main():
                  action="store_true",
                  help="remove package(s), requires the egg or project name(s)")
 
+    p.add_option("--quiet", action="store_true")
+
     p.add_option('-v', "--verbose", action="store_true")
 
     p.add_option('--version', action="store_true")
@@ -435,7 +438,8 @@ def main():
         return
 
     prefix = abspath(opts.prefix)
-    print 'prefix:', prefix
+    if not opts.quiet:
+        print 'prefix:', prefix
 
     if opts.activate:
         for name in args:

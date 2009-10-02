@@ -96,12 +96,12 @@ def fix_files(egg):
 
     prefixes = [sys.prefix]
     if egg.prefix != sys.prefix:
-        prefixes.append(egg.prefix)
+        prefixes.insert(0, egg.prefix)
 
-    _targets = [join(prefix, 'lib') for prefix in prefixes]
-
-    for line in egg.lines_from_arcname('EGG-INFO/inst/targets.dat'):
-        for prefix in prefixes:
+    _targets = []
+    for prefix in prefixes:
+        _targets.append(join(prefix, 'lib'))
+        for line in egg.lines_from_arcname('EGG-INFO/inst/targets.dat'):
             _targets.append(join(prefix, line))
 
     if verbose:

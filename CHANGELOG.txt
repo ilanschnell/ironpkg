@@ -9,6 +9,9 @@
 
 * added egginst --prefix option to specify install prefix
 
+* added ability to create a self-installing Enstaller egg, i.e. it is possible
+  to execute the Enstaller if bash is installed.
+
 
 4.0.0
 -----

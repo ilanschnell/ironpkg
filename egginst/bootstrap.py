@@ -1,6 +1,3 @@
-"""\
-bootstraps Enstaller into a Python environment
-"""
 import sys
 from os.path import isfile, join
 
@@ -50,7 +47,7 @@ def remove_and_fix():
     from egginst.utils import rm_rf, rel_site_packages
 
     site_dir = join(sys.prefix, rel_site_packages)
-     
+
     # Remove old Enstaller files which could cause problems
     for fn in ['Enstaller.pth', 'Enstaller.egg-link']:
         rm_rf(join(site_dir, fn))
@@ -67,8 +64,10 @@ def cli():
     CLI (for executable egg)
     """
     from optparse import OptionParser
+    from enstaller import __version__
 
-    p = OptionParser(description=__doc__)
+    p = OptionParser(description="bootstraps Enstaller %(__version__)s into "
+                                 "the Python environment" % locals())
 
     p.add_option("--prefix",
                  action="store",
@@ -82,7 +81,6 @@ def cli():
     opts, args = p.parse_args()
 
     if opts.version:
-        from enstaller import __version__
         print "Enstaller version:", __version__
         return
 

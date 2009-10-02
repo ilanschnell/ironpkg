@@ -14,28 +14,42 @@ from indexed_repo import filename_dist, Chain, Req
 
 
 
-def configure(verbose=False):
+def configure():
     if config.get_path() is None:
         config.write()
     conf = config.read()
 
-    if conf.has_key('LOCAL'):
-        local = expanduser(conf['LOCAL'])
+    # prefix
+    if conf.has_key('prefix'):
+        prefix = expanduser(conf['prefix'])
     else:
-        local = join(sys.prefix, 'LOCAL-REPO')
-    if not isdir(local):
-        os.mkdir(local)
+        prefix = sys.prefix
+    conf['prefix'] = prefix
 
-    repos = conf['IndexedRepos']
+    # local
+    if conf.has_key('local'):
+        local = expanduser(conf['local'])
+    else:
+        local = join(prefix, 'LOCAL-REPO')
+    conf['local'] = local
 
-    if verbose:
-        print "configuration:"
-        print "\tlocal = %r" % local
-        print "\trepos:"
-        for repo in repos:
-            print '\t    %r' % repo
+    return conf
 
-    return local, repos
+
+def show_config():
+    print "sys.prefix:", sys.prefix
+    cfg_path = config.get_path()
+    print "config file:", cfg_path
+    if cfg_path is None:
+        return
+    conf = configure()
+    print
+    print "config file setting:"
+    print "\tprefix = %r" % conf['prefix']
+    print "\tlocal = %r" % conf['local']
+    print "\trepos:"
+    for repo in conf['IndexedRepos']:
+        print '\t    %r' % repo
 
 
 def call_egginst(args):
@@ -43,7 +57,7 @@ def call_egginst(args):
     if sys.platform == 'win32':
         fn += '-script.py'
     path = join(sys.prefix, egginst.utils.bin_dir_name, fn)
-    subprocess.call([sys.executable, path] + args)
+    subprocess.call([sys.executable, path, '--quiet'] + args)
 
 
 def check_write():
@@ -142,6 +156,12 @@ def main():
                  action="store_true",
                  help="neither download nor install dependencies")
 
+    p.add_option("--prefix",
+                 action="store",
+                 default=sys.prefix,
+                 help="install prefix (when using this option the prefix "
+                      "setting in the config file will be ignored)")
+
     p.add_option("--proxy",
                  action="store",
                  help="use a proxy for downloads")
@@ -179,10 +199,7 @@ def main():
         return
 
     if opts.config:
-        cfg_path = config.get_path()
-        print "config file:", cfg_path
-        if cfg_path:
-            configure(verbose=True)
+        show_config()
         return
 
     if opts.list:
@@ -197,8 +214,9 @@ def main():
         print 'Proxy configuration error: %s' % e
         sys.exit(1)
 
-    local, repos = configure(opts.verbose)
-    c = Chain(repos, opts.verbose)
+    conf = configure()
+
+    c = Chain(conf['IndexedRepos'], opts.verbose)
 
     if opts.search:
         search(c, opts.search)
@@ -227,6 +245,9 @@ def main():
         if versions:
             print "Versions for package %r are: %s" % (req.name,
                                                        ', '.join(versions))
+        else:
+            print # XXX: Temporary message until enpkg can handle PyPI
+            print "You may want to run: easy_install %s" % req.name
         return
 
     if opts.verbose:
@@ -245,11 +266,13 @@ def main():
         exclude = set()
 
     # Fetch distributions
+    if not isdir(conf['local']):
+        os.makedirs(conf['local'])
     for dist, fn in iter_dists_excl(dists, exclude):
         if opts.dry_run:
             pprint_fn_action(fn, 'downloading')
             continue
-        c.fetch_dist(dist, local, force=opts.force or opts.forceall)
+        c.fetch_dist(dist, conf['local'], force=opts.force or opts.forceall)
 
     # Remove packages (in reverse install order)
     for dist in dists[::-1]:
@@ -268,7 +291,7 @@ def main():
     # Install packages
     for dist, egg_name in iter_dists_excl(dists, exclude):
         pprint_fn_action(egg_name, 'installing')
-        egg_path = join(local, egg_name)
+        egg_path = join(conf['local'], egg_name)
         if not opts.dry_run:
             call_egginst([egg_path])
 
