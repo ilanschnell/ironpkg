@@ -151,6 +151,12 @@ def depend_warn(pkgs, prefix, ignore_version=False):
     """
     Warns the user about packages to be changed (i.e. removed or updated),
     if other packages depend on the package.
+
+    Warnings are printed when the required name of the package matches.
+    The ignore_version option determines if a version comparison is also
+    desired as well, which it is not for the --remove option, since when
+    a package is removed it does not matter which version is required.
+    Hence, in remove_req() this function is called with ignore_version=True.
     """
     names = {}
     for pkg in pkgs:
