@@ -92,9 +92,10 @@ def search(c, rx="?"):
                 print fmt % (name, ', '.join(versions))
 
 
-def remove_req(req, opts):
-    for pkg in egginst.get_active():
-        if req.name != cname_eggname(pkg):
+def remove_req(req, prefix, dry_run):
+    for fn in egginst.get_installed(prefix):
+        pkg = fn[:-4]
+        if req.name != cname_eggname(fn):
             continue
         if req.version:
             v_a, b_a = pkg.split('-')[1:3]
@@ -107,8 +108,9 @@ def remove_req(req, opts):
         print "Package %r does not seem to be installed." % req.name
         return
     pprint_fn_action(pkg, 'removing')
-    if not opts.dry_run:
-        call_egginst(['--remove', pkg])
+    if dry_run:
+        return
+    call_egginst(['--remove', '--prefix', prefix, pkg])
 
 
 def iter_dists_excl(dists, exclude_fn):
@@ -158,9 +160,13 @@ def main():
 
     p.add_option("--prefix",
                  action="store",
-                 default=sys.prefix,
                  help="install prefix (when using this option the prefix "
                       "setting in the config file will be ignored)")
+
+    p.add_option("--sys-prefix",
+                 action="store_true",
+                 help="use sys.prefix as the install prefix, regardless of "
+                      "any settings in the config file")
 
     p.add_option("--proxy",
                  action="store",
@@ -181,11 +187,9 @@ def main():
                  action="store_true",
                  help="perform some internal tests (for development only)")
 
-    p.add_option('-v', "--verbose",
-                 action="store_true")
+    p.add_option('-v', "--verbose", action="store_true")
 
-    p.add_option('--version',
-                 action="store_true")
+    p.add_option('--version', action="store_true")
 
     opts, args = p.parse_args()
     args_n = len(args)
@@ -193,36 +197,46 @@ def main():
     if args_n > 0 and (opts.list or opts.test or opts.config):
         p.error("Option takes no arguments")
 
-    if opts.version:
+    if opts.version:                              #  --version
         from enstaller import __version__
         print "Enstaller version:", __version__
         return
 
-    if opts.config:
+    if opts.config:                               #  --config
         show_config()
         return
 
-    if opts.list:
-        egginst.print_active()
+    conf = configure()                            #  conf
+
+    if opts.sys_prefix:                           #  prefix
+        prefix = sys.prefix
+    elif opts.prefix:
+        prefix = opts.prefix
+    else:
+        prefix = conf['prefix']
+
+    if opts.list:                                 #  --list
+        print "sys.prefix:", sys.prefix
+        egginst.print_installed(sys.prefix)
+        if prefix != sys.prefix:
+            print
+            print "prefix:", prefix
+            egginst.print_installed(prefix)
         return
 
-    # Try to set up a proxy server, either from options or environment vars.
-    # This makes urllib2 calls do the right thing.
-    try:
+    try:                                          # proxy server
         installed = setup_proxy(opts.proxy)
     except ValueError, e:
         print 'Proxy configuration error: %s' % e
         sys.exit(1)
 
-    conf = configure()
+    c = Chain(conf['IndexedRepos'], opts.verbose) # init chain
 
-    c = Chain(conf['IndexedRepos'], opts.verbose)
-
-    if opts.search:
+    if opts.search:                               # --search
         search(c, opts.search)
         return
 
-    if opts.test:
+    if opts.test:                                 # --test
         c.test()
         return
 
@@ -233,8 +247,9 @@ def main():
     req = Req(' '.join(args))
     check_write()
 
+    print "prefix:", prefix
     if opts.remove:
-        remove_req(req, opts)
+        remove_req(req, prefix, opts.dry_run)
         return
 
     dists = c.install_order(req, recur=not opts.no_deps)
@@ -255,11 +270,14 @@ def main():
         for d in dists:
             print '\t', d
 
-    # 'active' is the set of egg names which are currently active.
-    active = set('%s.egg' % s for s in egginst.get_active())
+    sys_inst = set(egginst.get_installed(sys.prefix))
+    if prefix == sys.prefix:
+        prefix_inst = set(sys_inst)
+    else:
+        prefix_inst = set(egginst.get_installed(prefix))
 
     # These are the eggs which are being excluded from download and install
-    exclude = set(active)
+    exclude = set(sys_inst)
     if opts.force:
         exclude.discard(filename_dist(dists[-1]))
     elif opts.forceall:
@@ -277,23 +295,23 @@ def main():
     # Remove packages (in reverse install order)
     for dist in dists[::-1]:
         egg_name = filename_dist(dist)
-        if egg_name in active:
+        if egg_name in sys_inst:
             # if the distribution (which needs to be installed) is already
-            # active don't remove it
+            # installed don't remove it
             continue
         cname = cname_eggname(egg_name)
-        for egg_a in active:
+        for egg_a in sys_inst:
             if cname == cname_eggname(egg_a):
                 pprint_fn_action(egg_a, 'removing')
                 if not opts.dry_run:
-                    call_egginst(['--remove', egg_a])
+                    call_egginst(['--remove', '--prefix', prefix, egg_a])
 
     # Install packages
     for dist, egg_name in iter_dists_excl(dists, exclude):
         pprint_fn_action(egg_name, 'installing')
         egg_path = join(conf['local'], egg_name)
         if not opts.dry_run:
-            call_egginst([egg_path])
+            call_egginst(['--prefix', prefix, egg_path])
 
 
 if __name__ == '__main__':

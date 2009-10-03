@@ -7,7 +7,6 @@ By default the eggs (provided as arguments) are installed.
 import os
 import sys
 import re
-import shutil
 import string
 import zipfile
 import ConfigParser
@@ -29,7 +28,7 @@ def projname(fn):
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix=sys.prefix, verbose=False):
+    def __init__(self, fpath, prefix, verbose=False):
         self.fpath = fpath
         self.name = projname(basename(fpath))
         self.prefix = abspath(prefix)
@@ -275,125 +274,32 @@ class EggInst(object):
         sys.stdout.flush()
 
 
-    def deactivate(self):
-        """
-        Deactivate a package, i.e. move the files belonging to the package
-        into the special folder.
-        """
-        if not isdir(self.meta_dir):
-            print "Error: Can't find meta data for:", self.name
-            return
-        self.read_meta()
-        dn = self.egg_name[:-4]
-        deact_dir = join(self.prefix, 'DEACTIVE', dn)
-        if isdir(deact_dir):
-            print "Error: Deactive data already exists for:", dn
-            return
-        os.makedirs(deact_dir)
-
-        for rel_src in self.rel_files:
-            src = join(self.prefix, rel_src)
-            if islink(src) or isfile(src):
-                dst = join(deact_dir, rel_src)
-                dst_dir = dirname(dst)
-                if not isdir(dst_dir):
-                    os.makedirs(dst_dir)
-                os.rename(src, dst)
-        self.rmdirs()
-        rm_rf(self.meta_dir)
-
-
-def activate(dn, prefix=sys.prefix):
+def get_installed(prefix):
     """
-    Activate a package which was previously deactivated.  'dn' is the
-    directory name inside the deactive folder, which is simply the egg
-    name, without the .egg extension, of the egg which was used to install
-    the package in the first place.
-    """
-    deact_dir = join(prefix, 'DEACTIVE', dn)
-    if not isdir(deact_dir):
-        print "Error: Can't find stored data for:", dn
-        return
-    for root, dirs, files in os.walk(deact_dir):
-        for fn in files:
-            src = join(root, fn)
-            rel_src = src[len(deact_dir) + 1:]
-            dst = join(prefix, rel_src)
-            dst_dir = dirname(dst)
-            if not isdir(dst_dir):
-                os.makedirs(dst_dir)
-            rm_rf(dst)
-            os.rename(src, dst)
-    shutil.rmtree(deact_dir)
-
-
-def get_active(prefix=sys.prefix):
-    """
-    Returns a sorted list of all installed (active) packages.  Each
-    element is the filename, excluding the .egg extension, of the egg
-    which was used to install the package.
+    Generator returns a sorted list of all installed packages.
+    Each element is the filename of the egg which was used to install the
+    package.
     """
     egg_info_dir = join(prefix, 'EGG-INFO')
     if not isdir(egg_info_dir):
-        return []
-    res = []
-    for fn in os.listdir(egg_info_dir):
+        return
+
+    for fn in sorted(os.listdir(egg_info_dir), key=string.lower):
         meta_txt = join(egg_info_dir, fn, '__egginst__.txt')
         if not isfile(meta_txt):
             continue
         d = {}
         execfile(meta_txt, d)
-        res.append(d['egg_name'][:-4])
-    res.sort(key=string.lower)
-    return res
+        yield (d['egg_name'])
 
 
-def get_deactive(prefix=sys.prefix):
-    """
-    Returns a sorted list of all deactivated projects, the format of each
-    element in the set is the as the get_active() function uses.
-    """
-    deactive_dir = join(prefix, 'DEACTIVE')
-    if not isdir(deactive_dir):
-        return []
-    res = [fn for fn in os.listdir(deactive_dir)
-           if isdir(join(deactive_dir, fn))]
-    res.sort(key=string.lower)
-    return res
-
-
-def print_all(prefix=sys.prefix):
-    fmt = '%-20s %-20s %s'
-    print fmt % ('Project name', 'Version', 'Active')
-    print 50 * '='
-
-    active = get_active(prefix)
-    deactive = get_deactive(prefix)
-    names = set(projname(fn) for fn in active + deactive)
-    output = []
-    for name in sorted(names, key=string.lower):
-        for lst, act in [(active, 'Yes'), (deactive, '')]:
-            for fn in lst:
-                if projname(fn) != name:
-                    continue
-                name, vers = fn.split('-', 1)
-                output.append([name, vers, act])
-
-    names = set()
-    for row in output:
-        if row[0] in names:
-            row[0] = ''
-        print fmt % tuple(row)
-        names.add(row[0])
-
-
-def print_active(prefix=sys.prefix):
+def print_installed(prefix):
     fmt = '%-20s %s'
     print fmt % ('Project name', 'Version')
     print 40 * '='
 
-    for fn in get_active(prefix):
-        print fmt % tuple(fn.split('-', 1))
+    for fn in get_installed(prefix):
+        print fmt % tuple(fn[:-4].split('-', 1))
 
 
 
@@ -403,17 +309,9 @@ def main():
     p = OptionParser(usage="usage: %prog [options] [EGGS ...]",
                      description=__doc__)
 
-    p.add_option('-a', "--activate",
-                 action="store_true",
-                 help="activate deactivated packages (experimental feature)")
-
-    p.add_option('-d', "--deactivate",
-                 action="store_true",
-                 help="deactives installed packages (experimental feature)")
-
     p.add_option('-l', "--list",
                  action="store_true",
-                 help="list packages, both active and deactive")
+                 help="list all installed packages")
 
     p.add_option("--prefix",
                  action="store",
@@ -441,15 +339,10 @@ def main():
     if not opts.quiet:
         print 'prefix:', prefix
 
-    if opts.activate:
-        for name in args:
-            activate(name, prefix)
-        return
-
     if opts.list:
         if args:
-            p.error("--list takes no arguments")
-        print_all(prefix)
+            p.error("the --list option takes no arguments")
+        print_installed(prefix)
         return
 
     for name in args:
@@ -458,11 +351,6 @@ def main():
             if opts.verbose:
                 print "Removing:", name
             ei.remove()
-
-        elif opts.deactivate:
-            if opts.verbose:
-                print "Deactivating:", name
-            ei.deactivate()
 
         else: # default is always install
             if opts.verbose:

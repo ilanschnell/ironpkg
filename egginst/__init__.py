@@ -20,28 +20,16 @@ remove():
        * the egg name
        * or simply the project name
 
-deactivate()
-    Deactivate a package, i.e. move the files belonging to the package
-    into the special folder.  ARG may be the same as for the remove method.
-
 
 Functions:
 ----------
 
-activate(name):
-    Activate a package which was previously deactivated.  'name' is the
-    directory name inside the deactive folder, which is simply the egg
-    name, without the .egg extension, of the egg which was used to install
-    the package in the first place.
+get_installed(prefix):
+    Generator returns a sorted list of all installed packages.
+    Each element is the filename of the egg which was used to install the
+    package.
 
-get_active():
-get_deactive():
-    Returns a sorted list of the (de)activate packages.  Each element of
-    the list is a 'name', see above.
-
-print_list():
-    write a list packages, both active and deactive, in a formatted manner
-    to stdout.
+print_installed(prefix):
+    write a list of installed packages (in a formatted manner) to stdout.
 """
-from egginst.main import (EggInst, activate, get_active, get_deactive,
-                          print_active)
+from egginst.main import EggInst, get_installed, print_installed

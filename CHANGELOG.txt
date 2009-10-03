@@ -12,6 +12,10 @@
 * added ability to create a self-installing Enstaller egg, i.e. it is possible
   to execute the Enstaller if bash is installed.
 
+* removed experimental egginst --activate and --deactivate options
+
+* added enpkg --prefix option
+
 
 4.0.0
 -----
