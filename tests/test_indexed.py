@@ -1,3 +1,4 @@
+import sys
 import unittest
 
 import enstaller.indexed_repo.dist_naming as dist_naming
@@ -47,6 +48,10 @@ class TestDistNaming(unittest.TestCase):
             ('file://C:\\Desk and Top', '\\'),
             ]:
             self.assertEqual(dist_naming.cleanup_reponame(repo), repo + a)
+
+        self.assertEqual(dist_naming.cleanup_reponame(sys.prefix),
+                         'file://' + sys.prefix +
+                         ('\\' if sys.platform == 'win32' else '/'))
 
     def test_comparable_spec1(self):
         cs = dist_naming.comparable_spec

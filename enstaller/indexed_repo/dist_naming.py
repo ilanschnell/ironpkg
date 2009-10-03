@@ -1,6 +1,7 @@
 import re
+from os.path import isdir
 
-from enstaller.utils import comparable_version
+from enstaller.utils import abs_expanduser, comparable_version
 
 
 DIST_PAT = re.compile(r'(file://.*[\\/]|http://.+/)([^\\/]+)$')
@@ -88,6 +89,10 @@ def cleanup_reponame(repo):
             # Windows filename
             if not repo.endswith('\\'):
                 repo += '\\'
+
+    elif isdir(abs_expanduser(repo)):
+        return cleanup_reponame('file://' + abs_expanduser(repo))
+
     else:
         raise Exception("Invalid repo string: %r" % repo)
 

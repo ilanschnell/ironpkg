@@ -2,6 +2,7 @@ import sys
 import hashlib
 import urlparse
 import urllib2
+from os.path import abspath, expanduser
 
 from egginst.utils import human_bytes, rm_rf
 from enstaller import __version__
@@ -9,6 +10,10 @@ from enstaller.verlib import RationalVersion, IrrationalVersionError
 
 
 PY_VER = '%i.%i' % sys.version_info[:2]
+
+
+def abs_expanduser(path):
+    return abspath(expanduser(path))
 
 
 def canonical(s):

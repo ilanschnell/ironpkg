@@ -1,7 +1,7 @@
 # this test code is not imported anywhere
 import xmlrpclib
 import sys
- 
+
 pypi = xmlrpclib.ServerProxy('http://python.org/pypi')
 for hit in pypi.search(dict(name=sys.argv[1])):
     print '''\

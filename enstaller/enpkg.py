@@ -3,14 +3,14 @@ import re
 import sys
 import string
 import subprocess
-from os.path import expanduser, isdir, isfile, join
+from os.path import isdir, isfile, join
 
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages
 
 import config
 from proxy.api import setup_proxy
-from utils import cname_fn, pprint_fn_action
+from utils import abs_expanduser, cname_fn, pprint_fn_action
 from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
                           spec_as_req, parse_data)
 
@@ -23,14 +23,14 @@ def configure():
 
     # prefix
     if conf.has_key('prefix'):
-        prefix = expanduser(conf['prefix'])
+        prefix = abs_expanduser(conf['prefix'])
     else:
         prefix = sys.prefix
     conf['prefix'] = prefix
 
     # local
     if conf.has_key('local'):
-        local = expanduser(conf['local'])
+        local = abs_expanduser(conf['local'])
     else:
         local = join(prefix, 'LOCAL-REPO')
     conf['local'] = local
