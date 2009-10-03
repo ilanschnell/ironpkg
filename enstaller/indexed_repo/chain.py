@@ -295,11 +295,15 @@ class Chain(object):
 
         check_md5:
             when determining if a file needs to be downloaded or copied,
-            check it's md5.  This is, of course, slower but more reliable
-            then just checking the file-size, which always done.
-            Note that option has option has nothing to do with checking the
-            md5 of a download.  The md5 is always checked when files are
-            downloaded (regardless of this option).
+            check it's MD5.  This is, of course, slower but more reliable
+            then just checking the file-size (which always done first).
+            Note:
+              * This option has option has nothing to do with checking the
+                MD5 of a download.  The md5 is always checked when files are
+                downloaded (regardless of this option).
+              * If force=True, this option is has no effect, because the file
+                is forcefully downloaded, ignoring any existing file (as well
+                as the MD5).
         """
         md5 = self.index[dist].get('md5', None)
         size = self.index[dist].get('size', None)
