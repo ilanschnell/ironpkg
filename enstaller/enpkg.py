@@ -81,6 +81,15 @@ def print_path(prefix):
                                  join(p, 'lib') for p in prefixes))
 
 
+def list_option(prefix):
+    print "sys.prefix:", sys.prefix
+    egginst.print_installed(sys.prefix)
+    if prefix != sys.prefix:
+        print
+        print "prefix:", prefix
+        egginst.print_installed(prefix)
+
+
 def call_egginst(args):
     fn = 'egginst'
     if sys.platform == 'win32':
@@ -122,6 +131,10 @@ def search(c, rx="?"):
 
 
 def remove_req(req, prefix, dry_run):
+    """
+    Tries remove a package from prefix given a requirement object.
+    This function is only used for the --remove option.
+    """
     for fn in egginst.get_installed(prefix):
         pkg = fn[:-4]
         if req.name != cname_eggname(fn):
@@ -143,6 +156,9 @@ def remove_req(req, prefix, dry_run):
 
 
 def get_dists(c, req, opts):
+    """
+    Resolves the requirement
+    """
     dists = c.install_order(req, recur=not opts.no_deps)
     if dists is None:
         print "No distribution found for requirement '%s'." % req
@@ -160,6 +176,28 @@ def get_dists(c, req, opts):
         for d in dists:
             print '\t', d
     return dists
+
+
+def read_specs(prefix):
+    index = {}
+    egg_info_dir = join(prefix, 'EGG-INFO')
+    for fn in os.listdir(egg_info_dir):
+        path = join(egg_info_dir, fn, 'spec', 'depend')
+        if not isfile(path):
+            continue
+        d = {}
+        execfile(path, d)
+        index[fn] = {}
+        for varname in ['name', 'version', 'packages']:
+            index[fn][varname] = d[varname]
+    return index
+
+
+def warn_conficts(dists, prefix, sys_inst, prefix_inst):
+    # maps fn to spec of installed packages
+    sys_index = read_specs(sys.prefix)
+    #print sys_index
+    # TODO
 
 
 def iter_dists_excl(dists, exclude_fn):
@@ -214,14 +252,13 @@ def main():
 
     p.add_option("--prefix",
                  action="store",
-                 help="install prefix (when using this option the prefix "
-                      "setting in the config file will be ignored)",
+                 help="install prefix (disregarding of any settings in "
+                      "the config file)",
                  metavar='PATH')
 
     p.add_option("--sys-prefix",
                  action="store_true",
-                 help="use sys.prefix as the install prefix, regardless of "
-                      "any settings in the config file")
+                 help="use sys.prefix as the install prefix")
 
     p.add_option("--proxy",
                  action="store",
@@ -248,10 +285,15 @@ def main():
     p.add_option('--version', action="store_true")
 
     opts, args = p.parse_args()
-    args_n = len(args)
 
-    if args_n > 0 and (opts.list or opts.test or opts.config):
+    if len(args) > 0 and (opts.list or opts.test or opts.config or opts.path):
         p.error("Option takes no arguments")
+
+    if opts.prefix and opts.sys_prefix:
+        p.error("Options --prefix and --sys-prefix exclude each ohter")
+
+    if opts.force and opts.forceall:
+        p.error("Options --force and --forceall exclude each ohter")
 
     if opts.version:                              #  --version
         from enstaller import __version__
@@ -276,12 +318,7 @@ def main():
         return
 
     if opts.list:                                 #  --list
-        print "sys.prefix:", sys.prefix
-        egginst.print_installed(sys.prefix)
-        if prefix != sys.prefix:
-            print
-            print "prefix:", prefix
-            egginst.print_installed(prefix)
+        list_option(prefix)
         return
 
     try:                                          # proxy server
@@ -300,9 +337,9 @@ def main():
         c.test()
         return
 
-    if args_n == 0:
-        p.error("Requirement (that is, name and optional version) missing")
-    if args_n > 2:
+    if len(args) == 0:
+        p.error("Requirement (name and optional version) missing")
+    if len(args) > 2:
         p.error("A requirement is a name and an optional version")
     req = Req(' '.join(args))
 
@@ -314,19 +351,23 @@ def main():
 
     dists = get_dists(c, req, opts)               # dists
 
+    # Packages which are installed currently
     sys_inst = set(egginst.get_installed(sys.prefix))
     if prefix == sys.prefix:
-        prefix_inst = set(sys_inst)
+        prefix_inst = sys_inst
     else:
         prefix_inst = set(egginst.get_installed(prefix))
-    all_inst = sys_inst | prefix_inst
 
-    # These are the eggs which are being excluded from being installed
-    exclude = set(all_inst)
-    if opts.force:
-        exclude.discard(filename_dist(dists[-1]))
-    elif opts.forceall:
+    # Warn about conflicts
+    warn_conficts(dists, prefix, sys_inst, prefix_inst)
+
+    # These are the packahes which are being excluded from being installed
+    if opts.forceall:
         exclude = set()
+    else:
+        exclude = sys_inst | prefix_inst
+        if opts.force:
+            exclude.discard(filename_dist(dists[-1]))
 
     # Fetch distributions
     if not isdir(conf['local']):
@@ -346,6 +387,7 @@ def main():
             # installed don't remove it
             continue
         cname = cname_eggname(fn)
+        # Only remove packages installed in prefix
         for fn_inst in prefix_inst:
             if cname != cname_eggname(fn_inst):
                 continue
