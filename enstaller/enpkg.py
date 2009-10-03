@@ -6,6 +6,7 @@ import subprocess
 from os.path import expanduser, isdir, isfile, join
 
 import egginst
+from egginst.utils import bin_dir_name, rel_site_packages
 
 import config
 from proxy.api import setup_proxy
@@ -36,7 +37,7 @@ def configure():
     return conf
 
 
-def show_config():
+def print_config():
     print "sys.prefix:", sys.prefix
     cfg_path = config.get_path()
     print "config file:", cfg_path
@@ -52,11 +53,26 @@ def show_config():
         print '\t    %r' % repo
 
 
+def print_path(prefix):
+    prefixes = [sys.prefix]
+    if prefix != sys.prefix:
+        prefixes.insert(0, prefix)
+    print "Prefixes:"
+    for p in prefixes:
+        print '\t%s%s' % (p, ['', ' (sys)'][p == sys.prefix])
+    print
+    cmd = 'set' if sys.platform == 'win32' else 'export'
+    print cmd + " PATH=" + os.pathsep.join(
+                                 join(p, bin_dir_name) for p in prefixes)
+    if prefix != sys.prefix:
+        print cmd + " PYTHONPATH=" + join(prefix, rel_site_packages)
+
+
 def call_egginst(args):
     fn = 'egginst'
     if sys.platform == 'win32':
         fn += '-script.py'
-    path = join(sys.prefix, egginst.utils.bin_dir_name, fn)
+    path = join(sys.prefix, bin_dir_name, fn)
     subprocess.call([sys.executable, path, '--quiet'] + args)
 
 
@@ -178,6 +194,11 @@ def main():
                  action="store_true",
                  help="neither download nor install dependencies")
 
+    p.add_option("--path",
+                 action="store_true",
+                 help="based on the configuration, display how to set the "
+                      "PATH and PYTHONPATH environment variables")
+
     p.add_option("--prefix",
                  action="store",
                  help="install prefix (when using this option the prefix "
@@ -225,7 +246,7 @@ def main():
         return
 
     if opts.config:                               #  --config
-        show_config()
+        print_config()
         return
 
     conf = configure()                            #  conf
@@ -236,6 +257,10 @@ def main():
         prefix = opts.prefix
     else:
         prefix = conf['prefix']
+
+    if opts.path:                                 #  --path
+        print_path(prefix)
+        return
 
     if opts.list:                                 #  --list
         print "sys.prefix:", sys.prefix
