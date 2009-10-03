@@ -1,4 +1,4 @@
-The Enstaller (version 4) project in an install and managing tool
+The Enstaller (version 4) project is a managing and install tool
 for egg-based Python distributions.
 
 Enstaller consists of the sub-packages:

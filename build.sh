@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# script to build the self-bootstraping, indexable Enstaller egg
+# setuptools has to be installed
+
 VER=4.1.0
 PY=2.5
 

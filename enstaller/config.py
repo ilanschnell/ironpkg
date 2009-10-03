@@ -78,7 +78,7 @@ RC_TMPL = """\
 # 'index-depend.bz2', can be listed here.
 IndexedRepos = %(repos)s
 
-# Install prefix (--no-prefix and --prefix options overwrite this):
+# Install prefix (--prefix and --sys-prefix options overwrite this):
 prefix='%(prefix)s'
 """
 
