@@ -61,11 +61,24 @@ def print_path(prefix):
     for p in prefixes:
         print '\t%s%s' % (p, ['', ' (sys)'][p == sys.prefix])
     print
-    cmd = 'set' if sys.platform == 'win32' else 'export'
-    print cmd + " PATH=" + os.pathsep.join(
-                                 join(p, bin_dir_name) for p in prefixes)
+
+    if sys.platform == 'win32':
+        cmd = 'set'
+    else:
+        cmd = 'export'
+
+    print "%s PATH=%s" % (cmd, os.pathsep.join(
+                                 join(p, bin_dir_name) for p in prefixes))
     if prefix != sys.prefix:
-        print cmd + " PYTHONPATH=" + join(prefix, rel_site_packages)
+        print "%s PYTHONPATH=%s" % (cmd, join(prefix, rel_site_packages))
+
+    if sys.platform != 'win32':
+        if sys.platform == 'darwin':
+            name = 'DYLD_LIBRARY_PATH'
+        else:
+            name = 'LD_LIBRARY_PATH'
+        print "%s %s=%s" % (cmd, name, os.pathsep.join(
+                                 join(p, 'lib') for p in prefixes))
 
 
 def call_egginst(args):
