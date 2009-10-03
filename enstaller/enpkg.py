@@ -10,8 +10,9 @@ from egginst.utils import bin_dir_name, rel_site_packages
 
 import config
 from proxy.api import setup_proxy
-from utils import cname_eggname, pprint_fn_action
-from indexed_repo import filename_dist, Chain, Req
+from utils import cname_fn, pprint_fn_action
+from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
+                          spec_as_req, parse_data)
 
 
 
@@ -130,15 +131,52 @@ def search(c, rx="?"):
                 print fmt % (name, ', '.join(versions))
 
 
+def read_depend_files(prefix):
+    """
+    Returns a dictionary mapping canonical project names to the spec
+    dictionaries of the installed packages.
+    """
+    res = {}
+    egg_info_dir = join(prefix, 'EGG-INFO')
+    for name in os.listdir(egg_info_dir):
+        path = join(egg_info_dir, name, 'spec', 'depend')
+        if isfile(path):
+            spec = parse_data(open(path).read())
+            add_Reqs_to_spec(spec)
+            res[spec['cname']] = spec
+    return res
+
+
+def depend_warn(pkgs, prefix, ignore_version=False):
+    """
+    Warns the user about packages to be changed (i.e. removed or updated),
+    if other packages depend on the package.
+    """
+    names = {}
+    for pkg in pkgs:
+        names[cname_fn(pkg)] = pkg
+    index = read_depend_files(prefix)
+    for spec in index.itervalues():
+        if spec['cname'] in names:
+            continue
+        for req in spec["Reqs"]:
+            if req.name not in names:
+                continue
+            if (ignore_version or
+                     (req.version and
+                      req.version != names[req.name].split('-')[1])):
+                print "Warning: %s depends on %s" % (spec_as_req(spec), req)
+
+
 def remove_req(req, prefix, dry_run):
     """
     Tries remove a package from prefix given a requirement object.
     This function is only used for the --remove option.
     """
     for fn in egginst.get_installed(prefix):
-        pkg = fn[:-4]
-        if req.name != cname_eggname(fn):
+        if req.name != cname_fn(fn):
             continue
+        pkg = fn[:-4]
         if req.version:
             v_a, b_a = pkg.split('-')[1:3]
             if req.version != v_a or (req.build and req.build != int(b_a)):
@@ -149,6 +187,8 @@ def remove_req(req, prefix, dry_run):
     else:
         print "Package %r does not seem to be installed." % req.name
         return
+
+    depend_warn([pkg], prefix, ignore_version=True)
     pprint_fn_action(pkg, 'removing')
     if dry_run:
         return
@@ -176,28 +216,6 @@ def get_dists(c, req, opts):
         for d in dists:
             print '\t', d
     return dists
-
-
-def read_specs(prefix):
-    index = {}
-    egg_info_dir = join(prefix, 'EGG-INFO')
-    for fn in os.listdir(egg_info_dir):
-        path = join(egg_info_dir, fn, 'spec', 'depend')
-        if not isfile(path):
-            continue
-        d = {}
-        execfile(path, d)
-        index[fn] = {}
-        for varname in ['name', 'version', 'packages']:
-            index[fn][varname] = d[varname]
-    return index
-
-
-def warn_conficts(dists, prefix, sys_inst, prefix_inst):
-    # maps fn to spec of installed packages
-    sys_index = read_specs(sys.prefix)
-    #print sys_index
-    # TODO
 
 
 def iter_dists_excl(dists, exclude_fn):
@@ -231,7 +249,7 @@ def main():
     p.add_option("--forceall",
                  action="store_true",
                  help="force install of all packages "
-                      "(i.e. including dependencies")
+                      "(i.e. including dependencies)")
 
     p.add_option('-l', "--list",
                  action="store_true",
@@ -351,21 +369,22 @@ def main():
 
     dists = get_dists(c, req, opts)               # dists
 
+    # Warn the user about packages which depend on what will be updated
+    depend_warn([filename_dist(d) for d in dists], prefix)
+
     # Packages which are installed currently
     sys_inst = set(egginst.get_installed(sys.prefix))
     if prefix == sys.prefix:
         prefix_inst = sys_inst
     else:
         prefix_inst = set(egginst.get_installed(prefix))
-
-    # Warn about conflicts
-    warn_conficts(dists, prefix, sys_inst, prefix_inst)
+    all_inst = sys_inst | prefix_inst
 
     # These are the packahes which are being excluded from being installed
     if opts.forceall:
         exclude = set()
     else:
-        exclude = sys_inst | prefix_inst
+        exclude = all_inst
         if opts.force:
             exclude.discard(filename_dist(dists[-1]))
 
@@ -382,14 +401,14 @@ def main():
     # Remove packages (in reverse install order)
     for dist in dists[::-1]:
         fn = filename_dist(dist)
-        if fn in sys_inst:
+        if fn in all_inst:
             # if the distribution (which needs to be installed) is already
             # installed don't remove it
             continue
-        cname = cname_eggname(fn)
+        cname = cname_fn(fn)
         # Only remove packages installed in prefix
         for fn_inst in prefix_inst:
-            if cname != cname_eggname(fn_inst):
+            if cname != cname_fn(fn_inst):
                 continue
             pprint_fn_action(fn_inst, 'removing')
             if opts.dry_run:

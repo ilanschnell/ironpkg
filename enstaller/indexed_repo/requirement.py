@@ -85,19 +85,34 @@ def add_Reqs_to_spec(spec):
     spec['Reqs'] = set(Req(s) for s in spec['packages'])
 
 
+def spec_as_req(spec, strictness=3):
+    """
+    Return a requirement object from a spec.
+    """
+    assert 1 <= strictness <= 3
+    req_string = spec['name']
+    if strictness >= 2:
+        req_string += ' %s' % spec['version']
+    if strictness >= 3:
+        req_string += '-%i' % spec['build']
+    return Req(req_string)
+
+
+def filename_as_req(filename, strictness=3):
+    """
+    Return the filename of a distribution in terms of the a requirement
+    object.
+    """
+    name, version, build = split_eggname(filename)
+    return spec_as_req(locals(), strictness)
+
+
 def dist_as_req(dist, strictness=3):
     """
     Return the distribution in terms of the a requirement object.
     That is: What requirement gives me the distribution?
     """
-    assert 1 <= strictness <= 3
-    name, version, build = split_eggname(filename_dist(dist))
-    req_string = name
-    if strictness >= 2:
-        req_string += ' %s' % version
-    if strictness >= 3:
-        req_string += '-%i' % build
-    return Req(req_string)
+    return filename_as_req(filename_dist(dist), strictness)
 
 
 def filter_name(reqs, name):

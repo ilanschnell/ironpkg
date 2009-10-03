@@ -23,8 +23,8 @@ def canonical(s):
     return s
 
 
-def cname_eggname(eggname):
-    return canonical(eggname.split('-')[0])
+def cname_fn(fn):
+    return canonical(fn.split('-')[0])
 
 
 def comparable_version(version):

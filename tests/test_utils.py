@@ -1,7 +1,7 @@
 import random
 import unittest
 
-from enstaller.utils import comparable_version, canonical, cname_eggname
+from enstaller.utils import comparable_version, canonical, cname_fn
 
 
 class TestUtils(unittest.TestCase):
@@ -14,8 +14,8 @@ class TestUtils(unittest.TestCase):
             ]:
             self.assertEqual(canonical(name), cname)
 
-    def test_cname_eggname(self):
-        self.assertEqual(cname_eggname('VTK-5.4.2-1.egg'), 'vtk')
+    def test_cname_fn(self):
+        self.assertEqual(cname_fn('VTK-5.4.2-1.egg'), 'vtk')
 
     def test_comparable_version1(self):
         versions = ['1.0.4', '1.2.1', '1.3.0b1', '1.3.0', '1.3.10']
