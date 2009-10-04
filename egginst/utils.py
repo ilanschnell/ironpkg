@@ -14,6 +14,15 @@ else:
     rel_site_packages = 'lib/python%i.%i/site-packages' % sys.version_info[:2]
 
 
+def pprint_fn_action(fn, action):
+    """
+    Pretty print the distribution name (filename) and an action, the width
+    of the output corresponds to the with of the progress bar used by the
+    function below.
+    """
+    print "%-56s %20s" % (fn, '[%s]' % action)
+
+
 def rmdir_er(dn):
     """
     Remove empty directories recursively.

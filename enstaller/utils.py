@@ -101,15 +101,6 @@ def open_with_auth(url):
     return urllib2.urlopen(request)
 
 
-def pprint_fn_action(fn, action):
-    """
-    Pretty print the distribution name (filename) and an action, the width
-    of the output corresponds to the with of the progress bar used by the
-    function below.
-    """
-    print "%-56s %20s" % (fn, '[%s]' % action)
-
-
 def write_data_from_url(fo, url, md5=None, size=None):
     """
     Read data from the url and write to the file handle fo, which must be

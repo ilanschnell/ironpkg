@@ -10,8 +10,9 @@ from os.path import basename, getsize, isfile, isdir, join
 import metadata
 import dist_naming
 from requirement import Req, add_Reqs_to_spec, filter_name, dist_as_req
-from enstaller.utils import (comparable_version, md5_file, pprint_fn_action,
+from enstaller.utils import (comparable_version, md5_file,
                              rm_rf, write_data_from_url)
+from egginst.utils import pprint_fn_action
 
 
 class Chain(object):
@@ -285,7 +286,8 @@ class Chain(object):
         return sorted(versions, key=comparable_version)
 
 
-    def fetch_dist(self, dist, fetch_dir, force=False, check_md5=False):
+    def fetch_dist(self, dist, fetch_dir, force=False, check_md5=False,
+                   dry_run=False):
         """
         Get a distribution, i.e. copy or download the distribution into
         fetch_dir.
@@ -318,8 +320,10 @@ class Chain(object):
                 print "Not forcing refetch, %r already exists" % dst
             return
 
-        pprint_fn_action(
-            fn, ['copying', 'downloading'][dist.startswith('http://')])
+        pprint_fn_action(fn,
+                 ['copying', 'downloading'][dist.startswith('http://')])
+        if dry_run:
+            return
 
         if self.verbose:
             print "Copying: %r" % dist

@@ -10,10 +10,15 @@ from egginst.utils import bin_dir_name, rel_site_packages
 
 import config
 from proxy.api import setup_proxy
-from utils import abs_expanduser, cname_fn, pprint_fn_action
+from utils import abs_expanduser, cname_fn
 from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
                           spec_as_req, parse_data)
 
+
+# global options
+prefix = None
+dry_run = None
+verbose = None
 
 
 def configure():
@@ -23,17 +28,15 @@ def configure():
 
     # prefix
     if conf.has_key('prefix'):
-        prefix = abs_expanduser(conf['prefix'])
+        conf['prefix'] = abs_expanduser(conf['prefix'])
     else:
-        prefix = sys.prefix
-    conf['prefix'] = prefix
+        conf['prefix'] = sys.prefix
 
     # local
     if conf.has_key('local'):
-        local = abs_expanduser(conf['local'])
+        conf['local'] = abs_expanduser(conf['local'])
     else:
-        local = join(prefix, 'LOCAL-REPO')
-    conf['local'] = local
+        conf['local'] = join(conf['prefix'], 'LOCAL-REPO')
 
     return conf
 
@@ -54,7 +57,7 @@ def print_config():
         print '\t    %r' % repo
 
 
-def print_path(prefix):
+def print_path():
     prefixes = [sys.prefix]
     if prefix != sys.prefix:
         prefixes.insert(0, prefix)
@@ -82,7 +85,7 @@ def print_path(prefix):
                                  join(p, 'lib') for p in prefixes))
 
 
-def list_option(prefix):
+def list_option():
     print "sys.prefix:", sys.prefix
     egginst.print_installed(sys.prefix)
     if prefix != sys.prefix:
@@ -91,15 +94,23 @@ def list_option(prefix):
         egginst.print_installed(prefix)
 
 
-def call_egginst(args):
+def call_egginst(pkg_path, remove=False):
     fn = 'egginst'
     if sys.platform == 'win32':
         fn += '-script.py'
     path = join(sys.prefix, bin_dir_name, fn)
-    subprocess.call([sys.executable, path, '--quiet'] + args)
+    args = [sys.executable, path, '--prefix', prefix]
+    if dry_run:
+        args.append('--dry-run')
+    if remove:
+        args.append('--remove')
+    args.append(pkg_path)
+    if verbose:
+        print 'CALL: %r' % args
+    subprocess.call(args)
 
 
-def check_write(prefix):
+def check_write():
     path = join(prefix, 'hello.txt')
     try:
         open(path, 'w').write('Hello World!\n')
@@ -131,7 +142,7 @@ def search(c, rx="?"):
                 print fmt % (name, ', '.join(versions))
 
 
-def read_depend_files(prefix):
+def read_depend_files():
     """
     Returns a dictionary mapping canonical project names to the spec
     dictionaries of the installed packages.
@@ -147,7 +158,7 @@ def read_depend_files(prefix):
     return res
 
 
-def depend_warn(pkgs, prefix, ignore_version=False):
+def depend_warn(pkgs, ignore_version=False):
     """
     Warns the user about packages to be changed (i.e. removed or updated),
     if other packages depend on the package.
@@ -161,7 +172,7 @@ def depend_warn(pkgs, prefix, ignore_version=False):
     names = {}
     for pkg in pkgs:
         names[cname_fn(pkg)] = pkg
-    index = read_depend_files(prefix)
+    index = read_depend_files()
     for spec in index.itervalues():
         if spec['cname'] in names:
             continue
@@ -174,7 +185,7 @@ def depend_warn(pkgs, prefix, ignore_version=False):
                 print "Warning: %s depends on %s" % (spec_as_req(spec), req)
 
 
-def remove_req(req, prefix, dry_run):
+def remove_req(req):
     """
     Tries remove a package from prefix given a requirement object.
     This function is only used for the --remove option.
@@ -193,19 +204,15 @@ def remove_req(req, prefix, dry_run):
     else:
         print "Package %r does not seem to be installed." % req.name
         return
-
-    depend_warn([pkg], prefix, ignore_version=True)
-    pprint_fn_action(pkg, 'removing')
-    if dry_run:
-        return
-    call_egginst(['--remove', '--prefix', prefix, pkg])
+    depend_warn([pkg], ignore_version=True)
+    call_egginst(pkg, remove=True)
 
 
-def get_dists(c, req, opts):
+def get_dists(c, req, recur):
     """
     Resolves the requirement
     """
-    dists = c.install_order(req, recur=not opts.no_deps)
+    dists = c.install_order(req, recur=recur)
     if dists is None:
         print "No distribution found for requirement '%s'." % req
         versions = c.list_versions(req.name)
@@ -217,7 +224,7 @@ def get_dists(c, req, opts):
             print "You may want to run: easy_install %s" % req.name
         sys.exit(0)
 
-    if opts.verbose:
+    if verbose:
         print "Distributions in install order:"
         for d in dists:
             print '\t', d
@@ -330,19 +337,22 @@ def main():
 
     conf = configure()                            #  conf
 
-    if opts.sys_prefix:                           #  prefix
+    global prefix, dry_run, version               # set globals
+    if opts.sys_prefix:
         prefix = sys.prefix
     elif opts.prefix:
         prefix = opts.prefix
     else:
         prefix = conf['prefix']
+    dry_run = opts.dry_run
+    version = opts.version
 
     if opts.path:                                 #  --path
-        print_path(prefix)
+        print_path()
         return
 
     if opts.list:                                 #  --list
-        list_option(prefix)
+        list_option()
         return
 
     try:                                          # proxy server
@@ -351,7 +361,7 @@ def main():
         print 'Proxy configuration error: %s' % e
         sys.exit(1)
 
-    c = Chain(conf['IndexedRepos'], opts.verbose) # init chain
+    c = Chain(conf['IndexedRepos'], verbose)      # init chain
 
     if opts.search:                               # --search
         search(c, opts.search)
@@ -368,15 +378,16 @@ def main():
     req = Req(' '.join(args))
 
     print "prefix:", prefix
-    check_write(prefix)
+    check_write()
     if opts.remove:                               # --remove
-        remove_req(req, prefix, opts.dry_run)
+        remove_req(req)
         return
 
-    dists = get_dists(c, req, opts)               # dists
+    dists = get_dists(c, req,                     # dists
+                      recur=not opts.no_deps)
 
     # Warn the user about packages which depend on what will be updated
-    depend_warn([filename_dist(d) for d in dists], prefix)
+    depend_warn([filename_dist(d) for d in dists])
 
     # Packages which are installed currently
     sys_inst = set(egginst.get_installed(sys.prefix))
@@ -398,11 +409,9 @@ def main():
     if not isdir(conf['local']):
         os.makedirs(conf['local'])
     for dist, fn in iter_dists_excl(dists, exclude):
-        if opts.dry_run:
-            pprint_fn_action(fn, 'downloading')
-            continue
         c.fetch_dist(dist, conf['local'],
-                     check_md5=opts.force or opts.forceall)
+                     check_md5=opts.force or opts.forceall,
+                     dry_run=dry_run)
 
     # Remove packages (in reverse install order)
     for dist in dists[::-1]:
@@ -414,20 +423,12 @@ def main():
         cname = cname_fn(fn)
         # Only remove packages installed in prefix
         for fn_inst in prefix_inst:
-            if cname != cname_fn(fn_inst):
-                continue
-            pprint_fn_action(fn_inst, 'removing')
-            if opts.dry_run:
-                continue
-            call_egginst(['--remove', '--prefix', prefix, fn_inst])
+            if cname == cname_fn(fn_inst):
+                call_egginst(fn_inst, remove=True)
 
     # Install packages
     for dist, fn in iter_dists_excl(dists, exclude):
-        pprint_fn_action(fn, 'installing')
-        path = join(conf['local'], fn)
-        if opts.dry_run:
-            continue
-        call_egginst(['--prefix', prefix, path])
+        call_egginst(join(conf['local'], fn))
 
 
 if __name__ == '__main__':

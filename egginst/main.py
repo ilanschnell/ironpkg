@@ -13,7 +13,7 @@ import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile, islink
 
 from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
-                           rmdir_er, rm_rf, human_bytes)
+                           pprint_fn_action, rmdir_er, rm_rf, human_bytes)
 import egginst.scripts as scripts
 
 
@@ -322,10 +322,8 @@ def main():
                  action="store_true",
                  help="remove package(s), requires the egg or project name(s)")
 
-    p.add_option("--quiet", action="store_true")
-
     p.add_option('-v', "--verbose", action="store_true")
-
+    p.add_option('-n', "--dry-run", action="store_true")
     p.add_option('--version', action="store_true")
 
     opts, args = p.parse_args()
@@ -336,8 +334,6 @@ def main():
         return
 
     prefix = abspath(opts.prefix)
-    if not opts.quiet:
-        print 'prefix:', prefix
 
     if opts.list:
         if args:
@@ -345,16 +341,19 @@ def main():
         print_installed(prefix)
         return
 
-    for name in args:
-        ei = EggInst(name, prefix, opts.verbose)
+    for path in args:
+        ei = EggInst(path, prefix, opts.verbose)
+        fn = basename(path)
         if opts.remove:
-            if opts.verbose:
-                print "Removing:", name
+            pprint_fn_action(fn, 'removing')
+            if opts.dry_run:
+                continue
             ei.remove()
 
         else: # default is always install
-            if opts.verbose:
-                print "Installing:", name
+            pprint_fn_action(fn, 'installing')
+            if opts.dry_run:
+                continue
             ei.install()
 
 
