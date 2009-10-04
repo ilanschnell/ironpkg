@@ -1,7 +1,7 @@
 The Enstaller (version 4) project is a managing and install tool
 for egg-based Python distributions.
 
-Enstaller consists of the sub-packages:
+Enstaller consists of the sub-packages enstaller and egginst:
 
 
 enstaller:
@@ -32,3 +32,23 @@ have the biggest advantage for namespace packages).  egginst knows about
 the eggs the people from Enthought use.  It can install shared libraries,
 change binary headers, etc., things which require special post install
 scripts if (Enstaller) easy_install installs them.
+
+
+The egg format:
+---------------
+
+More text here ...
+
+
+The metadata format:
+--------------------
+
+Build numbers are a way to differentiate eggs which have the have the
+same name and version, but different dependencies.  The platform and
+architecture dependencies of a distributions (or egg) is most easily
+differentiated by putting them into different directories.  This leaves
+us with the Python dependency and other egg dependencies to put into the
+build number.  A dependencies specification data file is contained inside
+the egg itself, that is in the archive ``EGG-INFO/spec/depend``, and the
+md5sum and filesize is prependen to the data when the index-depend.bz2 is
+created.
