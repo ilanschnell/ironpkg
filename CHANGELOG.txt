@@ -16,6 +16,8 @@
 
 * added enpkg --prefix option
 
+* changed location of system config path to <prefix>/.enstaller4rc
+
 
 4.0.0
 -----

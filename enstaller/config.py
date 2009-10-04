@@ -3,8 +3,6 @@
 
 import os
 import sys
-
-from distutils.sysconfig import get_python_lib
 from os.path import isfile, join
 
 from enstaller import __version__
@@ -13,7 +11,7 @@ from utils import PY_VER, abs_expanduser
 
 CONFIG_FN = ".enstaller4rc"
 HOME_CONFIG_PATH = abs_expanduser("~/" + CONFIG_FN)
-SYSTEM_CONFIG_PATH = join(get_python_lib(), CONFIG_FN)
+SYSTEM_CONFIG_PATH = join(sys.prefix, CONFIG_FN)
 
 
 def get_path():

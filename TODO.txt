@@ -1,9 +1,5 @@
-
 Enhancements:
 
  * Add ability to list summary strings from EGG-INFO/spec/summary in an
    index file, such that the enpkg --search option will also search in
    (as well as list) summaries.
-
- * Add an --update option to enpkg which for each installed package
-   checks if an update is available, and if so installs it.

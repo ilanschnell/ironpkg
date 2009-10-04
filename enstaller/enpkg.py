@@ -15,7 +15,7 @@ from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
                           spec_as_req, parse_data)
 
 
-# global options
+# global options variables
 prefix = None
 dry_run = None
 verbose = None
@@ -111,6 +111,8 @@ def call_egginst(pkg_path, remove=False):
 
 
 def check_write():
+    if not isdir(prefix):
+        os.makedirs(prefix)
     path = join(prefix, 'hello.txt')
     try:
         open(path, 'w').write('Hello World!\n')
@@ -147,8 +149,10 @@ def read_depend_files():
     Returns a dictionary mapping canonical project names to the spec
     dictionaries of the installed packages.
     """
-    res = {}
     egg_info_dir = join(prefix, 'EGG-INFO')
+    if not isdir(egg_info_dir):
+        return {}
+    res = {}
     for name in os.listdir(egg_info_dir):
         path = join(egg_info_dir, name, 'spec', 'depend')
         if isfile(path):
@@ -220,7 +224,7 @@ def get_dists(c, req, recur):
             print "Versions for package %r are: %s" % (req.name,
                                                        ', '.join(versions))
         else:
-            print # Temporary message until enpkg can handle PyPI
+            print
             print "You may want to run: easy_install %s" % req.name
         sys.exit(0)
 
