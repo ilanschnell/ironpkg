@@ -17,9 +17,9 @@
 
 * removed experimental egginst --activate and --deactivate options
 
-* added enpkg --prefix option
+* added enpkg --prefix and --sys-prefix option
 
-* changed location of system config path to <prefix>/.enstaller4rc
+* changed location of system config path to <sys.prefix>/.enstaller4rc
 
 
 
