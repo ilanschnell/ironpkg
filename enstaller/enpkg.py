@@ -85,13 +85,14 @@ def print_path():
                                  join(p, 'lib') for p in prefixes))
 
 
-def list_option():
+def list_option(pat):
     print "sys.prefix:", sys.prefix
-    egginst.print_installed(sys.prefix)
-    if prefix != sys.prefix:
-        print
-        print "prefix:", prefix
-        egginst.print_installed(prefix)
+    egginst.print_installed(sys.prefix, pat)
+    if prefix == sys.prefix:
+        return
+    print
+    print "prefix:", prefix
+    egginst.print_installed(prefix, pat)
 
 
 def call_egginst(pkg_path, remove=False):
@@ -124,24 +125,22 @@ def check_write():
             os.unlink(path)
 
 
-def search(c, rx="?"):
+def search(c, pat=None):
     """
     Print the distributions available in a repo, i.e. a "virtual" repo made
     of a chain of (indexed) repos.
     """
-    if rx != '?':
-        pat = re.compile(rx, re.I)
-
     fmt = "%-20s %s"
     print fmt % ('Project name', 'Versions')
     print 40 * '-'
 
     names = set(spec['name'] for spec in c.index.itervalues())
     for name in sorted(names, key=string.lower):
-        if rx == '?' or pat.search(name):
-            versions = c.list_versions(name)
-            if versions:
-                print fmt % (name, ', '.join(versions))
+        if pat and not pat.search(name):
+            continue
+        versions = c.list_versions(name)
+        if versions:
+            print fmt % (name, ', '.join(versions))
 
 
 def read_depend_files():
@@ -305,11 +304,9 @@ def main():
                  help="remove a package")
 
     p.add_option('-s', "--search",
-                 action="store",
+                 action="store_true",
                  help="search the index in the repo (chain) of packages "
-                      "and display versions available.  Type '-s ?' to "
-                      "display available versions for all packages.",
-                 metavar='STR')
+                      "and display versions available.")
 
     p.add_option("--test",
                  action="store_true",
@@ -321,7 +318,7 @@ def main():
 
     opts, args = p.parse_args()
 
-    if len(args) > 0 and (opts.list or opts.test or opts.config or opts.path):
+    if len(args) > 0 and (opts.test or opts.config or opts.path):
         p.error("Option takes no arguments")
 
     if opts.prefix and opts.sys_prefix:
@@ -329,6 +326,13 @@ def main():
 
     if opts.force and opts.forceall:
         p.error("Options --force and --forceall exclude each ohter")
+
+    pat = None
+    if (opts.list or opts.search) and args:
+        try:
+            pat = re.compile(args[0], re.I)
+        except:
+            pass
 
     if opts.version:                              #  --version
         from enstaller import __version__
@@ -356,7 +360,7 @@ def main():
         return
 
     if opts.list:                                 #  --list
-        list_option()
+        list_option(pat)
         return
 
     try:                                          # proxy server
@@ -368,7 +372,7 @@ def main():
     c = Chain(conf['IndexedRepos'], verbose)      # init chain
 
     if opts.search:                               # --search
-        search(c, opts.search)
+        search(c, pat)
         return
 
     if opts.test:                                 # --test
