@@ -69,14 +69,22 @@ RC_TMPL = """\
 # EPD subscriber OpenID:
 %(openid_line)s
 
+# The enpkg command is searching for eggs in the list 'IndexedRepos'.
+# When enpkg is searching for an egg, it tries to find it in the order
+# of this list, and selects the first one that matches, ignoring
+# repositories below.  Therefore the order of this list matters.
+#
 # This list of repositories may include the EPD repository.  However,
 # if the EPD repository is listed here things will only work if the
-# correct EPD subscriber OpenID is provided above.  Notice also that
-# only indexed repositories, i.e. HTTP directories which contain a file
-# 'index-depend.bz2', can be listed here.
+# correct EPD subscriber OpenID is provided above.
+#
+# Notice also that only indexed repositories, i.e. HTTP directories which
+# contain a file 'index-depend.bz2' (next to the eggs), can be listed here.
+# The 'index-tool', which is also part of Enstaller may be used to create
+# such repositories, see: index-tool -h
 IndexedRepos = %(repos)s
 
-# Install prefix (--prefix and --sys-prefix options overwrite this):
+# Install prefix (enpkg --prefix and --sys-prefix options overwrite this):
 prefix='%(prefix)s'
 """
 

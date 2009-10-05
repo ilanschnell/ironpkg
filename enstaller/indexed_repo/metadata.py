@@ -129,7 +129,7 @@ def rawspec_from_dist(zip_path):
     z = zipfile.ZipFile(zip_path)
     if arcname not in z.namelist():
         z.close()
-        raise KeyError("%r not in %r" % (arcname, zip_path))
+        raise KeyError("arcname=%r not in zip-file %s" % (arcname, zip_path))
     data = z.read(arcname)
     z.close()
     return data
@@ -162,7 +162,7 @@ def index_section(zip_path):
             rawspec_from_dist(zip_path) + '\n')
 
 
-def compress_txt(src):
+def compress_txt(src, verbose=False):
     """
     Reads the file 'src', which must end with '.txt' and writes the bz2
     compressed data to a file alongside 'src', where the txt extension is
@@ -170,6 +170,9 @@ def compress_txt(src):
     """
     assert src.endswith('.txt')
     dst = src[:-4] + '.bz2'
+    if verbose:
+        print "Compressing:", src
+        print "       into:", dst
 
     data = open(src, 'rb').read()
 
@@ -178,7 +181,7 @@ def compress_txt(src):
     fo.close()
 
 
-def write_index(dir_path, compress=False, valid_eggnames=True):
+def write_index(dir_path, compress=False, valid_eggnames=True, verbose=True):
     """
     Updates index-depend.txt in the directory specified.
 
@@ -187,7 +190,8 @@ def write_index(dir_path, compress=False, valid_eggnames=True):
     valid_eggnames:   only add eggs with valid egg file names to the index
     """
     txt_path = join(dir_path, 'index-depend.txt')
-    print "Updating:", txt_path
+    if verbose:
+        print "Updating:", txt_path
 
     # since accumulating the new data takes a while, we first write to memory
     # and then write the file in one shot.
@@ -199,29 +203,33 @@ def write_index(dir_path, compress=False, valid_eggnames=True):
         if valid_eggnames and not is_valid_eggname(fn):
             continue
         faux.write(index_section(join(dir_path, fn)))
-        sys.stdout.write('.')
-        sys.stdout.flush()
+        if verbose:
+            sys.stdout.write('.')
+            sys.stdout.flush()
         n += 1
-    print n
+    if verbose:
+        print n
 
     fo = open(txt_path, 'w')
     fo.write(faux.getvalue())
     fo.close()
 
     if compress:
-        compress_txt(txt_path)
+        compress_txt(txt_path, verbose)
 
 
-def append_dist(zip_path, compress=False):
+def append_dist(zip_path, compress=False, verbose=False):
     """
     Appends a the distribution to index-depend.txt (and optionally
     index-depend.bz2), in the directory in which the distribution is located.
     """
     txt_path = join(dirname(zip_path), 'index-depend.txt')
-
+    if verbose:
+        print "Adding index file of:", zip_path
+        print "                  to:", txt_path
     f = open(txt_path, 'a')
     f.write(index_section(zip_path))
     f.close()
 
     if compress:
-        compress_txt(txt_path)
+        compress_txt(txt_path, verbose)
