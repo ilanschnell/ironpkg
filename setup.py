@@ -27,7 +27,6 @@ setup(
         'egginst',
         'enstaller',
         'enstaller/indexed_repo',
-        'enstaller/index_tool',
         'enstaller/proxy',
     ],
     entry_points = {
