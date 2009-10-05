@@ -132,11 +132,16 @@ def spec_from_egg(egg_path):
     return spec
 
 
-def repack_egg_with_meta(src_path, verbose=False):
+def repack_egg(src_path, overwrite=None, verbose=False):
     """
     Updates an egg with spec data
     """
     spec = spec_from_egg(src_path)
+
+    if overwrite:
+        d = {}
+        execfile(overwrite, d)
+        spec.update(d)
 
     dst_name = '%(name)s-%(version)s-%(build)i.egg' % spec
     dst_path = join(dirname(src_path), dst_name)
@@ -179,7 +184,7 @@ HTTP.
 Commands:
 =========
 
-index [PATH ...]:
+index [-v] [PATH ...]:
     creates the files index-depend.txt and index-depend.bz2 in the directories
     specified by the arguments (or in the current working directory if no
     argument is given).  All eggs (found in the same directory) with valid
@@ -189,9 +194,12 @@ dumpmeta EGG [EGG ...]:
     given indexed eggs, prints their metadata to stdout, i.e. the content of
     the archive 'EGG-INFO/spec/depend'.
 
-repack [-v] EGG [EGG ...]:
+repack [-o PATH] [-v] EGG [EGG ...]:
     given setuptools egg(s), creates a new egg which contains additional
-    metadata, which the other commands use.
+    metadata, which the other commands use.  The -o, --overwrite option takes
+    a Python file (which defines metadata variables).  Variable(s) defined in
+    this file overwrite the default setting the repack command determines by
+    analyzing the content of the setuptools egg.
 
 update [-v] EGG [EGG ...]:
     updates (or adds) the eggs, given by the arguments, to the index files,
@@ -210,14 +218,18 @@ def main():
 
     cmd = sys.argv[1]
     try:
-        opts, args = getopt.gnu_getopt(sys.argv[2:], 'v', ['verbose'])
+        opts, args = getopt.gnu_getopt(sys.argv[2:],
+                                       'vo:', ['verbose', 'overwrite='])
     except getopt.GetoptError, err:
         try_help(str(err))
 
     verbose = False
+    overwrite = None
     for o, a in opts:
         if o in ('-v', '--verbose'):
             verbose = True
+        elif o in ('-o', '--overwrite'):
+            overwrite = a
 
     if cmd == 'index':
         for dir_path in args if args else [os.getcwd()]:
@@ -230,7 +242,7 @@ def main():
 
     elif cmd == 'repack':
         for egg_path in args:
-            repack_egg_with_meta(egg_path, verbose)
+            repack_egg(egg_path, overwrite, verbose)
 
     elif cmd == 'update':
         for egg_path in args:
