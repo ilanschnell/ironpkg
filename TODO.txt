@@ -1,5 +1,7 @@
 Enhancements:
 
+ * More Documentation and Examples
+
  * Add ability to list summary strings from EGG-INFO/spec/summary in an
    index file, such that the enpkg --search option will also search in
    (as well as list) summaries.

@@ -92,7 +92,7 @@ def convert_requires_txt_line(line):
         return m.expand(r'\g<name> \g<version>')
     return m.group('name')
 
-def parse_requires(txt):    
+def parse_requires(txt):
     result = []
     for line in txt.splitlines():
         req_string = convert_requires_txt_line(line)
@@ -178,10 +178,11 @@ def help():
 
 %(prog)s is a tool for creating an indexed repository of eggs which works
 with the enpkg command in Enstaller.  All eggs which go into the repository
-need to contain additional metadata, which is created by the 'repack' command.
+need to contain additional metadata.  These new eggs are created from
+ordinary setuptools eggs using the 'repack' command.
 Running the 'index' command will then create the index, such that the
-directory (which contains all eggs and the index files) can be servered via
-HTTP.
+directory (which contains all eggs and the index files) can be served to
+enpkg over HTTP.
 
 Commands:
 =========

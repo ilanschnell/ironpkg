@@ -299,8 +299,10 @@ def print_installed(prefix):
     print 40 * '='
 
     for fn in get_installed(prefix):
-        print fmt % tuple(fn[:-4].split('-', 1))
-
+        if '-' in fn:
+            print fmt % tuple(fn[:-4].split('-', 1))
+        else:
+            print fn
 
 
 def main():

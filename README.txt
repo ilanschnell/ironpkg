@@ -10,8 +10,8 @@ enstaller:
 enstaller is a managing tool for egginst-based installs, and the CLI is
 called enpkg which calls out to egginst to do the actual install.
 enpkg can access distributions from local and HTTP repositories, which
-are pre-indexed.  The point of the index file, usually index-depend.bz2,
-is that enpkg can download this file at the beginning of an install session
+are pre-indexed.  The point of the index file (index-depend.bz2) is that
+enpkg can download this file at the beginning of an install session
 and resolve dependencies prior to downloading the actual files.
 The CLI called 'index-tool' provides tools to create the index file in an
 egg directory which can then be served over HTTP.
@@ -39,7 +39,21 @@ scripts if (Enstaller) easy_install installs them.
 The egg format:
 ---------------
 
-More text here ...
+The Enstaller egg format deals with two aspects: the actual install (egginst),
+and the distribution management (enpkg).  As far as egginst is concerned,
+the format is an extension of the setuptools egg format, i.e. all archive
+files, except the ones starting with 'EGG-INFO/' are installed into the
+site-packages directory.  In fact, since egginst a brain dead low-level tool,
+it will even install an egg without an 'EGG-INFO' directory.  But more
+importantly, egginst installs ordinary setuptools just fine.  Within the
+'EGG-INFO/' namespace are special archives which egginst is looking for to
+install files, as well as symbolic links, into locations other than
+site-packages, and post install (and pre uninstall) scripts it can run.
+
+As far as enpkg is concerned, eggs should contain a meta-data file with the
+archive name 'EGG-INFO/spec/depend'.  The the index file (index-depend.bz2)
+is essentially a compressed concatenation of the 'EGG-INFO/spec/depend' files
+for all eggs in a directory/repository.
 
 
 The metadata format:

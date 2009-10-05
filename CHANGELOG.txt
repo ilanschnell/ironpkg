@@ -3,7 +3,10 @@
 -----
 * removed the setuptools patch
 
-* added more tests
+* added the 'index-tool' command which is a tool for creating an indexed
+  repository of eggs which works with the enpkg command in Enstaller.
+
+* added more tests and documentation
 
 * added enpkg --proxy option which uses the proxy package from ensetuptools
 
@@ -17,6 +20,7 @@
 * added enpkg --prefix option
 
 * changed location of system config path to <prefix>/.enstaller4rc
+
 
 
 4.0.0
