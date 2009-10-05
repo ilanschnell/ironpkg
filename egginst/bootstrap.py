@@ -19,7 +19,7 @@ def main(prefix=sys.prefix, verbose=False):
     # from of sys.path
     egg_path = sys.path[0]
 
-    print "Bootstraping:", egg_path
+    print "Bootstrapping:", egg_path
     ei = egginst.EggInst(egg_path, prefix, verbose)
     ei.install()
 

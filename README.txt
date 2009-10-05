@@ -66,5 +66,5 @@ differentiated by putting them into different directories.  This leaves
 us with the Python dependency and other egg dependencies to put into the
 build number.  A dependencies specification data file is contained inside
 the egg itself, that is in the archive ``EGG-INFO/spec/depend``, and the
-md5sum and filesize is prependen to the data when the index-depend.bz2 is
+md5sum and filesize is prepended to the data when the index-depend.bz2 is
 created.
