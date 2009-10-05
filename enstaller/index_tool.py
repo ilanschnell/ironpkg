@@ -134,16 +134,13 @@ def spec_from_egg(egg_path):
     return spec
 
 
-def repack_egg(src_path, overwrite=None, verbose=False):
+def repack_egg(src_path, update_vars={}, verbose=False):
     """
-    Updates an egg with spec data
+    Repacks a setuptools egg, and adds 'EGG-INFO/spec/depend' to the new
+    egg.  The optional argument 'update_vars' overwrites meta-data variables.
     """
     spec = spec_from_egg(src_path)
-
-    if overwrite:
-        d = {}
-        execfile(overwrite, d)
-        spec.update(d)
+    spec.update(update_vars)
 
     dst_name = '%(name)s-%(version)s-%(build)i.egg' % spec
     dst_path = join(dirname(src_path), dst_name)
@@ -244,8 +241,11 @@ def main():
             print rawspec_from_dist(egg_path)
 
     elif cmd == 'repack':
+        update_vars = {}
+        if overwrite:
+            execfile(overwrite, update_vars)
         for egg_path in args:
-            repack_egg(egg_path, overwrite, verbose)
+            repack_egg(egg_path, update_vars, verbose)
 
     elif cmd == 'update':
         for egg_path in args:
