@@ -92,28 +92,26 @@ def convert_requires_txt_line(line):
         return m.expand(r'\g<name> \g<version>')
     return m.group('name')
 
-
-def get_requires(z):
-    """
-    Returns the requirements by reading 'EGG-INFO/requires.txt' as a list
-    of spec-style requirement strings.
-    """
-    arcname = 'EGG-INFO/requires.txt'
-    if arcname not in z.namelist():
-        return []
-
-    res = []
-    names = set()
-    for line in z.read(arcname).splitlines():
+def parse_requires(txt):    
+    result = []
+    for line in txt.splitlines():
         req_string = convert_requires_txt_line(line)
         if req_string is None:
             continue
         req = Req(req_string)
-        if req.name not in names:
-            # only add a new name
-            names.add(req.name)
-            res.append(req_string)
-    return res
+        if req.name not in set(Req(r).name for r in result):
+            result.append(req_string)
+    return result
+
+def get_requires(z):
+    """
+    Returns the requirements by reading 'EGG-INFO/requires.txt' as a list
+    of spec/depend-style requirement strings.
+    """
+    arcname = 'EGG-INFO/requires.txt'
+    if arcname in z.namelist():
+        return parse_requires(z.read(arcname))
+    return []
 
 
 def spec_from_egg(egg_path):
@@ -122,13 +120,17 @@ def spec_from_egg(egg_path):
     """
     egg_name = basename(egg_path)
     assert egg_name.endswith('.egg') and egg_name.count('-') >= 2
-    spec = dict(build=1, arch=None, platform=None, osdist=None)
-    spec['name'], spec['version'] = egg_name.split('-')[:2]
-
     z = zipfile.ZipFile(egg_path)
-    spec['python'] = get_python(z)
-    spec['packages'] = get_requires(z)
+    spec = dict(
+        build = 1,
+        arch = None,
+        platform = 'win32' if '-win32' in egg_name else None,
+        osdist = None,
+        python = get_python(z),
+        packages = get_requires(z),
+    )
     z.close()
+    spec['name'], spec['version'] = egg_name.split('-')[:2]
     return spec
 
 
