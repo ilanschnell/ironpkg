@@ -3,10 +3,10 @@ import re
 import sys
 import string
 import subprocess
-from os.path import isdir, isfile, join
+from os.path import basename, isdir, isfile, join
 
 import egginst
-from egginst.utils import bin_dir_name, rel_site_packages
+from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
 from proxy.api import setup_proxy
@@ -95,7 +95,7 @@ def list_option(pat):
     egginst.print_installed(prefix, pat)
 
 
-def call_egginst(pkg_path, remove=False):
+def egginst_subprocess(pkg_path, remove):
     fn = 'egginst'
     if sys.platform == 'win32':
         fn += '-script.py'
@@ -109,6 +109,22 @@ def call_egginst(pkg_path, remove=False):
     if verbose:
         print 'CALL: %r' % args
     subprocess.call(args)
+
+def call_egginst(pkg_path, remove=False):
+    fn = basename(pkg_path)
+    if sys.platform == 'win32' and fn.startswith(('AppInst-', 'pywin32-')):
+        egginst_subprocess(pkg_path, remove)
+        return
+
+    pprint_fn_action(fn, 'removing' if remove else 'installing')
+    if dry_run:
+        return
+
+    ei = egginst.EggInst(pkg_path, prefix)
+    if remove:
+        ei.remove()
+    else:
+        ei.install()
 
 
 def check_write():
