@@ -3,7 +3,7 @@
 # script to build the self-bootstraping, indexable Enstaller egg
 # setuptools has to be installed
 
-VER=4.1.0
+VER=4.1.1
 PY=2.5
 
 SPEC=Enstaller.egg-info/spec
