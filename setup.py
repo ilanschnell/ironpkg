@@ -22,7 +22,7 @@ setup(
     author_email="info@enthought.com",
     url = "http://code.enthought.com/projects/enstaller",
     license="BSD",
-    description = "Install and managing tool for egg-based Python packages",
+    description = "Install and managing tool for egg-based packages",
     packages = [
         'egginst',
         'enstaller',

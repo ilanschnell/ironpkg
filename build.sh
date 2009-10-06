@@ -1,7 +1,10 @@
 #!/bin/bash
+# Script to build the self-bootstraping, indexable Enstaller egg.
+# The resulting egg is executable, but only on systems which have
+# bash installed.
 
-# script to build the self-bootstraping, indexable Enstaller egg
-# setuptools has to be installed
+# Build notes:
+#   * setuptools needs to be installed to run this script
 
 VER=4.1.1
 PY=2.5
@@ -25,13 +28,13 @@ EOF
 EGG=dist/Enstaller-$VER-1.egg
 rm -rf build dist
 python$PY setup.py bdist_egg
-sed -e "s/_PY_/$PY/" <<EOF >header.sh
+sed -e "s/_PY_/$PY/" <<EOF >tmp.sh
 #!/bin/bash
 python_PY_ -c "import sys, os; sys.path.insert(0, os.path.abspath('\$0')); from egginst.bootstrap import cli; cli()" "\$@"
 exit 0
 EOF
-cat header.sh dist/Enstaller-*-py*.egg >$EGG
-rm -f dist/Enstaller-*-py*.egg
+cat tmp.sh dist/Enstaller-*-py*.egg >$EGG
+rm -f tmp.sh dist/Enstaller-*-py*.egg
 chmod +x $EGG
 
 # egginfo --sd $EGG
