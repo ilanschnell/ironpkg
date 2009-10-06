@@ -113,6 +113,7 @@ def egginst_subprocess(pkg_path, remove):
 def call_egginst(pkg_path, remove=False):
     fn = basename(pkg_path)
     if sys.platform == 'win32' and fn.startswith(('AppInst-', 'pywin32-')):
+        print "Starting subprocess:"
         egginst_subprocess(pkg_path, remove)
         return
 

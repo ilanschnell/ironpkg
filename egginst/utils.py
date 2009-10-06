@@ -45,12 +45,18 @@ def rm_rf(path, verbose=False):
             print "Removing: %r (link)" % path
         os.unlink(path)
 
-    if isfile(path):
+    elif isfile(path):
         if verbose:
             print "Removing: %r (file)" % path
-        os.unlink(path)
+        if sys.platform == 'win32':
+            try:
+                os.unlink(path)
+            except WindowsError:
+                pass
+        else:
+            os.unlink(path)
 
-    if isdir(path):
+    elif isdir(path):
         if verbose:
             print "Removing: %r (directory)" % path
         shutil.rmtree(path)
