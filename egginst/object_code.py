@@ -3,7 +3,7 @@
 import os
 import sys
 import re
-from os.path import basename, join, islink, isfile, exists
+from os.path import abspath, basename, join, islink, isfile, exists
 
 
 verbose = False
@@ -42,7 +42,7 @@ def get_object_type(fpath):
 
 def find_lib(fn):
     for tgt in _targets:
-        dst = join(tgt, fn)
+        dst = abspath(join(tgt, fn))
         if exists(dst):
             return dst
     print "Error: library %r not found" % fn
