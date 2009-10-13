@@ -1,6 +1,9 @@
 
 4.1.2
 -----
+* fixed development versions being sorted incorrectly
+
+* improved to use normalized path in MachO headers
 
 
 
