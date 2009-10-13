@@ -18,7 +18,9 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(cname_fn('VTK-5.4.2-1.egg'), 'vtk')
 
     def test_comparable_version1(self):
-        versions = ['1.0.4', '1.2.1', '1.3.0b1', '1.3.0', '1.3.10']
+        versions = ['1.0.4', '1.2.1', '1.3.0b1', '1.3.0', '1.3.10',
+                    '1.3.11.dev7', '1.3.11.dev12', '1.3.11.dev111',
+                    '1.3.11']
         org = list(versions)
         random.shuffle(versions)
         versions.sort(key=comparable_version)

@@ -121,11 +121,11 @@ class RationalVersion(object):
             dev = groups.get('dev')
             postdev = []
             if post is not None:
-                postdev.extend([FINAL_MARKER[0], 'post', post])
+                postdev.extend([FINAL_MARKER[0], 'post', int(post)])
                 if dev is None:
                     postdev.append(FINAL_MARKER[0])
             if dev is not None:
-                postdev.extend(['dev', dev])
+                postdev.extend(['dev', int(dev)])
             parts.append(tuple(postdev))
         else:
             parts.append(FINAL_MARKER)

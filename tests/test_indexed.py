@@ -66,7 +66,7 @@ class TestDistNaming(unittest.TestCase):
             ('0.7.0', 1),
             ('0.8.0.dev4657', 2),
             ('0.8.0.dev5876', 1),
-            ('0.8.0.dev9461', 3),
+            ('0.8.0.dev19461', 3),
             ('0.8.0', 1),
             ]:
             lst.append(dist_naming.comparable_spec(dict(version=v, build=b)))
