@@ -155,14 +155,19 @@ class EggInst(object):
 
 
     def get_dst(self, arcname):
-        dispatch = [
+        if arcname == 'EGG-INFO/PKG-INFO':
+            fn = "%s-%s-py%i.%i.egg-info" % tuple(
+                             basename(self.fpath).split('-')[:2] +
+                             list(sys.version_info[:2]))
+            return join(self.site_packages, fn)
+
+        for start, cond, dst_dir in [
             ('EGG-INFO/prefix/',  True,       self.prefix),
             ('EGG-INFO/usr/',     not on_win, self.prefix),
             ('EGG-INFO/scripts/', True,       self.bin_dir),
             ('EGG-INFO/',         True,       self.meta_dir),
             ('',                  True,       self.site_packages),
-        ]
-        for start, cond, dst_dir in dispatch:
+            ]:
             if arcname.startswith(start) and cond:
                 return abspath(join(dst_dir, arcname[len(start):]))
         raise Exception("Didn't expect to get here")
