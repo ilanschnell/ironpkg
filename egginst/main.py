@@ -156,9 +156,13 @@ class EggInst(object):
 
     def get_dst(self, arcname):
         if arcname == 'EGG-INFO/PKG-INFO':
-            fn = "%s-%s-py%i.%i.egg-info" % tuple(
-                             basename(self.fpath).split('-')[:2] +
-                             list(sys.version_info[:2]))
+            name = self.name
+            try:
+                vers = basename(self.fpath).split('-')[1]
+            except:
+                vers = '0.0.0'
+            major, minor = sys.version_info[:2]
+            fn = "%(name)s-%(vers)s-py%(major)i.%(minor)i.egg-info" % locals()
             return join(self.site_packages, fn)
 
         for start, cond, dst_dir in [
