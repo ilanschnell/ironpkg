@@ -10,7 +10,7 @@ import re
 import string
 import zipfile
 import ConfigParser
-from os.path import abspath, basename, dirname, join, isdir, isfile, islink
+from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
                            pprint_fn_action, rmdir_er, rm_rf, human_bytes)
@@ -159,7 +159,7 @@ class EggInst(object):
             name = self.name
             try:
                 vers = basename(self.fpath).split('-')[1]
-            except:
+            except IndexError:
                 vers = '0.0.0'
             major, minor = sys.version_info[:2]
             fn = "%(name)s-%(vers)s-py%(major)i.%(minor)i.egg-info" % locals()
