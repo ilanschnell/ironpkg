@@ -69,13 +69,18 @@ if __name__ == '__main__':
     p = Platforms(egg_root)
     print p.txt
     print p.data[2]['subdir']
-    for i in xrange(1, 9):
+    for i in xrange(1, 11):
         print '%2i %6s %6s' % (
             i,
             p._ID_matches(i, 'arch', 'amd64'),
             p._ID_matches(i, 'osdist', 'XP, Solaris_10'))
-    print "IDs:", p.get_IDs({
-            'osdist': None,
-            'platform': 'linux2, win32, darwin',
-            'arch': None,
-         })
+    print "IDs:", p.get_IDs(dict(
+        osdist=None,
+        platform='linux2, win32, darwin',
+        arch=None,
+        ))
+    print "IDs:", p.get_IDs(dict(
+        osdist='XP',
+        platform='win32',
+        arch='x86',
+        ))
