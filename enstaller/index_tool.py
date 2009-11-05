@@ -114,17 +114,30 @@ def get_requires(z):
     return []
 
 
+rxmap = [
+    # regex              platform  arch
+    ('-win32',           'win32',  'x86'),
+    ('-win-amd64',       'win32',  'amd64'),
+    ('-macosx.*-i386',   'darwin', 'x86'),
+    ('-macosx.*-x84_64', 'darwin', 'amd64'),
+]
 def spec_from_egg(egg_path):
     """
     Given the path to an egg, do whatever necessary to return spec dictionary.
     """
     egg_name = basename(egg_path)
     assert egg_name.endswith('.egg') and egg_name.count('-') >= 2
+    for rx, plat, arch in rxmap:
+        if re.search(rx, egg_name):
+            break
+    else:
+        plat = arch = None
+
     z = zipfile.ZipFile(egg_path)
     spec = dict(
         build = 1,
-        arch = None,
-        platform = 'win32' if '-win32' in egg_name else None,
+        arch = arch,
+        platform = plat,
         osdist = None,
         python = get_python(z),
         packages = get_requires(z),
@@ -194,12 +207,13 @@ dumpmeta EGG [EGG ...]:
     given indexed eggs, prints their metadata to stdout, i.e. the content of
     the archive 'EGG-INFO/spec/depend'.
 
-repack [-o PATH] [-v] EGG [EGG ...]:
+repack [-o PATH] [-b NUM] [-v] EGG [EGG ...]:
     given setuptools egg(s), creates a new egg which contains additional
     metadata, which the other commands use.  The -o, --overwrite option takes
     a Python file (which defines metadata variables).  Variable(s) defined in
     this file overwrite the default setting the repack command determines by
-    analyzing the content of the setuptools egg.
+    analyzing the content of the setuptools egg.  In the -b, --build option
+    is used to set the build number expicitly (regardless of anything else).
 
 update [-v] EGG [EGG ...]:
     updates (or adds) the eggs, given by the arguments, to the index files,
@@ -219,17 +233,20 @@ def main():
     cmd = sys.argv[1]
     try:
         opts, args = getopt.gnu_getopt(sys.argv[2:],
-                                       'vo:', ['verbose', 'overwrite='])
+                        'vo:b:', ['verbose', 'overwrite=', 'build='])
     except getopt.GetoptError, err:
         try_help(str(err))
 
     verbose = False
     overwrite = None
+    build = None
     for o, a in opts:
         if o in ('-v', '--verbose'):
             verbose = True
         elif o in ('-o', '--overwrite'):
             overwrite = a
+        elif o in ('-b', '--build'):
+            build = int(a)
 
     if cmd == 'index':
         for dir_path in args if args else [os.getcwd()]:
@@ -244,6 +261,8 @@ def main():
         update_vars = {}
         if overwrite:
             execfile(overwrite, update_vars)
+        if build is not None:
+            update_vars['build'] = build
         for egg_path in args:
             repack_egg(egg_path, update_vars, verbose)
 
