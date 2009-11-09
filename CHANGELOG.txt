@@ -4,6 +4,8 @@
 * PKG-INFO file is now placed in site-packages as
   <name>-<version>-py<major>.<minor>.egg-info
 
+* removed unused enstaller.indexed_repo.platforms module
+
 
 4.1.2
 -----
