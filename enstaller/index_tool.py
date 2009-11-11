@@ -151,6 +151,7 @@ def repack_egg(src_path, update_vars={}, verbose=False):
     """
     Repacks a setuptools egg, and adds 'EGG-INFO/spec/depend' to the new
     egg.  The optional argument 'update_vars' overwrites meta-data variables.
+    Returns the path to the repacked egg.
     """
     spec = spec_from_egg(src_path)
     spec.update(update_vars)
@@ -174,6 +175,8 @@ def repack_egg(src_path, update_vars={}, verbose=False):
         os.rename(tmp_path, dst_path)
     else:
         zip_repack(src_path, dst_path, arcmap)
+
+    return dst_path
 
 # ---------------------------------- CLI ----------------------------------
 
