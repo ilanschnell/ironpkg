@@ -51,7 +51,7 @@ def md5_file(path):
     fi = open(path, 'rb')
     h = hashlib.new('md5')
     while True:
-        chunk = fi.read(4096)
+        chunk = fi.read(65536)
         if not chunk:
             break
         h.update(chunk)
