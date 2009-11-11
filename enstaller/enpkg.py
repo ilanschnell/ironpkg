@@ -50,11 +50,11 @@ def print_config():
     conf = configure()
     print
     print "config file setting:"
-    print "\tprefix = %r" % conf['prefix']
-    print "\tlocal = %r" % conf['local']
-    print "\trepos:"
+    print "    prefix = %r" % conf['prefix']
+    print "    local = %r" % conf['local']
+    print "    repos:"
     for repo in conf['IndexedRepos']:
-        print '\t    %r' % repo
+        print '        %r' % repo
 
 
 def print_path():
@@ -63,7 +63,7 @@ def print_path():
         prefixes.insert(0, prefix)
     print "Prefixes:"
     for p in prefixes:
-        print '\t%s%s' % (p, ['', ' (sys)'][p == sys.prefix])
+        print '    %s%s' % (p, ['', ' (sys)'][p == sys.prefix])
     print
 
     if sys.platform == 'win32':
@@ -247,7 +247,7 @@ def get_dists(c, req, recur):
     if verbose:
         print "Distributions in install order:"
         for d in dists:
-            print '\t', d
+            print '    ', d
     return dists
 
 
