@@ -242,7 +242,7 @@ def get_dists(c, req, recur):
         else:
             print
             print "You may want to run: easy_install %s" % req.name
-        sys.exit(0)
+        sys.exit(1)
 
     if verbose:
         print "Distributions in install order:"
