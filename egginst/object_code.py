@@ -17,6 +17,7 @@ NO_OBJ = ('.py', '.pyc', '.pyo', '.h', '.a', '.c', '.txt', '.html', '.xml',
 MAGIC = {
     '\xca\xfe\xba\xbe': 'MachO-universal',
     '\xce\xfa\xed\xfe': 'MachO-i386',
+    '\xcf\xfa\xed\xfe': 'MachO-x86_64',
     '\xfe\xed\xfa\xce': 'MachO-ppc',
     '\x7fELF': 'ELF',
 }
