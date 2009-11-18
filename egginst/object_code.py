@@ -68,7 +68,8 @@ def fix_object_code(fpath):
         print "Fixing placeholders in:", fpath
     for m in matches:
         gr1 = m.group(1)
-        if sys.version_info[:2] <= (2, 5) and obj_type.startswith('MachO'):
+        if obj_type.startswith('MachO') and basename(gr1) != 'PLACEHOLD':
+            # Deprecated, because we now use rpath on OSX as well
             r = find_lib(basename(gr1))
 
         else:
