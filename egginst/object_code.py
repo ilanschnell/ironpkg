@@ -68,10 +68,10 @@ def fix_object_code(fpath):
         print "Fixing placeholders in:", fpath
     for m in matches:
         gr1 = m.group(1)
-        if obj_type.startswith('MachO'):
+        if sys.version_info[:2] <= (2, 5) and obj_type.startswith('MachO'):
             r = find_lib(basename(gr1))
 
-        elif obj_type == 'ELF':
+        else:
             rpaths = list(_targets)
             rpaths.extend(p for p in gr1.split(os.pathsep)
                           if not p.startswith('/PLACEHOLD'))
