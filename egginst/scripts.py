@@ -77,6 +77,9 @@ def create_proxies(egg):
     """
     (Windows only)
     """
+    if not isdir(egg.bin_dir):
+        os.makedirs(egg.bin_dir)
+
     for line in egg.lines_from_arcname('EGG-INFO/inst/files_to_install.txt'):
         arcname, action = line.split()
         if verbose:
