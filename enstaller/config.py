@@ -78,6 +78,9 @@ RC_TMPL = """\
 # if the EPD repository is listed here things will only work if the
 # correct EPD subscriber OpenID is provided above.
 #
+# Placeholders '{ARCH}' get substituted by 'amd64' or 'x86', depending
+# on the architecture of the current interpreter.
+#
 # Notice also that only indexed repositories, i.e. HTTP directories which
 # contain a file 'index-depend.bz2' (next to the eggs), can be listed here.
 # The 'index-tool', which is also part of Enstaller may be used to create
