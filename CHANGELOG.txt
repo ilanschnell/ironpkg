@@ -6,6 +6,12 @@
 
 * removed unused enstaller.indexed_repo.platforms module
 
+* allowing a placeholder '{ARCH}' in the list of indexed repositories
+  in the configuration file which gets substituted by 'amd64' or 'x86',
+  depending on the architecture of the current interpreter.
+  This allows having a single configuration file on systems which have
+  more than one interpreter installed.
+
 
 4.1.2
 -----

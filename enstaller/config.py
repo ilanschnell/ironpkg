@@ -132,6 +132,15 @@ def write():
     print 77 * '='
 
 
+def get_arch():
+    import platform
+
+    if '64' in platform.architecture()[0] or '64bit' in platform.platform():
+        return 'amd64'
+    else:
+        return 'x86'
+
+
 def read():
     """
     Return the current configuration as a dictionary, or None if the
@@ -147,7 +156,12 @@ def read():
     execfile(path, d)
     read.cache = {}
     for k in ['EPD_OpenID', 'IndexedRepos', 'prefix', 'LOCAL']:
-        if d.has_key(k):
+        if not d.has_key(k):
+            continue
+        if k == 'IndexedRepos':
+            arch = get_arch()
+            read.cache[k] = [url.replace('{ARCH}', arch) for url in d[k]]
+        else:
             read.cache[k] = d[k]
     return read()
 
