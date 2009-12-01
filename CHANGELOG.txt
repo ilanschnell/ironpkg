@@ -12,6 +12,8 @@
   This allows having a single configuration file on systems which have
   more than one interpreter installed.
 
+* added ability to handle release candidate versions
+
 
 4.1.2
 -----
