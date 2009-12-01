@@ -20,7 +20,8 @@ class TestUtils(unittest.TestCase):
     def test_comparable_version1(self):
         versions = ['1.0.4', '1.2.1', '1.3.0b1', '1.3.0', '1.3.10',
                     '1.3.11.dev7', '1.3.11.dev12', '1.3.11.dev111',
-                    '1.3.11']
+                    '1.3.11',
+                    '1.4.0.dev7749', '1.4.0rc1', '1.4.0rc2', '1.4.0']
         org = list(versions)
         random.shuffle(versions)
         versions.sort(key=comparable_version)

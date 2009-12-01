@@ -34,7 +34,10 @@ def cname_fn(fn):
 
 def comparable_version(version):
     try:
-        return RationalVersion(version)
+        # This hack makes it possible to use 'rc' in the version, where
+        # 'rc' must be followed by a single digit.
+        ver = version.replace('rc', '.dev99999')
+        return RationalVersion(ver)
     except IrrationalVersionError:
         # If obtaining the RationalVersion object fails (for example for
         # the version '2009j'), simply return the string, such that
