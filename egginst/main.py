@@ -222,7 +222,7 @@ class EggInst(object):
             import appinst
         except ImportError:
             print("Warning: importing appinst failed.  Can't %sinstall "
-                  "application (skipping)" % 'un' if remove else '')
+                  "application (skipping)" % ('un' if remove else ''))
             return
 
         try:
@@ -233,7 +233,7 @@ class EggInst(object):
         except:
             print("Warning: Could not %sinstall application menu item,\n"
                   "         probably because of file permissions."
-                  % 'un' if remove else '')
+                  % ('un' if remove else ''))
             return
 
 
