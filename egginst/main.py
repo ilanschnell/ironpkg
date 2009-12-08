@@ -298,7 +298,7 @@ def get_installed(prefix):
             continue
         d = {}
         execfile(meta_txt, d)
-        yield (d['egg_name'])
+        yield d['egg_name']
 
 
 def print_installed(prefix, pat=None):
