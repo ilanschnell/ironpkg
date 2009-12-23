@@ -215,9 +215,6 @@ class EggInst(object):
         if not isfile(path):
             return
 
-        if remove and sys.platform != 'win32':
-            return
-
         try:
             import appinst
         except ImportError:
@@ -231,10 +228,8 @@ class EggInst(object):
             else:
                 appinst.install_from_dat(path)
         except:
-            print("Warning: Could not %sinstall application menu item,\n"
-                  "         probably because of file permissions."
+            print("Warning: An error occurred while %sinstalling application item"
                   % ('un' if remove else ''))
-            return
 
 
     def run(self, fn):

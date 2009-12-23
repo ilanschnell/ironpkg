@@ -144,6 +144,7 @@ def spec_from_egg(egg_path):
     )
     z.close()
     spec['name'], spec['version'] = egg_name.split('-')[:2]
+    spec['version'] = spec['version'].replace('.dev_r', '.dev')
     return spec
 
 
