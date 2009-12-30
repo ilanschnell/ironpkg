@@ -379,12 +379,9 @@ def main():
         list_option(pat)
         return
 
-    try:                                          # proxy server
+    if opts.proxy:                                # --proxy
         from proxy.api import setup_proxy
         setup_proxy(opts.proxy)
-    except ValueError, e:
-        print 'Proxy configuration error: %s' % e
-        sys.exit(1)
 
     c = Chain(conf['IndexedRepos'], verbose)      # init chain
 
