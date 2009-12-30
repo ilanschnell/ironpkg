@@ -9,7 +9,6 @@ import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
-from proxy.api import setup_proxy
 from utils import abs_expanduser, cname_fn
 from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
                           spec_as_req, parse_data)
@@ -381,7 +380,8 @@ def main():
         return
 
     try:                                          # proxy server
-        installed = setup_proxy(opts.proxy)
+        from proxy.api import setup_proxy
+        setup_proxy(opts.proxy)
     except ValueError, e:
         print 'Proxy configuration error: %s' % e
         sys.exit(1)
