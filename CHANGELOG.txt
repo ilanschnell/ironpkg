@@ -1,6 +1,7 @@
 
 4.1.4
 -----
+* Added --noapp (no application) option to egginst
 
 
 

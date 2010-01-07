@@ -28,10 +28,11 @@ def projname(fn):
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix, verbose=False):
+    def __init__(self, fpath, prefix, verbose=False, noapp=False):
         self.fpath = fpath
         self.name = projname(basename(fpath))
         self.prefix = abspath(prefix)
+        self.noapp = noapp
 
         # This is the directory which contains the EGG-INFO directories of all
         # installed packages
@@ -211,6 +212,9 @@ class EggInst(object):
 
 
     def install_app(self, remove=False):
+        if self.noapp:
+            return
+
         path = join(self.meta_dir, 'inst', 'appinst.dat')
         if not isfile(path):
             return
@@ -228,8 +232,8 @@ class EggInst(object):
             else:
                 appinst.install_from_dat(path)
         except:
-            print("Warning: An error occurred while %sinstalling application item"
-                  % ('un' if remove else ''))
+            print("Warning: An error occurred while %sinstalling application "
+                  "item" % ('un' if remove else ''))
 
 
     def run(self, fn):
@@ -320,6 +324,10 @@ def main():
                  action="store_true",
                  help="list all installed packages")
 
+    p.add_option("--noapp",
+                 action="store_true",
+                 help="don't install/remove application menu items")
+
     p.add_option("--prefix",
                  action="store",
                  default=sys.prefix,
@@ -349,7 +357,7 @@ def main():
         return
 
     for path in args:
-        ei = EggInst(path, prefix, opts.verbose)
+        ei = EggInst(path, prefix, opts.verbose, opts.noapp)
         fn = basename(path)
         if opts.remove:
             pprint_fn_action(fn, 'removing')
