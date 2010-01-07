@@ -88,7 +88,7 @@ RC_TMPL = """\
 IndexedRepos = %(repos)s
 
 # Install prefix (enpkg --prefix and --sys-prefix options overwrite this):
-prefix='%(prefix)s'
+#prefix='%(prefix)s'
 """
 
 def write():
