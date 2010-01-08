@@ -17,6 +17,7 @@ from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
 # global options variables
 prefix = None
 dry_run = None
+noapp = None
 verbose = None
 
 
@@ -59,15 +60,15 @@ def list_option(pat):
 
 
 def egginst_subprocess(pkg_path, remove):
-    fn = 'egginst'
-    if sys.platform == 'win32':
-        fn += '-script.py'
-    path = join(sys.prefix, bin_dir_name, fn)
+    # only used on Windows
+    path = join(sys.prefix, bin_dir_name, 'egginst-script.py')
     args = [sys.executable, path, '--prefix', prefix]
     if dry_run:
         args.append('--dry-run')
     if remove:
         args.append('--remove')
+    if noapp:
+        args.append('--noapp')
     args.append(pkg_path)
     if verbose:
         print 'CALL: %r' % args
@@ -84,7 +85,7 @@ def call_egginst(pkg_path, remove=False):
     if dry_run:
         return
 
-    ei = egginst.EggInst(pkg_path, prefix)
+    ei = egginst.EggInst(pkg_path, prefix, noapp=noapp)
     if remove:
         ei.remove()
     else:
@@ -325,7 +326,7 @@ def main():
 
     conf = get_config()                           #  conf
 
-    global prefix, dry_run, version               # set globals
+    global prefix, dry_run, noapp, version        # set globals
     if opts.sys_prefix:
         prefix = sys.prefix
     elif opts.prefix:
@@ -333,6 +334,7 @@ def main():
     else:
         prefix = conf['prefix']
     dry_run = opts.dry_run
+    noapp = conf['noapp']
     version = opts.version
 
     if opts.path:                                 #  --path
