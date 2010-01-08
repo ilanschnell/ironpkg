@@ -25,14 +25,15 @@ def configure():
         config.write()
     conf = config.read()
 
-    # prefix
-    if conf.has_key('prefix'):
+    if not 'proxy' in conf:                                  # proxy
+        conf['proxy'] = None
+
+    if 'prefix' in conf:                                     # prefix
         conf['prefix'] = abs_expanduser(conf['prefix'])
     else:
         conf['prefix'] = sys.prefix
 
-    # local
-    if conf.has_key('local'):
+    if 'local' in conf:                                      # local
         conf['local'] = abs_expanduser(conf['local'])
     else:
         conf['local'] = join(conf['prefix'], 'LOCAL-REPO')
@@ -51,6 +52,7 @@ def print_config():
     print "config file setting:"
     print "    prefix = %r" % conf['prefix']
     print "    local = %r" % conf['local']
+    print "    proxy = %r" % conf['proxy']
     print "    repos:"
     for repo in conf['IndexedRepos']:
         print '        %r' % repo
@@ -380,8 +382,13 @@ def main():
         return
 
     if opts.proxy:                                # --proxy
+        proxy = opts.proxy
+    else:
+        proxy = conf['proxy']
+    # Only import the proxy API if some we have a proxy.
+    if proxy:
         from proxy.api import setup_proxy
-        setup_proxy(opts.proxy)
+        setup_proxy(proxy)
 
     c = Chain(conf['IndexedRepos'], verbose)      # init chain
 

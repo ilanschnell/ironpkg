@@ -144,6 +144,7 @@ def spec_from_egg(egg_path):
     )
     z.close()
     spec['name'], spec['version'] = egg_name.split('-')[:2]
+    # conversion to PEP 386 development version format
     spec['version'] = spec['version'].replace('.dev_r', '.dev')
     return spec
 

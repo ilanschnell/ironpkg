@@ -89,6 +89,11 @@ IndexedRepos = %(repos)s
 
 # Install prefix (enpkg --prefix and --sys-prefix options overwrite this):
 #prefix='%(prefix)s'
+
+# When running enpkg behing a firewall it might be necessary to use a proxy
+# to access the repositories.  The URL for the proxy can be set here.
+# Note that the enpkg --proxy option will overwrite this setting.
+#proxy = <proxy string>
 """
 
 def write():
@@ -158,7 +163,7 @@ def read():
     d = {}
     execfile(path, d)
     read.cache = {}
-    for k in ['EPD_OpenID', 'IndexedRepos', 'prefix', 'LOCAL']:
+    for k in ['EPD_OpenID', 'IndexedRepos', 'prefix', 'proxy', 'local']:
         if not d.has_key(k):
             continue
         if k == 'IndexedRepos':

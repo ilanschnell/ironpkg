@@ -3,6 +3,7 @@
 -----
 * Added --noapp (no application) option to egginst
 
+* Added ability to specify the proxy string in .enstaller4rc
 
 
 4.1.3
