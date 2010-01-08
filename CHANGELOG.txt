@@ -5,6 +5,8 @@
 
 * Added ability to specify the proxy string in .enstaller4rc
 
+* Added optional noapp variable to  .enstaller4rc
+
 
 4.1.3
 -----
