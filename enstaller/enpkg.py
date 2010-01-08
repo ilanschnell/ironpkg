@@ -8,8 +8,8 @@ from os.path import basename, isdir, isfile, join
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
-import config
-from utils import abs_expanduser, cname_fn
+from config import get_config, print_config
+from utils import cname_fn
 from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
                           spec_as_req, parse_data)
 
@@ -18,44 +18,6 @@ from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
 prefix = None
 dry_run = None
 verbose = None
-
-
-def configure():
-    if config.get_path() is None:
-        config.write()
-    conf = config.read()
-
-    if not 'proxy' in conf:                                  # proxy
-        conf['proxy'] = None
-
-    if 'prefix' in conf:                                     # prefix
-        conf['prefix'] = abs_expanduser(conf['prefix'])
-    else:
-        conf['prefix'] = sys.prefix
-
-    if 'local' in conf:                                      # local
-        conf['local'] = abs_expanduser(conf['local'])
-    else:
-        conf['local'] = join(conf['prefix'], 'LOCAL-REPO')
-
-    return conf
-
-
-def print_config():
-    print "sys.prefix:", sys.prefix
-    cfg_path = config.get_path()
-    print "config file:", cfg_path
-    if cfg_path is None:
-        return
-    conf = configure()
-    print
-    print "config file setting:"
-    print "    prefix = %r" % conf['prefix']
-    print "    local = %r" % conf['local']
-    print "    proxy = %r" % conf['proxy']
-    print "    repos:"
-    for repo in conf['IndexedRepos']:
-        print '        %r' % repo
 
 
 def print_path():
@@ -361,7 +323,7 @@ def main():
         print_config()
         return
 
-    conf = configure()                            #  conf
+    conf = get_config()                           #  conf
 
     global prefix, dry_run, version               # set globals
     if opts.sys_prefix:

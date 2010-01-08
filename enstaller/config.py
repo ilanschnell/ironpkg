@@ -94,6 +94,11 @@ IndexedRepos = %(repos)s
 # to access the repositories.  The URL for the proxy can be set here.
 # Note that the enpkg --proxy option will overwrite this setting.
 #proxy = <proxy string>
+
+# Uncommenting the next line will disable application menu item install.
+# This only effects the few packages which install menu items,
+# which as IPython.
+#noapp = True
 """
 
 def write():
@@ -143,7 +148,7 @@ def write():
 def get_arch():
     import platform
 
-    if '64' in platform.architecture()[0] or '64bit' in platform.platform():
+    if '64' in platform.architecture()[0]:
         return 'amd64'
     else:
         return 'x86'
@@ -163,7 +168,8 @@ def read():
     d = {}
     execfile(path, d)
     read.cache = {}
-    for k in ['EPD_OpenID', 'IndexedRepos', 'prefix', 'proxy', 'local']:
+    for k in ['EPD_OpenID', 'IndexedRepos', 'prefix', 'proxy',
+              'noapp', 'local']:
         if not d.has_key(k):
             continue
         if k == 'IndexedRepos':
@@ -174,6 +180,47 @@ def read():
     return read()
 
 
+def get_config():
+    """
+    Return the current configuration as a dictionary, but create the
+    configuration file if it does not exist.  Also fix some values and
+    give defaults.
+    """
+    if get_path() is None:
+        write()
+
+    conf = { # defaults
+        'proxy': None,
+        'noapp': False,
+        'prefix': sys.prefix,
+        'local': join(sys.prefix, 'LOCAL-REPO')
+    }
+    conf.update(read())
+
+    for name in ['prefix', 'local']:
+        conf[name] = abs_expanduser(conf[name])
+
+    return conf
+
+
+def print_config():
+    print "sys.prefix:", sys.prefix
+    cfg_path = get_path()
+    print "config file:", cfg_path
+    if cfg_path is None:
+        return
+    conf = get_config()
+    print
+    print "config file setting:"
+    print "    prefix = %r" % conf['prefix']
+    print "    local = %r" % conf['local']
+    print "    noapp = %r" % conf['noapp']
+    print "    proxy = %r" % conf['proxy']
+    print "    repos:"
+    for repo in conf['IndexedRepos']:
+        print '        %r' % repo
+
+
 if __name__ == '__main__':
-    write()
-    print read()
+    #write()
+    print print_config()
