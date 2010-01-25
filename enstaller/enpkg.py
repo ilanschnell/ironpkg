@@ -324,6 +324,15 @@ def main():
         print_config()
         return
 
+    if opts.proxy:                                #  --proxy
+        proxy = opts.proxy
+    else:
+        proxy = conf['proxy']
+    # Only import the proxy API if some we have a proxy.
+    if proxy:
+        from proxy.api import setup_proxy
+        setup_proxy(proxy)
+
     conf = get_config()                           #  conf
 
     global prefix, dry_run, noapp, version        # set globals
@@ -344,15 +353,6 @@ def main():
     if opts.list:                                 #  --list
         list_option(pat)
         return
-
-    if opts.proxy:                                # --proxy
-        proxy = opts.proxy
-    else:
-        proxy = conf['proxy']
-    # Only import the proxy API if some we have a proxy.
-    if proxy:
-        from proxy.api import setup_proxy
-        setup_proxy(proxy)
 
     c = Chain(conf['IndexedRepos'], verbose)      # init chain
 
