@@ -7,6 +7,9 @@
 
 * Added optional noapp variable to  .enstaller4rc
 
+* Fixed bug when authenticating behind a proxy
+
+
 
 4.1.3
 -----
