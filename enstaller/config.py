@@ -88,12 +88,12 @@ RC_TMPL = """\
 IndexedRepos = %(repos)s
 
 # Install prefix (enpkg --prefix and --sys-prefix options overwrite this):
-#prefix='%(prefix)s'
+#prefix = '%(prefix)s'
 
 # When running enpkg behing a firewall it might be necessary to use a proxy
 # to access the repositories.  The URL for the proxy can be set here.
 # Note that the enpkg --proxy option will overwrite this setting.
-#proxy = <proxy string>
+%(proxy_line)s
 
 # Uncommenting the next line will disable application menu item install.
 # This only effects the few packages which install menu items,
@@ -101,7 +101,7 @@ IndexedRepos = %(repos)s
 #noapp = True
 """
 
-def write():
+def write(proxy=None):
     """
     Return the default state of this project's config file.
     """
@@ -138,6 +138,11 @@ def write():
     else:
         openid_line = "#EPD_OpenID = ''"
 
+    if proxy:
+        proxy_line = 'proxy = %r' % proxy
+    else:
+        proxy_line = '#proxy = <proxy string>  # e.g. "123.0.1.2:8080"'
+
     fo = open(path, 'w')
     fo.write(RC_TMPL % locals())
     fo.close()
@@ -156,60 +161,44 @@ def get_arch():
 
 def read():
     """
-    Return the current configuration as a dictionary, or None if the
-    configuration file does not exist:
+    Return the current configuration as a dictionary, and fix some values and
+    give defaults.
     """
     if hasattr(read, 'cache'):
         return read.cache
 
-    path = get_path()
-    if not path:
-        return None
     d = {}
-    execfile(path, d)
-    read.cache = {}
-    for k in ['EPD_OpenID', 'IndexedRepos', 'prefix', 'proxy',
-              'noapp', 'local']:
-        if not d.has_key(k):
-            continue
-        if k == 'IndexedRepos':
-            arch = get_arch()
-            read.cache[k] = [url.replace('{ARCH}', arch) for url in d[k]]
-        else:
-            read.cache[k] = d[k]
-    return read()
-
-
-def get_config():
-    """
-    Return the current configuration as a dictionary, but create the
-    configuration file if it does not exist.  Also fix some values and
-    give defaults.
-    """
-    if get_path() is None:
-        write()
-
-    conf = { # defaults
+    execfile(get_path(), d)
+    read.cache = { # defaults
         'proxy': None,
         'noapp': False,
         'prefix': sys.prefix,
         'local': join(sys.prefix, 'LOCAL-REPO')
     }
-    conf.update(read())
+    for k in ['EPD_OpenID', 'IndexedRepos', 'prefix', 'proxy',
+              'noapp', 'local']:
+        if not d.has_key(k):
+            continue
+        v = d[k]
+        if k == 'IndexedRepos':
+            arch = get_arch()
+            read.cache[k] = [url.replace('{ARCH}', arch) for url in v]
+        elif k in ['prefix', 'local']:
+            read.cache[k] = abs_expanduser(v)
+        else:
+            read.cache[k] = v
 
-    for name in ['prefix', 'local']:
-        conf[name] = abs_expanduser(conf[name])
-
-    return conf
+    return read()
 
 
 def print_config():
+    print "Python version:", PY_VER
     print "sys.prefix:", sys.prefix
     cfg_path = get_path()
     print "config file:", cfg_path
     if cfg_path is None:
         return
-    conf = get_config()
+    conf = read()
     print
     print "config file setting:"
     print "    prefix = %r" % conf['prefix']
@@ -222,5 +211,5 @@ def print_config():
 
 
 if __name__ == '__main__':
-    #write()
-    print print_config()
+    #write("1.2.3.4:8077")
+    print_config()

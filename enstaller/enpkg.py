@@ -8,7 +8,7 @@ from os.path import basename, isdir, isfile, join
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
-from config import get_config, print_config
+import config
 from utils import cname_fn
 from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
                           spec_as_req, parse_data)
@@ -321,19 +321,22 @@ def main():
         return
 
     if opts.config:                               #  --config
-        print_config()
+        config.print_config()
         return
 
     if opts.proxy:                                #  --proxy
-        proxy = opts.proxy
-    else:
-        proxy = conf['proxy']
-    # Only import the proxy API if some we have a proxy.
-    if proxy:
         from proxy.api import setup_proxy
-        setup_proxy(proxy)
+        setup_proxy(opts.proxy)
 
-    conf = get_config()                           #  conf
+    if config.get_path() is None:
+        # create config file if it dosn't exist
+        config.write(opts.proxy)
+
+    conf = config.read()                          # conf
+
+    if (not opts.proxy) and conf['proxy']:
+        from proxy.api import setup_proxy
+        setup_proxy(conf['proxy'])
 
     global prefix, dry_run, noapp, version        # set globals
     if opts.sys_prefix:
