@@ -271,10 +271,6 @@ def main():
                       "the config file)",
                  metavar='PATH')
 
-    p.add_option("--sys-prefix",
-                 action="store_true",
-                 help="use sys.prefix as the install prefix")
-
     p.add_option("--proxy",
                  action="store",
                  help="use a proxy for downloads",
@@ -289,9 +285,9 @@ def main():
                  help="search the index in the repo (chain) of packages "
                       "and display versions available.")
 
-    p.add_option("--test",
+    p.add_option("--sys-prefix",
                  action="store_true",
-                 help="perform some internal tests (for development only)")
+                 help="use sys.prefix as the install prefix")
 
     p.add_option('-v', "--verbose", action="store_true")
 
@@ -299,7 +295,7 @@ def main():
 
     opts, args = p.parse_args()
 
-    if len(args) > 0 and (opts.test or opts.config or opts.path):
+    if len(args) > 0 and (opts.config or opts.path):
         p.error("Option takes no arguments")
 
     if opts.prefix and opts.sys_prefix:
@@ -332,13 +328,13 @@ def main():
         # create config file if it dosn't exist
         config.write(opts.proxy)
 
-    conf = config.read()                          # conf
+    conf = config.read()                          #  conf
 
     if (not opts.proxy) and conf['proxy']:
         from proxy.api import setup_proxy
         setup_proxy(conf['proxy'])
 
-    global prefix, dry_run, noapp, version        # set globals
+    global prefix, dry_run, noapp, version        #  set globals
     if opts.sys_prefix:
         prefix = sys.prefix
     elif opts.prefix:
@@ -357,14 +353,10 @@ def main():
         list_option(pat)
         return
 
-    c = Chain(conf['IndexedRepos'], verbose)      # init chain
+    c = Chain(conf['IndexedRepos'], verbose)      #  init chain
 
-    if opts.search:                               # --search
+    if opts.search:                               #  --search
         search(c, pat)
-        return
-
-    if opts.test:                                 # --test
-        c.test()
         return
 
     if len(args) == 0:
@@ -375,11 +367,11 @@ def main():
 
     print "prefix:", prefix
     check_write()
-    if opts.remove:                               # --remove
+    if opts.remove:                               #  --remove
         remove_req(req)
         return
 
-    dists = get_dists(c, req,                     # dists
+    dists = get_dists(c, req,                     #  dists
                       recur=not opts.no_deps)
 
     # Warn the user about packages which depend on what will be updated

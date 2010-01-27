@@ -377,39 +377,3 @@ class Chain(object):
             if not fn.endswith('.egg'):
                 continue
             self.index_file(fn, repo)
-
-    # ------------- testing
-
-    def test(self):
-        """
-        Test the content of the repo for consistency.
-        """
-        allreqs = defaultdict(int)
-
-        for fn in sorted(self.index.keys(), key=string.lower):
-            if self.verbose:
-                print fn
-
-            spec = self.index[fn]
-            for r in spec['Reqs']:
-                allreqs[r] += 1
-                d = self.get_dist(r)
-                if d is None:
-                    continue
-                if self.verbose:
-                    print '\t', r, '->', self.get_dist(r)
-                assert d in self.index, '*** %r ***' % d
-
-            r = Req('%(name)s %(version)s' % spec)
-            assert self.get_dist(r)
-            if self.verbose:
-                print
-
-        if self.verbose:
-            print 70 * '='
-        print "Index has %i distributions" % len(self.index)
-        print "The following distributions are not required anywhere:"
-        for fn, spec in self.index.iteritems():
-            if not any(r.matches(spec) for r in allreqs):
-                print '\t%s' % fn
-        print 'OK'

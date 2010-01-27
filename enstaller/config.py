@@ -201,11 +201,9 @@ def print_config():
     conf = read()
     print
     print "config file setting:"
-    print "    prefix = %r" % conf['prefix']
-    print "    local = %r" % conf['local']
-    print "    noapp = %r" % conf['noapp']
-    print "    proxy = %r" % conf['proxy']
-    print "    repos:"
+    for k in ['prefix', 'local', 'noapp', 'proxy']:
+        print "    %s = %r" % (k, conf[k])
+    print "    IndexedRepos:"
     for repo in conf['IndexedRepos']:
         print '        %r' % repo
 
