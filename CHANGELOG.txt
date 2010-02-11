@@ -7,7 +7,7 @@
 
 * Added optional noapp variable to  .enstaller4rc
 
-* Fixed bug when authenticating behind a proxy
+* Changed to use username and password authentication
 
 
 
@@ -147,4 +147,3 @@ All earlier versions
 All earlier versions of Enstaller used a completely different architecture
 and design and were quickly deprecated from active usage due to instability
 problems.
-

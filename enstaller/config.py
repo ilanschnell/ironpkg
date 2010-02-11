@@ -27,33 +27,23 @@ def get_path():
     return None
 
 
-def input_openid(epd_repo):
-    import time
-    import urllib2
-
+def input_userpass():
+    from getpass import getpass
     print """\
 Welcome to Enstaller (version %s)!
 
-In order to access the EPD repository, please enter
-the OpenID which you use to subscribe to EPD.
+In order to access the EPD repository, please enter your
+username and password, which you use to subscribe to EPD.
 If you are not subscribed to EPD, hit Return.
 """ % __version__
-    while True:
-        openid = raw_input('OpenID: ').strip()
-        if not openid:
-            return ''
-        print "You have entered:", openid
-        tmp = raw_input("Correct? [y/n]: ")
-        if tmp.lower() in ('y', 'yes'):
-            break
-    print "Authenticating..."
-    fi = urllib2.urlopen('http://www.enthought.com/')
-    data = fi.read()
-    fi.close()
-    time.sleep(0.75)
-    print "EPD repo url:", epd_repo
-    time.sleep(0.75)
-    return openid
+    username = raw_input('Username: ').strip()
+    if not username:
+        return ''
+    for dummy in xrange(3):
+        password = getpass('Password: ')
+        password2 = getpass('Confirm passowrd: ')
+        if password == password2:
+            return username + ':' + password
 
 RC_TMPL = """\
 # Enstaller configuration file
@@ -66,8 +56,8 @@ RC_TMPL = """\
 #
 # This file was created by initially running the enpkg command.
 
-# EPD subscriber OpenID:
-%(openid_line)s
+# EPD subscriber authentication:
+%(userpass_line)s
 
 # The enpkg command is searching for eggs in the list 'IndexedRepos'.
 # When enpkg is searching for an egg, it tries to find it in the order
@@ -76,7 +66,7 @@ RC_TMPL = """\
 #
 # This list of repositories may include the EPD repository.  However,
 # if the EPD repository is listed here things will only work if the
-# correct EPD subscriber OpenID is provided above.
+# correct EPD subscriber authentication is provided above.
 #
 # Placeholders '{ARCH}' get substituted by 'amd64' or 'x86', depending
 # on the architecture of the current interpreter.
@@ -117,26 +107,24 @@ def write(proxy=None):
     else:
         path = HOME_CONFIG_PATH
 
-    epd_repo = None
     if (custom_tools and hasattr(custom_tools, 'epd_baseurl') and
                          hasattr(custom_tools, 'epd_subdir')):
         epd_repo = custom_tools.epd_baseurl + custom_tools.epd_subdir + '/'
+        userpass = input_userpass()
+    else:
+        epd_repo = None
+        userpass = None
 
-    openid = ''
-    if epd_repo:
-        openid = input_openid(epd_repo)
-
-    repos = '[]'
-    if openid:
+    if userpass:
+        userpass_line = "EPD_userpass = %r" % userpass
         repos = '[\n    %r,\n]' % epd_repo
+    else:
+        userpass_line = "#EPD_userpass = ''"
+        repos = '[]'
 
     py_ver = PY_VER
     prefix = sys.prefix
     version = __version__
-    if openid:
-        openid_line = "EPD_OpenID = %r" % openid
-    else:
-        openid_line = "#EPD_OpenID = ''"
 
     if proxy:
         proxy_line = 'proxy = %r' % proxy
@@ -175,7 +163,7 @@ def read():
         'prefix': sys.prefix,
         'local': join(sys.prefix, 'LOCAL-REPO')
     }
-    for k in ['EPD_OpenID', 'IndexedRepos', 'prefix', 'proxy',
+    for k in ['EPD_userpass', 'IndexedRepos', 'prefix', 'proxy',
               'noapp', 'local']:
         if not d.has_key(k):
             continue
