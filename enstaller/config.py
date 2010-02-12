@@ -49,24 +49,18 @@ RC_TMPL = """\
 # Enstaller configuration file
 # ============================
 #
-# This file contains the default package repositories used by
-# Enstaller %(version)s for Python %(py_ver)s envirmonment:
+# This file contains the default package repositories, and configuration,
+# used by Enstaller %(version)s for the Python %(py_ver)s environment:
 #
 #   sys.prefix = %(prefix)r
 #
 # This file was created by initially running the enpkg command.
 
-# EPD subscriber authentication:
-%(userpass_line)s
-
+%(userpass_section)s
 # The enpkg command is searching for eggs in the list 'IndexedRepos'.
 # When enpkg is searching for an egg, it tries to find it in the order
 # of this list, and selects the first one that matches, ignoring
 # repositories below.  Therefore the order of this list matters.
-#
-# This list of repositories may include the EPD repository.  However,
-# if the EPD repository is listed here things will only work if the
-# correct EPD subscriber authentication is provided above.
 #
 # Placeholders '{ARCH}' get substituted by 'amd64' or 'x86', depending
 # on the architecture of the current interpreter.
@@ -80,7 +74,7 @@ IndexedRepos = %(repos)s
 # Install prefix (enpkg --prefix and --sys-prefix options overwrite this):
 #prefix = '%(prefix)s'
 
-# When running enpkg behing a firewall it might be necessary to use a proxy
+# When running enpkg behind a firewall it might be necessary to use a proxy
 # to access the repositories.  The URL for the proxy can be set here.
 # Note that the enpkg --proxy option will overwrite this setting.
 %(proxy_line)s
@@ -116,10 +110,14 @@ def write(proxy=None):
         userpass = None
 
     if userpass:
-        userpass_line = "EPD_userpass = %r" % userpass
+        userpass_section = """
+# The EPD subscriber authentication is required to access the EPD repository
+# is listed below.
+EPD_userpass = %r
+""" % userpass
         repos = '[\n    %r,\n]' % epd_repo
     else:
-        userpass_line = "#EPD_userpass = ''"
+        userpass_section = ""
         repos = '[]'
 
     py_ver = PY_VER
