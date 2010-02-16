@@ -33,7 +33,6 @@ setup(
         "console_scripts": [
              "enpkg = enstaller.enpkg:main",
              "egginst = egginst.main:main",
-             "index-tool = enstaller.index_tool:main",
         ],
     },
     classifiers = [
