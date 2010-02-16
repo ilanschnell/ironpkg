@@ -138,8 +138,11 @@ class EggInst(object):
 
     def extract(self):
         cur = n = 0
-        size = sum(self.z.getinfo(name).file_size
-                   for name in self.arcnames)
+        size = sum(self.z.getinfo(name).file_size for name in self.arcnames)
+        self.installed_size = size
+        if size == 0:
+            return
+
         sys.stdout.write('%9s [' % human_bytes(size))
         for name in self.arcnames:
             n += self.z.getinfo(name).file_size
@@ -150,7 +153,6 @@ class EggInst(object):
                 cur += 1
             self.write_arcname(name)
 
-        self.installed_size = size
         sys.stdout.write('.' * (65-cur) + ']\n')
         sys.stdout.flush()
 
