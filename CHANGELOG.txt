@@ -1,7 +1,7 @@
 
 4.1.5
 -----
-
+* Cleanup
 
 
 4.1.4
@@ -49,9 +49,6 @@
 4.1.0
 -----
 * removed the setuptools patch
-
-* added the 'index-tool' command which is a tool for creating an indexed
-  repository of eggs which works with the enpkg command in Enstaller.
 
 * added more tests and documentation
 
