@@ -115,7 +115,7 @@ def write(proxy=None):
 EPD_userpass = %r
 """ % userpass
         repos_lines = (
-            '#    %r,\n' % epd_repo.replace('/eggs/', '/GPL-eggs/') + 
+            '#    %r,\n' % epd_repo.replace('/eggs/', '/GPL-eggs/') +
             '    %r,\n' % epd_repo)
     else:
         userpass_section = ''
