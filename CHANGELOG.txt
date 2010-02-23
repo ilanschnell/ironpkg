@@ -1,6 +1,7 @@
 
 4.1.6
 -----
+* added uncommented GPL-eggs repo to default configuration file
 
 
 

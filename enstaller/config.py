@@ -67,9 +67,8 @@ RC_TMPL = """\
 #
 # Notice also that only indexed repositories, i.e. HTTP directories which
 # contain a file 'index-depend.bz2' (next to the eggs), can be listed here.
-# The 'index-tool', which is also part of Enstaller may be used to create
-# such repositories, see: index-tool -h
-IndexedRepos = %(repos)s
+IndexedRepos = [
+%(repos_lines)s]
 
 # Install prefix (enpkg --prefix and --sys-prefix options overwrite this):
 #prefix = '%(prefix)s'
@@ -115,10 +114,12 @@ def write(proxy=None):
 # is listed below.
 EPD_userpass = %r
 """ % userpass
-        repos = '[\n    %r,\n]' % epd_repo
+        repos_lines = (
+            '#    %r,\n' % epd_repo.replace('/eggs/', '/GPL-eggs/') + 
+            '    %r,\n' % epd_repo)
     else:
-        userpass_section = ""
-        repos = '[]'
+        userpass_section = ''
+        repos_lines = ''
 
     py_ver = PY_VER
     prefix = sys.prefix
@@ -196,4 +197,5 @@ def print_config():
 
 if __name__ == '__main__':
     #write("1.2.3.4:8077")
+    write()
     print_config()
