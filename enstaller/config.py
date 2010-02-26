@@ -69,7 +69,7 @@ RC_TMPL = """\
 # contain a file 'index-depend.bz2' (next to the eggs), can be listed here.
 # For local repositories, the index file is optional.  Remember that on
 # Windows systems the backslaches in the directory path need to escaped, e.g.:
-# r'file://C:\repository\' or 'file://C:\\repository\\'
+# r'file://C:\\repository\\' or 'file://C:\\\\repository\\\\'
 IndexedRepos = [
 %(repos_lines)s]
 
