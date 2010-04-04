@@ -3,11 +3,11 @@ import sys
 import re
 import bz2
 import string
-import StringIO
 import zipfile
 import hashlib
+from cStringIO import StringIO
 from collections import defaultdict
-from os.path import basename, dirname, join, getsize
+from os.path import basename, isfile, join, getmtime, getsize
 
 from dist_naming import is_valid_eggname
 from requirement import Req
@@ -88,9 +88,8 @@ def parse_data(data, index=False):
     Given the content of a dependency spec file, return a dictionary mapping
     the variables to their values.
 
-    index:
-        If True, the md5 and size is also contained in the output dictionary.
-        It is an error these are missing in the input data.
+    If index is True, the md5, size and mtime are also contained in the
+    output dictionary.  It is an error these are missing in the input data.
     """
     spec = {}
     exec data.replace('\r', '') in spec
@@ -104,6 +103,8 @@ def parse_data(data, index=False):
         var_names.extend(['md5', 'size'])
         assert isinstance(spec['md5'], str) and len(spec['md5']) == 32
         assert isinstance(spec['size'], int)
+        if 'mtime' in spec:
+            var_names.append('mtime')
 
     res = {}
     for name in var_names:
@@ -160,69 +161,65 @@ def index_section(zip_path):
 
     return ('==> %s <==\n' % basename(zip_path) +
             'size = %i\n'  % getsize(zip_path) +
-            'md5 = %r\n\n' % h.hexdigest() +
+            'md5 = %r\n' % h.hexdigest() +
+            'mtime = %r\n\n' % getmtime(zip_path) +
             rawspec_from_dist(zip_path) + '\n')
 
 
-def compress_txt(src):
+def write_txt_bz2(path, data):
     """
-    Reads the file 'src', which must end with '.txt' and writes the bz2
-    compressed data to a file alongside 'src', where the txt extension is
-    replaced by bz2.
+    Writes the 'data' to the file 'path' (which must end with '.txt'),
+    as well as the bz2 compressed data to a file alongside 'data', where the
+    txt extension is replaced by bz2.
     """
-    assert src.endswith('.txt'), src
-    dst = src[:-4] + '.bz2'
-    data = open(src, 'rb').read()
-
-    fo = open(dst, 'wb')
+    fo = open(path, 'w')
+    fo.write(data)
+    fo.close()
+    assert path.endswith('.txt'), path
+    fo = open(path[:-4] + '.bz2', 'wb')
     fo.write(bz2.compress(data))
     fo.close()
 
 
-def write_index(dir_path, verbose=True):
+def update_index(dir_path, force=False, verbose=True):
     """
     Updates index-depend.txt and index-depend.bz2 in the directory specified.
+    If index-depend.txt already exists, its content (which contains
+    modification time stamps) is used to create the updated file.
+    This can be disabled using the force option.
     """
     txt_path = join(dir_path, 'index-depend.txt')
     if verbose:
         print "Updating:", txt_path
 
-    # since accumulating the new data takes a while, we first write to memory
-    # and then write the file in one shot.
-    faux = StringIO.StringIO()
-    n = 0
+    if force or not isfile(txt_path):
+        section = {}
+    else:
+        section = parse_index(open(txt_path).read())
+
+    # since generating the new data may take a while, we first write to memory
+    # and then write the file afterwards.
+    faux = StringIO()
     for fn in sorted(os.listdir(dir_path), key=string.lower):
         if not fn.endswith('.egg'):
             continue
         if not is_valid_eggname(fn):
-            print "WARNING: invalid egg name:", fn
+            print "WARNING: ignoring invalid egg name:", fn
             continue
-        faux.write(index_section(join(dir_path, fn)))
+        path = join(dir_path, fn)
+        if fn in section:
+            spec = parse_data(section[fn], index=True)
+            if spec.get('mtime') == getmtime(path):
+                faux.write('==> %s <==\n' % fn)
+                faux.write(section[fn] + '\n')
+                continue
+
+        faux.write(index_section(path))
         if verbose:
             sys.stdout.write('.')
             sys.stdout.flush()
-        n += 1
+
     if verbose:
-        print n
-
-    fo = open(txt_path, 'w')
-    fo.write(faux.getvalue())
-    fo.close()
-
-    compress_txt(txt_path)
-
-
-def append_dist(zip_path, verbose=False):
-    """
-    Appends a the distribution to index-depend.txt and index-depend.bz2,
-    in the directory in which the distribution is located.
-    """
-    txt_path = join(dirname(zip_path), 'index-depend.txt')
-    if verbose:
-        print "Adding index file of:", zip_path
-        print "                  to:", txt_path
-    f = open(txt_path, 'a')
-    f.write(index_section(zip_path))
-    f.close()
-
-    compress_txt(txt_path)
+        print
+    write_txt_bz2(txt_path, faux.getvalue())
+    faux.close()
