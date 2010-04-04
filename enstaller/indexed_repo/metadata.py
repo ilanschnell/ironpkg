@@ -88,7 +88,9 @@ def parse_data(data, index=False):
     Given the content of a dependency spec file, return a dictionary mapping
     the variables to their values.
 
-    index: If True, makes sure the md5 and size is also contained in the data.
+    index:
+        If True, the md5 and size is also contained in the output dictionary.
+        It is an error these are missing in the input data.
     """
     spec = {}
     exec data.replace('\r', '') in spec
@@ -150,7 +152,7 @@ def index_section(zip_path):
     h = hashlib.new('md5')
     fi = open(zip_path, 'rb')
     while True:
-        chunk = fi.read(4096)
+        chunk = fi.read(65536)
         if not chunk:
             break
         h.update(chunk)
@@ -162,18 +164,14 @@ def index_section(zip_path):
             rawspec_from_dist(zip_path) + '\n')
 
 
-def compress_txt(src, verbose=False):
+def compress_txt(src):
     """
     Reads the file 'src', which must end with '.txt' and writes the bz2
     compressed data to a file alongside 'src', where the txt extension is
     replaced by bz2.
     """
-    assert src.endswith('.txt')
+    assert src.endswith('.txt'), src
     dst = src[:-4] + '.bz2'
-    if verbose:
-        print "Compressing:", src
-        print "       into:", dst
-
     data = open(src, 'rb').read()
 
     fo = open(dst, 'wb')
@@ -181,13 +179,9 @@ def compress_txt(src, verbose=False):
     fo.close()
 
 
-def write_index(dir_path, compress=False, valid_eggnames=True, verbose=True):
+def write_index(dir_path, verbose=True):
     """
-    Updates index-depend.txt in the directory specified.
-
-    compress:         also write index-depend.bz2
-
-    valid_eggnames:   only add eggs with valid egg file names to the index
+    Updates index-depend.txt and index-depend.bz2 in the directory specified.
     """
     txt_path = join(dir_path, 'index-depend.txt')
     if verbose:
@@ -200,7 +194,8 @@ def write_index(dir_path, compress=False, valid_eggnames=True, verbose=True):
     for fn in sorted(os.listdir(dir_path), key=string.lower):
         if not fn.endswith('.egg'):
             continue
-        if valid_eggnames and not is_valid_eggname(fn):
+        if not is_valid_eggname(fn):
+            print "WARNING: invalid egg name:", fn
             continue
         faux.write(index_section(join(dir_path, fn)))
         if verbose:
@@ -214,14 +209,13 @@ def write_index(dir_path, compress=False, valid_eggnames=True, verbose=True):
     fo.write(faux.getvalue())
     fo.close()
 
-    if compress:
-        compress_txt(txt_path, verbose)
+    compress_txt(txt_path)
 
 
-def append_dist(zip_path, compress=False, verbose=False):
+def append_dist(zip_path, verbose=False):
     """
-    Appends a the distribution to index-depend.txt (and optionally
-    index-depend.bz2), in the directory in which the distribution is located.
+    Appends a the distribution to index-depend.txt and index-depend.bz2,
+    in the directory in which the distribution is located.
     """
     txt_path = join(dirname(zip_path), 'index-depend.txt')
     if verbose:
@@ -231,5 +225,4 @@ def append_dist(zip_path, compress=False, verbose=False):
     f.write(index_section(zip_path))
     f.close()
 
-    if compress:
-        compress_txt(txt_path, verbose)
+    compress_txt(txt_path)
