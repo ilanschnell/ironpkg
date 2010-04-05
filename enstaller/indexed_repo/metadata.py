@@ -17,7 +17,7 @@ def parse_index(data):
     """
     Given the data of an index file, such as index-depend.txt, return a
     dictionary mapping the distribution names to the content of the
-    cooresponding section.
+    corresponding section.
     """
     d = defaultdict(list)
     sep_pat = re.compile(r'==>\s*(\S+)\s*<==')
@@ -37,7 +37,7 @@ def parse_index(data):
 def data_from_spec(spec):
     """
     Given a spec dictionary, returns a the spec file as a well formed string.
-    Also this function is a reference for metadata version 1.1
+    Also this function is a reference for meta-data version 1.1
     """
     str_None = str, type(None)
     for var, typ in [
@@ -88,7 +88,7 @@ def parse_data(data, index=False):
     Given the content of a dependency spec file, return a dictionary mapping
     the variables to their values.
 
-    If index is True, the md5, size and mtime are also contained in the
+    If index is True, the MD5, size and mtime are also contained in the
     output dictionary.  It is an error these are missing in the input data.
     """
     spec = {}
@@ -181,7 +181,7 @@ def write_txt_bz2(path, data):
     fo.close()
 
 
-def update_index(dir_path, force=False, verbose=True):
+def update_index(dir_path, force=False, verbose=False):
     """
     Updates index-depend.txt and index-depend.bz2 in the directory specified.
     If index-depend.txt already exists, its content (which contains
@@ -213,7 +213,6 @@ def update_index(dir_path, force=False, verbose=True):
                 faux.write('==> %s <==\n' % fn)
                 faux.write(section[fn] + '\n')
                 continue
-
         faux.write(index_section(path))
         if verbose:
             sys.stdout.write('.')
