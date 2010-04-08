@@ -4,6 +4,8 @@
 
 * improved creation time of index-depend by adding mtime
 
+* fixed: enpkg now doesn't crash if a local repository contains invalid eggs
+
 
 
 2010-02-28   4.1.6:
