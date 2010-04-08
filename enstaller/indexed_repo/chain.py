@@ -376,4 +376,7 @@ class Chain(object):
         for fn in os.listdir(dir_path):
             if not fn.endswith('.egg'):
                 continue
+            if not dist_naming.is_valid_eggname(fn):
+                print "WARNING: ignoring invalid egg name:", join(dir_path, fn)
+                continue
             self.index_file(fn, repo)
