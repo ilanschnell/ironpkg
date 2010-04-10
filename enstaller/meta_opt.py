@@ -9,6 +9,11 @@ URL = 'http://www.enthought.com/epd/index-meta.bz2'
 
 
 def get_meta(url):
+    """
+    Returns a dict mapping canonical project names to spec structures
+    containing additional meta-data of the project which is not contained
+    in the index-depend data.
+    """
     faux = StringIO()
     write_data_from_url(faux, url)
     index_data = faux.getvalue()
