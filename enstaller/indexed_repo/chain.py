@@ -2,8 +2,8 @@ import os
 import sys
 import bz2
 import string
-import StringIO
 import zipfile
+from cStringIO import StringIO
 from collections import defaultdict
 from os.path import basename, getsize, isfile, isdir, join
 
@@ -66,9 +66,10 @@ class Chain(object):
         if self.verbose:
             print "\treading:", index_url
 
-        faux = StringIO.StringIO()
+        faux = StringIO()
         write_data_from_url(faux, index_url)
         index_data = faux.getvalue()
+        faux.close()
 
         if index_fn.endswith('.bz2'):
             index_data = bz2.decompress(index_data)
