@@ -29,16 +29,14 @@ _targets = []
 def get_object_type(fpath):
     """
     Return the object file type of the specified file (not link).
-    Otherwise, if the file is not an object file, return False.
+    Otherwise, if the file is not an object file, returns None.
     """
     if fpath.endswith(NO_OBJ) or islink(fpath) or not isfile(fpath):
-        return False
-
+        return None
     fi = open(fpath, 'rb')
     head = fi.read(4)
     fi.close()
-
-    return MAGIC.get(head, False)
+    return MAGIC.get(head)
 
 
 def find_lib(fn):
@@ -52,13 +50,12 @@ def find_lib(fn):
 
 _placehold_pat = re.compile('/PLACEHOLD' * 5 + '([^\0]*)\0')
 def fix_object_code(fpath):
-    obj_type = get_object_type(fpath)
-    if not obj_type:
+    tp = get_object_type(fpath)
+    if tp is None:
         return
 
     f = open(fpath, 'r+b')
     data = f.read()
-
     matches = list(_placehold_pat.finditer(data))
     if not matches:
         f.close()
@@ -68,10 +65,9 @@ def fix_object_code(fpath):
         print "Fixing placeholders in:", fpath
     for m in matches:
         gr1 = m.group(1)
-        if obj_type.startswith('MachO') and basename(gr1) != 'PLACEHOLD':
+        if tp.startswith('MachO') and basename(gr1) != 'PLACEHOLD':
             # Deprecated, because we now use rpath on OSX as well
             r = find_lib(basename(gr1))
-
         else:
             rpaths = list(_targets)
             rpaths.extend(p for p in gr1.split(os.pathsep)
@@ -83,10 +79,8 @@ def fix_object_code(fpath):
             raise Exception("placeholder %r too short" % m.group(0))
         r += padding * '\0'
         assert m.start() + len(r) == m.end()
-
         f.seek(m.start())
         f.write(r)
-
     f.close()
 
 

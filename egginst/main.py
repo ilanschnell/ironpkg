@@ -224,8 +224,6 @@ class EggInst(object):
         try:
             import appinst
         except ImportError:
-            print("Warning: importing appinst failed.  Can't %sinstall "
-                  "application (skipping)" % ('un' if remove else ''))
             return
 
         try:
