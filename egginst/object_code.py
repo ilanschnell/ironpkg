@@ -70,6 +70,7 @@ def fix_object_code(fpath):
             r = find_lib(basename(gr1))
         else:
             rpaths = list(_targets)
+            # extend the list with rpath which which were already in the binary
             rpaths.extend(p for p in gr1.split(os.pathsep)
                           if not p.startswith('/PLACEHOLD'))
             r = os.pathsep.join(rpaths)
