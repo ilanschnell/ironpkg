@@ -10,7 +10,7 @@ verbose = False
 
 
 # Extensions which are assumed to belong to files which don't contain
-# object code
+# shared object code
 NO_OBJ = ('.py', '.pyc', '.pyo', '.h', '.a', '.c', '.txt', '.html', '.xml',
           '.png', '.jpg', '.gif')
 
@@ -65,7 +65,7 @@ def fix_object_code(fpath):
         print "Fixing placeholders in:", fpath
     for m in matches:
         gr1 = m.group(1)
-        if tp.startswith('MachO') and basename(gr1) != 'PLACEHOLD':
+        if tp.startswith('MachO-') and basename(gr1) != 'PLACEHOLD':
             # Deprecated, because we now use rpath on OSX as well
             r = find_lib(basename(gr1))
         else:
@@ -75,7 +75,7 @@ def fix_object_code(fpath):
             r = os.pathsep.join(rpaths)
 
         padding = len(m.group(0)) - len(r)
-        if padding < 1: # we need at least one nul-character
+        if padding < 1: # we need at least one null-character
             raise Exception("placeholder %r too short" % m.group(0))
         r += padding * '\0'
         assert m.start() + len(r) == m.end()
