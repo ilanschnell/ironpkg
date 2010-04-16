@@ -8,8 +8,12 @@ from os.path import abspath, basename, join, islink, isfile, exists
 
 verbose = False
 
+# alt_replace_func is an optional function, which is applied to the
+# replacement string, see below
+alt_replace_func = None
 
-# Extensions which are assumed to belong to files which don't contain
+
+# extensions which are assumed to belong to files which don't contain
 # shared object code
 NO_OBJ = ('.py', '.pyc', '.pyo', '.h', '.a', '.c', '.txt', '.html', '.xml',
           '.png', '.jpg', '.gif')
@@ -22,7 +26,7 @@ MAGIC = {
     '\x7fELF': 'ELF',
 }
 
-# List of target direcories where shared object files are found
+# list of target direcories where shared object files are found
 _targets = []
 
 
@@ -66,7 +70,7 @@ def fix_object_code(fpath):
     for m in matches:
         gr1 = m.group(1)
         if tp.startswith('MachO-') and basename(gr1) != 'PLACEHOLD':
-            # Deprecated, because we now use rpath on OSX as well
+            # deprecated: because we now use rpath on OSX as well
             r = find_lib(basename(gr1))
         else:
             rpaths = list(_targets)
@@ -74,6 +78,9 @@ def fix_object_code(fpath):
             rpaths.extend(p for p in gr1.split(os.pathsep)
                           if not p.startswith('/PLACEHOLD'))
             r = os.pathsep.join(rpaths)
+
+        if alt_replace_func is not None:
+            r = alt_replace_func(r)
 
         padding = len(m.group(0)) - len(r)
         if padding < 1: # we need at least one null-character
