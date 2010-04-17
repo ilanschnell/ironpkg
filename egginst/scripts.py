@@ -7,6 +7,8 @@ from egginst.utils import on_win, rm_rf
 
 
 verbose = False
+executable = sys.executable
+hashbang_pat = re.compile(r'#!.+$', re.M)
 
 
 def write_exe(dst, script_type='console_scripts'):
@@ -67,16 +69,13 @@ import subprocess
 src = %(src)r
 
 sys.exit(subprocess.call([src] + sys.argv[1:]))
-''' % dict(python=sys.executable, src=src))
+''' % dict(python=executable, src=src))
     fo.close()
-
     return dst, dst_script
 
 
 def create_proxies(egg):
-    """
-    (Windows only)
-    """
+    # This function is called on Windows only
     if not isdir(egg.bin_dir):
         os.makedirs(egg.bin_dir)
 
@@ -110,7 +109,7 @@ def write_script(fpath, entry_pt, egg_name):
 
     assert entry_pt.count(':') == 1
     module, func = entry_pt.strip().split(':')
-    python = sys.executable
+    python = executable
     if on_win:
         if fpath.endswith('pyw'):
             p = re.compile('python\.exe$', re.I)
@@ -159,7 +158,6 @@ def create(egg, conf):
             egg.files.append(path)
 
 
-hashbang_pat = re.compile(r'#!.+$', re.M)
 def fix_script(path):
     if islink(path) or not isfile(path):
         return
@@ -177,16 +175,13 @@ def fix_script(path):
     if not (m and 'python' in m.group().lower()):
         return
 
-    python = sys.executable
+    python = executable
     if on_win:
         python = '"%s"' % python
-
     new_data = hashbang_pat.sub('#!' + python.replace('\\', '\\\\'),
                                 data, count=1)
-
     if new_data == data:
         return
-
     if verbose:
         print "Updating: %r" % path
     fo = open(path, 'w')
