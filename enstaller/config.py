@@ -73,6 +73,12 @@ RC_TMPL = """\
 IndexedRepos = [
 %(repos_lines)s]
 
+# The following variable is optional and, if provided, point to a URL which
+# contains an index file with additional package information, such as the
+# package home-page, license type, description.  The information is displayed
+# by the --info option.
+%(comment_info)sinfo_url = 'http://www.enthought.com/epd/index-info.bz2'
+
 # Install prefix (enpkg --prefix and --sys-prefix options overwrite this):
 #prefix = '%(prefix)s'
 
@@ -120,9 +126,11 @@ EPD_userpass = %r
         repos_lines = (
             '#    %r,\n' % epd_repo.replace('/eggs/', '/GPL-eggs/') +
             '    %r,\n' % epd_repo)
+        comment_info = ''
     else:
         userpass_section = ''
         repos_lines = ''
+        comment_info = '#'
 
     py_ver = PY_VER
     prefix = sys.prefix
@@ -159,13 +167,14 @@ def read():
 
     d = {}
     execfile(get_path(), d)
-    read.cache = { # defaults
-        'proxy': None,
-        'noapp': False,
-        'prefix': sys.prefix,
-        'local': join(sys.prefix, 'LOCAL-REPO')
-    }
-    for k in ['EPD_userpass', 'IndexedRepos', 'prefix', 'proxy',
+    read.cache = dict( # defaults
+        info_url=None,
+        prefix=sys.prefix,
+        proxy=None,
+        noapp=False,
+        local=join(sys.prefix, 'LOCAL-REPO')
+    )
+    for k in ['EPD_userpass', 'IndexedRepos', 'info_url', 'prefix', 'proxy',
               'noapp', 'local']:
         if not d.has_key(k):
             continue
@@ -191,7 +200,7 @@ def print_config():
     conf = read()
     print
     print "config file setting:"
-    for k in ['prefix', 'local', 'noapp', 'proxy']:
+    for k in ['info_url', 'prefix', 'local', 'noapp', 'proxy']:
         print "    %s = %r" % (k, conf[k])
     print "    IndexedRepos:"
     for repo in conf['IndexedRepos']:
