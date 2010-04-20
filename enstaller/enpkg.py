@@ -11,8 +11,8 @@ from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
 from utils import canonical, cname_fn, get_info
-from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
-                          spec_as_req, parse_data)
+from indexed_repo import (filename_dist, repo_dist, Chain, Req,
+                          add_Reqs_to_spec, spec_as_req, parse_data)
 
 
 # global options variables
@@ -107,30 +107,56 @@ def check_write():
             os.unlink(path)
 
 
-def info_option(url, c, cname):
-    if url is None:
-        print "ERROR: No info available, please the 'info_url' in rc-file"
-        sys.exit(1)
-    info = get_info(url)
-    installed = None
-    for cn in sorted(set(info.iterkeys())):
-        if cname and cn != cname:
+def get_installed_version(prefix, cname):
+    egg_info_dir = join(prefix, 'EGG-INFO')
+    if not isdir(egg_info_dir):
+        return
+    for fn in os.listdir(egg_info_dir):
+        if canonical(fn) != cname:
             continue
-        spec = info[cn]
-        print "Name    :", spec['name']
-        print "License :", spec['license']
-        for line in textwrap.wrap(' '.join(spec['description'].split()), 77):
-            print line
-        print
-        print "Available versions: %s" % ', '.join(c.list_versions(cn))
-        if installed is None:
-            installed = list(egginst.get_installed(prefix))
-        iv = None
-        for fn in installed:
-            if cname_fn(fn) == cn:
-                iv = fn[:-4].split('-')[1]
-        print "Installed version: %s" % iv
-        print
+        meta_txt = join(egg_info_dir, fn, '__egginst__.txt')
+        if not isfile(meta_txt):
+            continue
+        d = {}
+        execfile(meta_txt, d)
+        if cname_fn(d['egg_name']) == cname and '-' in d['egg_name']:
+            return d['egg_name'][:-4].split('-', 1)[1]
+
+
+def info_option(url, c, cname):
+    print "Canonic.:", cname
+    if url:
+        info = get_info(url)
+        if cname in info:
+            spec = info[cname]
+            print "Name    :", spec['name']
+            print "License :", spec['license']
+            for line in textwrap.wrap(' '.join(spec['description'].split()), 77):
+                print line
+        else:
+            print "No information about %r in %r" % (cname, url)
+    else:
+        print "No 'info_url' in .enstaller4rc"
+    print
+    print "In repositories:"
+    req = Req(cname)
+    for repo in c.repos:
+        if c.get_matches_repo(req, repo):
+            print '    %s' % repo
+    print
+
+    dist = c.get_dist(Req(cname))
+    if dist:
+        reqs = set(r.name for r in c.reqs_dist(dist))
+        print "Requirements: %s" % ', '.join(reqs)
+
+    print "Available versions: %s" % ', '.join(c.list_versions(cname))
+    print "sys.prefix = %r" % sys.prefix
+    print "Installed: %s" % get_installed_version(sys.prefix, cname)
+    if prefix == sys.prefix:
+        return
+    print "prefix = %r" % prefix
+    print "Installed (prefix): %s" % get_installed_version(prefix, cname)
 
 
 def search(c, pat=None):
@@ -388,11 +414,9 @@ def main():
         return
 
     if opts.info:                                 #  --info
-        if args:
-            cname = canonical(args[0])
-        else:
-            cname = None
-        info_option(conf['info_url'], c, cname)
+        if len(args) != 1:
+            p.error("Option requires one argument (the name)")
+        info_option(conf['info_url'], c, canonical(args[0]))
         return
 
     if len(args) == 0:

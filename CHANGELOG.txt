@@ -6,6 +6,8 @@
 
 * fixed: enpkg now doesn't crash if a local repository contains invalid eggs
 
+* add --info option to enpkg
+
 
 
 2010-02-28   4.1.6:
