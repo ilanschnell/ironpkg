@@ -112,14 +112,24 @@ def info_option(url, c, cname):
         print "ERROR: No info available, please the 'info_url' in rc-file"
         sys.exit(1)
     info = get_info(url)
-    for name in sorted(set(info.iterkeys())):
-        if cname and name != cname:
+    installed = None
+    for cn in sorted(set(info.iterkeys())):
+        if cname and cn != cname:
             continue
-        spec = info[name]
+        spec = info[cn]
         print "Name    :", spec['name']
         print "License :", spec['license']
         for line in textwrap.wrap(' '.join(spec['description'].split()), 77):
             print line
+        print
+        print "Available versions: %s" % ', '.join(c.list_versions(cn))
+        if installed is None:
+            installed = list(egginst.get_installed(prefix))
+        iv = None
+        for fn in installed:
+            if cname_fn(fn) == cn:
+                iv = fn[:-4].split('-')[1]
+        print "Installed version: %s" % iv
         print
 
 
