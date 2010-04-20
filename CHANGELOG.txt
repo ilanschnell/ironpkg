@@ -8,6 +8,8 @@
 
 * add --info option to enpkg
 
+* update use the latest version of the official implementation of PEP 386
+
 
 
 2010-02-28   4.1.6:
