@@ -1,8 +1,11 @@
 # This module implements PEP 386
-# 2009-08-27: hg clone http://bitbucket.org/tarek/distutilsversion/
+# 2010-04-20: hg clone http://bitbucket.org/tarek/distutilsversion/
+
 """
-"Rational" version definition and parsing for DistutilsVersionFight discussion at PyCon 2009.
+"Rational" version definition and parsing for DistutilsVersionFight
+discussion at PyCon 2009.
 """
+
 import sys
 import re
 
@@ -14,7 +17,7 @@ class HugeMajorVersionNumError(IrrationalVersionError):
     """An irrational version because the major version number is huge
     (often because a year or date was used).
 
-    See `error_on_huge_major_num` option in `RationalVersion` for details.
+    See `error_on_huge_major_num` option in `NormalizedVersion` for details.
     This guard can be disabled by setting that option False.
     """
     pass
@@ -28,7 +31,7 @@ class HugeMajorVersionNumError(IrrationalVersionError):
 #   1.0.post256.dev345    ((1,0), ('f',),  ('f', 'post', 256, 'dev', 345))
 #   1.0.post345           ((1,0), ('f',),  ('f', 'post', 345, 'f'))
 #                                   ^        ^                 ^
-#   'f' < 'b' ---------------------/         |                 |
+#   'b' < 'f' ---------------------/         |                 |
 #                                            |                 |
 #   'dev' < 'f' < 'post' -------------------/                  |
 #                                                              |
@@ -41,13 +44,14 @@ VERSION_RE = re.compile(r'''
     (?P<version>\d+\.\d+)          # minimum 'N.N'
     (?P<extraversion>(?:\.\d+)*)   # any number of extra '.N' segments
     (?:
-        (?P<prerel>[abc])             # 'a'=alpha, 'b'=beta, 'c'=release candidate
+        (?P<prerel>[abc]|rc)       # 'a'=alpha, 'b'=beta, 'c'=release candidate
+                                   # 'rc'= alias for release candidate
         (?P<prerelversion>\d+(?:\.\d+)*)
     )?
     (?P<postdev>(\.post(?P<post>\d+))?(\.dev(?P<dev>\d+))?)?
     $''', re.VERBOSE)
 
-class RationalVersion(object):
+class NormalizedVersion(object):
     """A rational version.
 
     Good:
@@ -66,13 +70,13 @@ class RationalVersion(object):
         1.2.3b
     """
     def __init__(self, s, error_on_huge_major_num=True):
-        """Create a RationalVersion instance from a version string.
+        """Create a NormalizedVersion instance from a version string.
 
         @param s {str} The version string.
         @param error_on_huge_major_num {bool} Whether to consider an
             apparent use of a year or full date as the major version number
             an error. Default True. One of the observed patterns on PyPI before
-            the introduction of `RationalVersion` was version numbers like this:
+            the introduction of `NormalizedVersion` was version numbers like this:
                 2009.01.03
                 20040603
                 2005.01
@@ -138,7 +142,7 @@ class RationalVersion(object):
                        pad_zeros_length=0):
         """Parse 'N.N.N' sequences, return a list of ints.
 
-        @param s {str} 'N.N.N...' sequence to be parsed
+        @param s {str} 'N.N.N..." sequence to be parsed
         @param full_ver_str {str} The full version string from which this
             comes. Used for error strings.
         @param drop_trailing_zeros {bool} Whether to drop trailing zeros
@@ -191,12 +195,12 @@ class RationalVersion(object):
                 % (type(self).__name__, type(other).__name__))
 
     def __eq__(self, other):
-        if not isinstance(other, RationalVersion):
+        if not isinstance(other, NormalizedVersion):
             self._cannot_compare(other)
         return self.parts == other.parts
 
     def __lt__(self, other):
-        if not isinstance(other, RationalVersion):
+        if not isinstance(other, NormalizedVersion):
             self._cannot_compare(other)
         return self.parts < other.parts
 
@@ -212,17 +216,17 @@ class RationalVersion(object):
     def __ge__(self, other):
         return self.__eq__(other) or self.__gt__(other)
 
-def suggest_rational_version(s):
-    """Suggest a rational version close to the given version string.
+def suggest_normalized_version(s):
+    """Suggest a normalized version close to the given version string.
 
-    If you have a version string that isn't rational (i.e. RationalVersion
+    If you have a version string that isn't rational (i.e. NormalizedVersion
     doesn't like it) then you might be able to get an equivalent (or close)
     rational version from this function.
 
     This does a number of simple normalizations to the given string, based
     on observation of versions currently in use on PyPI. Given a dump of
     those version during PyCon 2009, 4287 of them:
-    - 2312 (53.93%) match RationalVersion without change
+    - 2312 (53.93%) match NormalizedVersion without change
     - with the automatic suggestion
     - 3474 (81.04%) match when using this suggestion method
 
@@ -230,7 +234,7 @@ def suggest_rational_version(s):
     @returns A rational version string, or None, if couldn't determine one.
     """
     try:
-        RationalVersion(s)
+        NormalizedVersion(s)
         return s   # already rational
     except IrrationalVersionError:
         pass
@@ -239,10 +243,25 @@ def suggest_rational_version(s):
 
     # part of this could use maketrans
     for orig, repl in (('-alpha', 'a'), ('-beta', 'b'), ('alpha', 'a'),
-                       ('beta', 'b'), ('rc', 'c'),
+                       ('beta', 'b'), ('rc', 'c'), ('-final', ''),
+                       ('-pre', 'c'),
+                       ('-release', ''), ('.release', ''), ('-stable', ''),
                        ('+', '.'), ('_', '.'), (' ', ''), ('.final', ''),
                        ('final', '')):
         rs = rs.replace(orig, repl)
+
+    # if something ends with dev or pre, we add a 0
+    rs = re.sub(r"pre$", r"pre0", rs)
+    rs = re.sub(r"dev$", r"dev0", rs)
+
+    # if we have something like "b-2" or "a.2" at the end of the
+    # version, that is pobably beta, alpha, etc
+    # let's remove the dash or dot
+    rs = re.sub(r"([abc|rc])[\-\.](\d+)$", r"\1\2", rs)
+
+    # 1.0-dev-r371 -> 1.0.dev371
+    # 0.1-dev-r79 -> 0.1.dev79
+    rs = re.sub(r"[\-\.](dev)[\-\.]?r?(\d+)$", r".\1\2", rs)
 
     # Clean: 2.0.a.3, 2.0.b1, 0.9.0~c1
     rs = re.sub(r"[.~]?([abc])\.?", r"\1", rs)
@@ -263,6 +282,18 @@ def suggest_rational_version(s):
 
     # the 'dev-rNNN' tag is a dev tag
     rs = re.sub(r"\.?(dev-r|dev\.r)\.?(\d+)$", r".dev\2", rs)
+
+    # clean the - when used as a pre delimiter
+    rs = re.sub(r"-(a|b|c)(\d+)$", r"\1\2", rs)
+
+    # a terminal "dev" or "devel" can be changed into ".dev0"
+    rs = re.sub(r"[\.\-](dev|devel)$", r".dev0", rs)
+
+    # a terminal "dev" can be changed into ".dev0"
+    rs = re.sub(r"(?![\.\-])dev$", r".dev0", rs)
+
+    # a terminal "final" or "stable" can be removed
+    rs = re.sub(r"(final|stable)$", "", rs)
 
     # The 'r' and the '-' tags are post release tags
     #   0.4a1.r10       ->  0.4a1.post10
@@ -286,9 +317,14 @@ def suggest_rational_version(s):
     # PyPI stats: ~21 (0.62%) better
     rs = re.sub(r"\.?(pre|preview|-c)(\d+)$", r"c\g<2>", rs)
 
+
+    # Tcl/Tk uses "px" for their post release markers
+    rs = re.sub(r"p(\d+)$", r".post\1", rs)
+
     try:
-        RationalVersion(rs)
+        NormalizedVersion(rs)
         return rs   # already rational
     except IrrationalVersionError:
         pass
     return None
+

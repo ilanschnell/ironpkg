@@ -11,8 +11,8 @@ from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
 from utils import canonical, cname_fn, get_info
-from indexed_repo import (filename_dist, repo_dist, Chain, Req,
-                          add_Reqs_to_spec, spec_as_req, parse_data)
+from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
+                          spec_as_req, parse_data)
 
 
 # global options variables

@@ -8,7 +8,7 @@ from os.path import abspath, expanduser
 
 from egginst.utils import human_bytes, rm_rf
 from enstaller import __version__
-from enstaller.verlib import RationalVersion, IrrationalVersionError
+from enstaller.verlib import NormalizedVersion, IrrationalVersionError
 
 
 PY_VER = '%i.%i' % sys.version_info[:2]
@@ -39,7 +39,7 @@ def comparable_version(version):
         # This hack makes it possible to use 'rc' in the version, where
         # 'rc' must be followed by a single digit.
         ver = version.replace('rc', '.dev99999')
-        return RationalVersion(ver)
+        return NormalizedVersion(ver)
     except IrrationalVersionError:
         # If obtaining the RationalVersion object fails (for example for
         # the version '2009j'), simply return the string, such that
