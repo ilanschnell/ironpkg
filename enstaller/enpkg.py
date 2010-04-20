@@ -3,13 +3,14 @@ import re
 import sys
 import string
 import subprocess
+import textwrap
 from os.path import basename, isdir, isfile, join
 
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
-from utils import cname_fn
+from utils import canonical, cname_fn, get_info
 from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
                           spec_as_req, parse_data)
 
@@ -104,6 +105,22 @@ def check_write():
     finally:
         if isfile(path):
             os.unlink(path)
+
+
+def info_option(url, c, cname):
+    if url is None:
+        print "ERROR: No info available, please the 'info_url' in rc-file"
+        sys.exit(1)
+    info = get_info(url)
+    for name in sorted(set(info.iterkeys())):
+        if cname and name != cname:
+            continue
+        spec = info[name]
+        print "Name    :", spec['name']
+        print "License :", spec['license']
+        for line in textwrap.wrap(' '.join(spec['description'].split()), 77):
+            print line
+        print
 
 
 def search(c, pat=None):
@@ -248,6 +265,10 @@ def main():
                  help="force install of all packages "
                       "(i.e. including dependencies)")
 
+    p.add_option('-i', "--info",
+                 action="store_true",
+                 help="show information about package(s)")
+
     p.add_option('-l', "--list",
                  action="store_true",
                  help="list the packages currently installed on the system")
@@ -306,10 +327,7 @@ def main():
 
     pat = None
     if (opts.list or opts.search) and args:
-        try:
-            pat = re.compile(args[0], re.I)
-        except:
-            pass
+        pat = re.compile(args[0], re.I)
 
     if opts.version:                              #  --version
         from enstaller import __version__
@@ -357,6 +375,14 @@ def main():
 
     if opts.search:                               #  --search
         search(c, pat)
+        return
+
+    if opts.info:                                 #  --info
+        if args:
+            cname = canonical(args[0])
+        else:
+            cname = None
+        info_option(conf['info_url'], c, cname)
         return
 
     if len(args) == 0:

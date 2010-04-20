@@ -1,7 +1,9 @@
+import bz2
 import sys
 import hashlib
 import urlparse
 import urllib2
+from cStringIO import StringIO
 from os.path import abspath, expanduser
 
 from egginst.utils import human_bytes, rm_rf
@@ -154,3 +156,31 @@ def write_data_from_url(fo, url, md5=None, size=None):
                          "is corrupted.  MD5 sums mismatch.\n" % url)
         fo.close()
         sys.exit(1)
+
+
+def get_info(url):
+    """
+    Returns a dict mapping canonical project names to spec structures
+    containing additional meta-data of the project which is not contained
+    in the index-depend data.
+    """
+    from indexed_repo.metadata import parse_index
+
+    faux = StringIO()
+    write_data_from_url(faux, url)
+    index_data = faux.getvalue()
+    faux.close()
+
+    if url.endswith('.bz2'):
+        index_data = bz2.decompress(index_data)
+
+    res = {}
+    for name, data in parse_index(index_data).iteritems():
+        d = {}
+        exec data.replace('\r', '') in d
+        cname = canonical(name)
+        res[cname] = {}
+        for var_name in ['name', 'homepage', 'doclink', 'license',
+                         'summary', 'description']:
+            res[cname][var_name] = d[var_name]
+    return res
