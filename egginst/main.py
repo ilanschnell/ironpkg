@@ -115,7 +115,7 @@ class EggInst(object):
         fo.close()
 
     def read_meta(self):
-        d = {}
+        d = {'installed_size': -1}
         execfile(self.meta_txt, d)
         for name in ['egg_name', 'prefix', 'installed_size', 'rel_files']:
             setattr(self, name, d[name])
