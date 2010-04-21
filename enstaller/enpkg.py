@@ -4,7 +4,8 @@ import sys
 import string
 import subprocess
 import textwrap
-from os.path import basename, isdir, isfile, join
+import time
+from os.path import basename, getmtime, isdir, isfile, join
 
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
@@ -245,6 +246,30 @@ def remove_req(req):
     call_egginst(pkg, remove=True)
 
 
+def get_mtime_req(req):
+    egg_info_dirs = [join(prefix, 'EGG-INFO')]
+    if prefix != sys.prefix:
+        egg_info_dirs.append(join(sys.prefix, 'EGG-INFO'))
+
+    for egg_info_dir in egg_info_dirs:
+        if isdir(egg_info_dir):
+            for fn in os.listdir(egg_info_dir):
+                if canonical(fn) == req.name:
+                    return getmtime(join(egg_info_dir, fn))
+
+
+def print_uptodate_req(req):
+    """
+    Prints the "up-to-date message" for the required package.
+    """
+    print "No update necessary, %s is up-to-date." % req
+    mtime = get_mtime_req(req)
+    if mtime is None:
+        print "Hmm, could not determine mtime of %r" % req
+    else:
+        print "%s was installed/updated on: %s" % (req, time.ctime(mtime))
+
+
 def get_dists(c, req, recur):
     """
     Resolves the requirement
@@ -475,8 +500,13 @@ def main():
                 call_egginst(fn_inst, remove=True)
 
     # Install packages
+    installed_something = False
     for dist, fn in iter_dists_excl(dists, exclude):
+        installed_something = True
         call_egginst(join(conf['local'], fn))
+
+    if not installed_something:
+        print_uptodate_req(req)
 
 
 if __name__ == '__main__':

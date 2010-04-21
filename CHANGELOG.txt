@@ -10,6 +10,9 @@
 
 * update to use the latest version of the official implementation of PEP 386
 
+* add print of "up-to-date message" when nothing was installed when running
+  enpkg
+
 
 
 2010-02-28   4.1.6:
