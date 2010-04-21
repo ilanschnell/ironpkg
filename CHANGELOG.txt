@@ -8,7 +8,7 @@
 
 * add --info option to enpkg
 
-* update use the latest version of the official implementation of PEP 386
+* update to use the latest version of the official implementation of PEP 386
 
 
 
