@@ -108,10 +108,14 @@ def check_write():
             os.unlink(path)
 
 
-def get_installed_version(prefix, cname):
+def get_installed_info(prefix, cname):
+    """
+    Returns a tuple(eggname, mtime) of the package specified by the
+    canonical name found in prefix, or None if the package is not found.
+    """
     egg_info_dir = join(prefix, 'EGG-INFO')
     if not isdir(egg_info_dir):
-        return
+        return None
     for fn in os.listdir(egg_info_dir):
         if canonical(fn) != cname:
             continue
@@ -120,8 +124,29 @@ def get_installed_version(prefix, cname):
             continue
         d = {}
         execfile(meta_txt, d)
-        if cname_fn(d['egg_name']) == cname and '-' in d['egg_name']:
-            return d['egg_name'][:-4].split('-', 1)[1]
+        if cname_fn(d['egg_name']) == cname:
+            return d['egg_name'], getmtime(meta_txt)
+    return None
+
+
+def print_installed_info(cname):
+    info = get_installed_info(prefix, cname)
+    if info is None:
+        print "%s is not installed" % cname
+    else:
+        eggname, mtime = info
+        print "%s was installed on: %s" % (eggname, time.ctime(mtime))
+
+    if prefix == sys.prefix:
+        return
+
+    info = get_installed_info(sys.prefix, cname)
+    if info is None:
+        print "%s is not installed in sys.prefix" % cname
+    else:
+        eggname, mtime = info
+        print "%s was installed in sys.prefix on: %s" % (eggname,
+                                                         time.ctime(mtime))
 
 
 def info_option(url, c, cname):
@@ -132,7 +157,8 @@ def info_option(url, c, cname):
             spec = info[cname]
             print "Name    :", spec['name']
             print "License :", spec['license']
-            for line in textwrap.wrap(' '.join(spec['description'].split()), 77):
+            for line in textwrap.wrap(' '.join(spec['description'].split()),
+                                      77):
                 print line
         else:
             print "No information about %r in %r" % (cname, url)
@@ -152,12 +178,7 @@ def info_option(url, c, cname):
         print "Requirements: %s" % ', '.join(reqs)
 
     print "Available versions: %s" % ', '.join(c.list_versions(cname))
-    print "sys.prefix = %r" % sys.prefix
-    print "Installed: %s" % get_installed_version(sys.prefix, cname)
-    if prefix == sys.prefix:
-        return
-    print "prefix = %r" % prefix
-    print "Installed (prefix): %s" % get_installed_version(prefix, cname)
+    print_installed_info(cname)
 
 
 def search(c, pat=None):
@@ -244,30 +265,6 @@ def remove_req(req):
         return
     depend_warn([pkg], ignore_version=True)
     call_egginst(pkg, remove=True)
-
-
-def get_mtime_req(req):
-    egg_info_dirs = [join(prefix, 'EGG-INFO')]
-    if prefix != sys.prefix:
-        egg_info_dirs.append(join(sys.prefix, 'EGG-INFO'))
-
-    for egg_info_dir in egg_info_dirs:
-        if isdir(egg_info_dir):
-            for fn in os.listdir(egg_info_dir):
-                if canonical(fn) == req.name:
-                    return getmtime(join(egg_info_dir, fn))
-
-
-def print_uptodate_req(req):
-    """
-    Prints the "up-to-date message" for the required package.
-    """
-    print "No update necessary, %s is up-to-date." % req
-    mtime = get_mtime_req(req)
-    if mtime is None:
-        print "Hmm, could not determine mtime of %r" % req
-    else:
-        print "%s was installed/updated on: %s" % (req, time.ctime(mtime))
 
 
 def get_dists(c, req, recur):
@@ -438,17 +435,17 @@ def main():
         search(c, pat)
         return
 
-    if opts.info:                                 #  --info
-        if len(args) != 1:
-            p.error("Option requires one argument (the name)")
-        info_option(conf['info_url'], c, canonical(args[0]))
-        return
-
     if len(args) == 0:
         p.error("Requirement (name and optional version) missing")
     if len(args) > 2:
         p.error("A requirement is a name and an optional version")
     req = Req(' '.join(args))
+
+    if opts.info:                                 #  --info
+        if len(args) != 1:
+            p.error("Option requires one argument (the name)")
+        info_option(conf['info_url'], c, req.name)
+        return
 
     print "prefix:", prefix
     check_write()
@@ -506,7 +503,8 @@ def main():
         call_egginst(join(conf['local'], fn))
 
     if not installed_something:
-        print_uptodate_req(req)
+        print "No update necessary, %s is up-to-date." % req
+        print_installed_info(req.name)
 
 
 if __name__ == '__main__':
