@@ -157,6 +157,8 @@ def info_option(url, c, cname):
             spec = info[cname]
             print "Name    :", spec['name']
             print "License :", spec['license']
+            print "Summary :", spec['summary']
+            print
             for line in textwrap.wrap(' '.join(spec['description'].split()),
                                       77):
                 print line
