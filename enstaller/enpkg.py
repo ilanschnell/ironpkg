@@ -332,7 +332,7 @@ def main():
 
     p.add_option('-i', "--info",
                  action="store_true",
-                 help="show information about package(s)")
+                 help="show information about a package")
 
     p.add_option('-l', "--list",
                  action="store_true",
@@ -442,17 +442,17 @@ def main():
         search(c, pat)
         return
 
+    if opts.info:                                 #  --info
+        if len(args) != 1:
+            p.error("Option requires one argument (name of package)")
+        info_option(conf['info_url'], c, canonical(args[0]))
+        return
+
     if len(args) == 0:
         p.error("Requirement (name and optional version) missing")
     if len(args) > 2:
         p.error("A requirement is a name and an optional version")
     req = Req(' '.join(args))
-
-    if opts.info:                                 #  --info
-        if len(args) != 1:
-            p.error("Option requires one argument (the name)")
-        info_option(conf['info_url'], c, req.name)
-        return
 
     print "prefix:", prefix
     check_write()
