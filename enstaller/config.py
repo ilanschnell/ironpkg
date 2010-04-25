@@ -3,6 +3,7 @@
 
 import os
 import sys
+import platform
 from os.path import isfile, join
 
 from enstaller import __version__
@@ -149,8 +150,6 @@ EPD_userpass = %r
 
 
 def get_arch():
-    import platform
-
     if '64' in platform.architecture()[0]:
         return 'amd64'
     else:
@@ -193,6 +192,8 @@ def read():
 def print_config():
     print "Python version:", PY_VER
     print "sys.prefix:", sys.prefix
+    print "platform.platform:", platform.platform()
+    print "platform.architecture:", platform.architecture()
     cfg_path = get_path()
     print "config file:", cfg_path
     if cfg_path is None:
