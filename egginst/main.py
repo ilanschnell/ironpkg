@@ -1,9 +1,12 @@
 # Author: Ilan Schnell <ischnell@enthought.com>
 """\
-egginst is a simple tool for installing eggs into a Python environment.
-By default the eggs (provided as arguments) are installed.
+egginst is a simple tool for installing and uninstalling eggs.  The tool
+is brain dead in the sense that it does not care if the eggs it installs
+are for the correct platform, it's dependencies got installed, another
+package needs to be uninstalled prior to the install, and so on.  Those tasks
+are responsibilities of a package manager, e.g. enpkg.  You just give it
+eggs and it installs/uninstalls them.
 """
-
 import os
 import sys
 import re

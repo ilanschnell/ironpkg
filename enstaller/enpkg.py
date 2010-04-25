@@ -1,3 +1,9 @@
+# Author: Ilan Schnell <ischnell@enthought.com>
+"""\
+enstaller is a managing tool for egginst-based installs, and the CLI is
+called enpkg which calls out to egginst to do the actual install.
+enpkg can access distributions from local and HTTP repositories.
+"""
 import os
 import re
 import sys
@@ -307,9 +313,8 @@ def iter_dists_excl(dists, exclude_fn):
 def main():
     from optparse import OptionParser
 
-    p = OptionParser(
-        usage="usage: %prog [options] [name] [version]",
-        description=("download and install eggs ..."))
+    p = OptionParser(usage="usage: %prog [options] [name] [version]",
+                     description=__doc__)
 
     p.add_option("--config",
                  action="store_true",

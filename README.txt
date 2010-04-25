@@ -13,8 +13,6 @@ enpkg can access distributions from local and HTTP repositories, which
 are pre-indexed.  The point of the index file (index-depend.bz2) is that
 enpkg can download this file at the beginning of an install session
 and resolve dependencies prior to downloading the actual files.
-The CLI called 'index-tool' provides tools to create the index file in an
-egg directory which can then be served over HTTP.
 
 
 egginst:
