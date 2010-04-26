@@ -171,7 +171,7 @@ def read():
         prefix=sys.prefix,
         proxy=None,
         noapp=False,
-        local=join(sys.prefix, 'LOCAL-REPO')
+        local=join(sys.prefix, 'LOCAL-REPO'),
     )
     for k in ['EPD_userpass', 'IndexedRepos', 'info_url', 'prefix', 'proxy',
               'noapp', 'local']:
@@ -192,8 +192,8 @@ def read():
 def print_config():
     print "Python version:", PY_VER
     print "sys.prefix:", sys.prefix
-    print "platform.platform:", platform.platform()
-    print "platform.architecture:", platform.architecture()
+    print "platform:", platform.platform()
+    print "architecture:", platform.architecture()[0]
     cfg_path = get_path()
     print "config file:", cfg_path
     if cfg_path is None:
