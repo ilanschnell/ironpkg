@@ -53,7 +53,7 @@ RC_TMPL = """\
 # This file contains the default package repositories, and configuration,
 # used by Enstaller %(version)s for the Python %(py_ver)s environment:
 #
-#   sys.prefix = %(prefix)r
+#   sys.prefix = %(sys_prefix)r
 #
 # This file was created by initially running the enpkg command.
 
@@ -80,8 +80,10 @@ IndexedRepos = [
 # by the --info option.
 %(comment_info)sinfo_url = 'http://www.enthought.com/epd/index-info.bz2'
 
-# Install prefix (enpkg --prefix and --sys-prefix options overwrite this):
-#prefix = '%(prefix)s'
+# Install prefix (enpkg --prefix and --sys-prefix options overwrite this).
+# When this variable is not provided, it will default to the value of
+# sys.prefix (within the current interpreter running enpkg)
+#prefix = %(sys_prefix)r
 
 # When running enpkg behind a firewall it might be necessary to use a proxy
 # to access the repositories.  The URL for the proxy can be set here.
@@ -134,7 +136,7 @@ EPD_userpass = %r
         comment_info = '#'
 
     py_ver = PY_VER
-    prefix = sys.prefix
+    sys_prefix = sys.prefix
     version = __version__
 
     if proxy:
