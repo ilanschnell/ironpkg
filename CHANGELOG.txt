@@ -13,6 +13,8 @@
 * add print of "up-to-date message" when nothing was installed when running
   enpkg
 
+* add --whats-new option to enpkg
+
 
 
 2010-02-28   4.1.6:

@@ -17,9 +17,9 @@ import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
-from utils import canonical, cname_fn, get_info
+from utils import canonical, cname_fn, get_info, comparable_version
 from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
-                          spec_as_req, parse_data)
+                          spec_as_req, parse_data, dist_naming)
 
 
 # global options variables
@@ -187,6 +187,28 @@ def info_option(url, c, cname):
 
     print "Available versions: %s" % ', '.join(c.list_versions(cname))
     print_installed_info(cname)
+
+
+def whats_new(c):
+    fmt = '%-25s %-15s %s'
+    print fmt % ('Name', 'installed', 'available')
+    print 60* "="
+
+    inst = set(egginst.get_installed(sys.prefix))
+    if prefix != sys.prefix:
+        inst |= set(egginst.get_installed(prefix))
+
+    for egg_name in inst:
+        if not dist_naming.is_valid_eggname(egg_name):
+            continue
+        in_n, in_v, in_b = dist_naming.split_eggname(egg_name)
+        dist = c.get_dist(Req(in_n))
+        if dist is None:
+            continue
+        av_v = c.index[dist]['version']
+        if (av_v != in_v and
+                    comparable_version(av_v) > comparable_version(in_v)):
+            print fmt % (in_n, in_v, av_v)
 
 
 def search(c, pat=None):
@@ -379,6 +401,11 @@ def main():
 
     p.add_option('--version', action="store_true")
 
+    p.add_option("--whats-new",
+                 action="store_true",
+                 help="display to which installed packages updates are "
+                      "available")
+
     opts, args = p.parse_args()
 
     if len(args) > 0 and (opts.config or opts.path):
@@ -446,6 +473,12 @@ def main():
         if len(args) != 1:
             p.error("Option requires one argument (name of package)")
         info_option(conf['info_url'], c, canonical(args[0]))
+        return
+
+    if opts.whats_new:                            # --whats-new
+        if args:
+            p.error("Option requires no arguments")
+        whats_new(c)
         return
 
     if len(args) == 0:
