@@ -198,6 +198,7 @@ def whats_new(c):
     if prefix != sys.prefix:
         inst |= set(egginst.get_installed(prefix))
 
+    something_new = False
     for egg_name in inst:
         if not dist_naming.is_valid_eggname(egg_name):
             continue
@@ -209,6 +210,10 @@ def whats_new(c):
         if (av_v != in_v and
                     comparable_version(av_v) > comparable_version(in_v)):
             print fmt % (in_n, in_v, av_v)
+            something_new = True
+
+    if not something_new:
+        print "no new version of any installed package is available"
 
 
 def search(c, pat=None):
