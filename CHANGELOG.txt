@@ -1,5 +1,5 @@
 
-2010-XX-XX   4.1.7:
+2010-04-03   4.2.0:
 -------------------
 
 * improved creation time of index-depend by adding mtime
