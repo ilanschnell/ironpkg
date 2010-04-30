@@ -37,12 +37,12 @@ setup(
     },
     classifiers = [
         "License :: OSI Approved :: BSD License",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable"
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
-        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Software Distribution",
         "Topic :: System :: Systems Administration",
     ],
     **kwds
