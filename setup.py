@@ -37,7 +37,7 @@ setup(
     },
     classifiers = [
         "License :: OSI Approved :: BSD License",
-        "Development Status :: 5 - Production/Stable"
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 2.5",
