@@ -2,7 +2,10 @@
 2010-XX-XX   4.2.1:
 -------------------
 
-* ...
+* be more explicit about valid characters in egg file-name
+
+* fixes in documentation
+
 
 
 2010-04-03   4.2.0:
