@@ -30,14 +30,14 @@ MAGIC = {
 _targets = []
 
 
-def get_object_type(fpath):
+def get_object_type(path):
     """
     Return the object file type of the specified file (not link).
     Otherwise, if the file is not an object file, returns None.
     """
-    if fpath.endswith(NO_OBJ) or islink(fpath) or not isfile(fpath):
+    if path.endswith(NO_OBJ) or islink(path) or not isfile(path):
         return None
-    fi = open(fpath, 'rb')
+    fi = open(path, 'rb')
     head = fi.read(4)
     fi.close()
     return MAGIC.get(head)
@@ -48,17 +48,17 @@ def find_lib(fn):
         dst = abspath(join(tgt, fn))
         if exists(dst):
             return dst
-    print "Error: library %r not found" % fn
+    print "ERROR: library %r not found" % fn
     return join('/ERROR/path/not/found', fn)
 
 
 _placehold_pat = re.compile('/PLACEHOLD' * 5 + '([^\0]*)\0')
-def fix_object_code(fpath):
-    tp = get_object_type(fpath)
+def fix_object_code(path):
+    tp = get_object_type(path)
     if tp is None:
         return
 
-    f = open(fpath, 'r+b')
+    f = open(path, 'r+b')
     data = f.read()
     matches = list(_placehold_pat.finditer(data))
     if not matches:
@@ -66,7 +66,7 @@ def fix_object_code(fpath):
         return
 
     if verbose:
-        print "Fixing placeholders in:", fpath
+        print "Fixing placeholders in:", path
     for m in matches:
         gr1 = m.group(1)
         if tp.startswith('MachO-') and basename(gr1) != 'PLACEHOLD':

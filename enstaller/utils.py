@@ -35,6 +35,13 @@ def cname_fn(fn):
 
 
 def comparable_version(version):
+    """
+    Given a version string (e.g. '1.3.0.dev234'), return an object which
+    allows correct comparison. For example:
+        comparable_version('1.3.10') > comparable_version('1.3.8')  # True
+    whereas:
+        '1.3.10' > '1.3.8'  # False
+    """
     try:
         # This hack makes it possible to use 'rc' in the version, where
         # 'rc' must be followed by a single digit.
@@ -46,7 +53,6 @@ def comparable_version(version):
         # a string comparison can be made.
         return version
 
-# ------------
 
 def md5_file(path):
     """

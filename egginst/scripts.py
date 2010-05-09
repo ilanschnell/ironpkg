@@ -103,21 +103,24 @@ def create_proxies(egg):
             egg.files.append(dst)
 
 
-def write_script(fpath, entry_pt, egg_name):
+def write_script(path, entry_pt, egg_name):
+    """
+    Write an entry point script to path.
+    """
     if verbose:
-        print 'Creating script: %s' % fpath
+        print 'Creating script: %s' % path
 
     assert entry_pt.count(':') == 1
     module, func = entry_pt.strip().split(':')
     python = executable
     if on_win:
-        if fpath.endswith('pyw'):
+        if path.endswith('pyw'):
             p = re.compile('python\.exe$', re.I)
             python = p.sub('pythonw.exe', python)
         python = '"%s"' % python
 
-    rm_rf(fpath)
-    fo = open(fpath, 'w')
+    rm_rf(path)
+    fo = open(path, 'w')
     fo.write('''\
 #!%(python)s
 # This script was created by egginst when installing:
@@ -130,7 +133,7 @@ from %(module)s import %(func)s
 sys.exit(%(func)s())
 ''' % locals())
     fo.close()
-    os.chmod(fpath, 0755)
+    os.chmod(path, 0755)
 
 
 def create(egg, conf):
@@ -159,6 +162,9 @@ def create(egg, conf):
 
 
 def fix_script(path):
+    """
+    Fixes a single located at path.
+    """
     if islink(path) or not isfile(path):
         return
 
@@ -191,9 +197,9 @@ def fix_script(path):
 
 
 def fix_scripts(egg):
-    for fpath in egg.files:
-        if fpath.startswith(egg.bin_dir):
-            fix_script(fpath)
+    for path in egg.files:
+        if path.startswith(egg.bin_dir):
+            fix_script(path)
 
 
 if __name__ == '__main__':
