@@ -183,7 +183,7 @@ def info_option(url, c, cname):
     dist = c.get_dist(Req(cname))
     if dist:
         reqs = set(r.name for r in c.reqs_dist(dist))
-        print "Requirements: %s" % ', '.join(reqs)
+        print "Requirements: %s" % ', '.join(sorted(reqs))
 
     print "Available versions: %s" % ', '.join(c.list_versions(cname))
     print_installed_info(cname)
