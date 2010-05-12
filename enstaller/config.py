@@ -1,5 +1,5 @@
-# Copyright (c) 2008-2009 by Enthought, Inc.
-# All rights reserved.
+# Copyright by Enthought, Inc.
+# Author: Ilan Schnell <ischnell@enthought.com>
 
 import os
 import sys
@@ -193,6 +193,7 @@ def read():
 
 def print_config():
     print "Python version:", PY_VER
+    print "Enstaller version:", __version__
     print "sys.prefix:", sys.prefix
     print "platform:", platform.platform()
     print "architecture:", platform.architecture()[0]
