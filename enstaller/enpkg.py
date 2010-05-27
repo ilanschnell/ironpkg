@@ -12,11 +12,13 @@ import subprocess
 import textwrap
 import time
 from os.path import basename, getmtime, isdir, isfile, join
+from optparse import OptionParser
 
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
+from proxy.api import setup_proxy
 from utils import canonical, cname_fn, get_info, comparable_version
 from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
                           spec_as_req, parse_data, dist_naming)
@@ -338,8 +340,6 @@ def iter_dists_excl(dists, exclude_fn):
 
 
 def main():
-    from optparse import OptionParser
-
     p = OptionParser(usage="usage: %prog [options] [name] [version]",
                      description=__doc__)
 
@@ -435,19 +435,18 @@ def main():
         config.print_config()
         return
 
-    if opts.proxy:                                #  --proxy
-        from proxy.api import setup_proxy
-        setup_proxy(opts.proxy)
-
     if config.get_path() is None:
         # create config file if it dosn't exist
         config.write(opts.proxy)
 
     conf = config.read()                          #  conf
 
-    if (not opts.proxy) and conf['proxy']:
-        from proxy.api import setup_proxy
+    if opts.proxy:                                #  --proxy
+        setup_proxy(opts.proxy)
+    elif conf['proxy']:
         setup_proxy(conf['proxy'])
+    else:
+        setup_proxy()
 
     global prefix, dry_run, noapp, version        #  set globals
     if opts.sys_prefix:
