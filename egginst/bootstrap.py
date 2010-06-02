@@ -66,8 +66,9 @@ def cli():
     from optparse import OptionParser
     from enstaller import __version__
 
-    p = OptionParser(description="bootstraps Enstaller %(__version__)s into "
-                                 "the Python environment" % locals())
+    p = OptionParser(usage="<executable egg> [options]",
+                     description="bootstraps Enstaller %(__version__)s into "
+                                 "the current Python environment" % locals())
 
     p.add_option("--prefix",
                  action="store",

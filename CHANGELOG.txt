@@ -1,10 +1,10 @@
 
-2010-XX-XX   4.2.1:
+2010-06-02   4.2.1:
 -------------------
 
 * be more explicit about valid characters in egg file-name
 
-* fixes in documentation
+* fixes in documentation, added notes anout install process in readme
 
 
 

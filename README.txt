@@ -66,3 +66,18 @@ build number.  A dependencies specification data file is contained inside
 the egg itself, that is in the archive ``EGG-INFO/spec/depend``, and the
 md5sum and filesize is prepended to the data when the index-depend.bz2 is
 created.
+
+
+Installation:
+-------------
+
+The Enstaller egg contains a bash header, which allows execution.  Therefore,
+on Unix system, you can download the egg and type:
+
+   $ ./Enstaller-4.2.1-1.egg
+   Bootstrapping: ...
+   283 KB [.................................................................]
+
+Once Enstaller is installed, it is possible to update itself.  Note that,
+as Enstaller is the install tool for the Enthought Python Distribution (EPD),
+all EPD installers already include Enstaller.
