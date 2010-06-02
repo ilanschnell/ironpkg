@@ -71,8 +71,12 @@ created.
 Installation:
 -------------
 
-The Enstaller egg contains a bash header, which allows execution.  Therefore,
-on Unix system, you can download the egg and type:
+The preferred and easiest way to install Enstaller is from source, using::
+
+   $ python setup.py install
+
+You may also use pip to do this for you.  As the Enstaller egg contains
+a bash header, on Unix system, you can also download the egg and type::
 
    $ ./Enstaller-4.2.1-1.egg
    Bootstrapping: ...
