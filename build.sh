@@ -6,7 +6,7 @@
 # Build notes:
 #   * setuptools needs to be installed to run this script
 
-VER=4.2.1
+VER=4.2.2
 PY=2.6
 
 SPEC=Enstaller.egg-info/spec
