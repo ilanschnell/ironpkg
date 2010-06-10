@@ -4,13 +4,14 @@ import re
 import bz2
 import string
 import zipfile
-import hashlib
 from cStringIO import StringIO
 from collections import defaultdict
 from os.path import basename, isfile, join, getmtime, getsize
 
 from dist_naming import is_valid_eggname
 from requirement import Req
+
+from enstaller.utils import md5_file
 
 
 def parse_index(data):
@@ -150,18 +151,9 @@ def index_section(zip_path):
     Returns a section corresponding to the zip-file, which can be appended
     to an index.
     """
-    h = hashlib.new('md5')
-    fi = open(zip_path, 'rb')
-    while True:
-        chunk = fi.read(65536)
-        if not chunk:
-            break
-        h.update(chunk)
-    fi.close()
-
     return ('==> %s <==\n' % basename(zip_path) +
             'size = %i\n'  % getsize(zip_path) +
-            'md5 = %r\n' % h.hexdigest() +
+            'md5 = %r\n' % md5_file(zip_path) +
             'mtime = %r\n\n' % getmtime(zip_path) +
             rawspec_from_dist(zip_path) + '\n')
 
