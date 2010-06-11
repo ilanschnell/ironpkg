@@ -59,7 +59,7 @@ def filename_dist(dist):
     return split_dist(dist)[1]
 
 
-egg_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+).egg$')
+egg_pat = re.compile(r'([\w.]+)-([\w.]+)-(\d+)\.egg$')
 
 def is_valid_eggname(eggname):
     return bool(egg_pat.match(eggname))
