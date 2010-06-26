@@ -10,8 +10,7 @@ import sys
 import string
 import subprocess
 import textwrap
-import time
-from os.path import basename, getmtime, isdir, isfile, join
+from os.path import basename, dirname, getmtime, isdir, isfile, join
 from optparse import OptionParser
 
 import egginst
@@ -118,7 +117,7 @@ def check_write():
 
 def get_installed_info(prefix, cname):
     """
-    Returns a tuple(eggname, mtime) of the package specified by the
+    Returns a dictionary with information about the package specified by the
     canonical name found in prefix, or None if the package is not found.
     """
     egg_info_dir = join(prefix, 'EGG-INFO')
@@ -133,7 +132,11 @@ def get_installed_info(prefix, cname):
         d = {}
         execfile(meta_txt, d)
         if cname_fn(d['egg_name']) == cname:
-            return d['egg_name'], getmtime(meta_txt)
+            return dict(
+                egg_name=d['egg_name'],
+                mtime=getmtime(meta_txt),
+                meta_dir=dirname(meta_txt),
+            )
     return None
 
 
@@ -142,8 +145,7 @@ def print_installed_info(cname):
     if info is None:
         print "%s is not installed" % cname
     else:
-        eggname, mtime = info
-        print "%s was installed on: %s" % (eggname, time.ctime(mtime))
+        print "%(egg_name)s was installed on: %(mtime)s" % info
 
     if prefix == sys.prefix:
         return
@@ -152,9 +154,7 @@ def print_installed_info(cname):
     if info is None:
         print "%s is not installed in sys.prefix" % cname
     else:
-        eggname, mtime = info
-        print "%s was installed in sys.prefix on: %s" % (eggname,
-                                                         time.ctime(mtime))
+        print "%(egg_name)s was installed in sys.prefix on: %(mtime)s" % info
 
 
 def info_option(url, c, cname):
