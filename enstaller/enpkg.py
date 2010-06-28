@@ -10,6 +10,7 @@ import sys
 import string
 import subprocess
 import textwrap
+import time
 from os.path import basename, dirname, getmtime, isdir, isfile, join
 from optparse import OptionParser
 
@@ -19,8 +20,8 @@ from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 import config
 from proxy.api import setup_proxy
 from utils import canonical, cname_fn, get_info, comparable_version
-from indexed_repo import (filename_dist, Chain, Req, add_Reqs_to_spec,
-                          spec_as_req, parse_data, dist_naming)
+from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
+                          parse_data, dist_naming)
 
 
 # global options variables
@@ -74,38 +75,6 @@ def egginst_subprocess(pkg_path, remove):
     subprocess.call(args)
 
 
-def call_egginst(pkg_path, remove=False):
-    fn = basename(pkg_path)
-    if sys.platform == 'win32' and fn.startswith(('AppInst-', 'pywin32-')):
-        print "Starting subprocess:"
-        egginst_subprocess(pkg_path, remove)
-        return
-
-    pprint_fn_action(fn, 'removing' if remove else 'installing')
-    if dry_run:
-        return
-
-    ei = egginst.EggInst(pkg_path, prefix, noapp=noapp)
-    if remove:
-        ei.remove()
-    else:
-        ei.install()
-
-
-def check_write():
-    if not isdir(prefix):
-        os.makedirs(prefix)
-    path = join(prefix, 'hello.txt')
-    try:
-        open(path, 'w').write('Hello World!\n')
-    except:
-        print "ERROR: Could not write simple file into:", prefix
-        sys.exit(1)
-    finally:
-        if isfile(path):
-            os.unlink(path)
-
-
 def get_installed_info(prefix, cname):
     """
     Returns a dictionary with information about the package specified by the
@@ -125,10 +94,58 @@ def get_installed_info(prefix, cname):
         if cname_fn(d['egg_name']) == cname:
             return dict(
                 egg_name=d['egg_name'],
-                mtime=getmtime(meta_txt),
+                mtime=time.ctime(getmtime(meta_txt)),
                 meta_dir=dirname(meta_txt),
             )
     return None
+
+
+def egginst_remove(pkg):
+    fn = basename(pkg)
+    if sys.platform == 'win32' and fn.startswith(('AppInst-', 'pywin32-')):
+        print "Starting subprocess:"
+        egginst_subprocess(pkg, remove=True)
+        return
+    pprint_fn_action(fn, 'removing')
+    if dry_run:
+        return
+    ei = egginst.EggInst(pkg, prefix, noapp=noapp)
+    ei.remove()
+
+
+def egginst_install(conf, dist):
+    repo, fn = dist_naming.split_dist(dist)
+    pkg_path = join(conf['local'], fn)
+    if sys.platform == 'win32' and fn.startswith(('AppInst-', 'pywin32-')):
+        print "Starting subprocess:"
+        egginst_subprocess(pkg_path, remove=False)
+        return
+
+    pprint_fn_action(fn, 'installing')
+    if dry_run:
+        return
+
+    ei = egginst.EggInst(pkg_path, prefix, noapp=noapp)
+    ei.install()
+    info = get_installed_info(prefix, cname_fn(fn))
+    path = join(info['meta_dir'], '__enpkg__.txt')
+    fo = open(path, 'w')
+    fo.write("repo = %r\n" % repo)
+    fo.close()
+
+
+def check_write():
+    if not isdir(prefix):
+        os.makedirs(prefix)
+    path = join(prefix, 'hello.txt')
+    try:
+        open(path, 'w').write('Hello World!\n')
+    except:
+        print "ERROR: Could not write simple file into:", prefix
+        sys.exit(1)
+    finally:
+        if isfile(path):
+            os.unlink(path)
 
 
 def print_installed_info(cname):
@@ -182,15 +199,33 @@ def info_option(url, c, cname):
     print_installed_info(cname)
 
 
+repo_pat = re.compile(r'/repo/([^\s/]+/[^\s/]+)/')
+def shorten_repo(repo):
+    m = repo_pat.search(repo)
+    if m:
+        return m.group(1)
+    else:
+        return repo
+
+
 def print_installed(prefix, pat=None):
-    fmt = '%-20s %s'
-    print fmt % ('Project name', 'Version')
-    print 40 * '='
+    fmt = '%-20s %-20s %s'
+    print fmt % ('Project name', 'Version', 'Repository')
+    print 60 * '='
     for fn in egginst.get_installed(prefix):
         if pat and not pat.search(fn):
             continue
         if '-' in fn:
-            print fmt % tuple(fn[:-4].split('-', 1))
+            lst = list(fn[:-4].split('-', 1))
+            info = get_installed_info(prefix, cname_fn(fn))
+            path = join(info['meta_dir'], '__enpkg__.txt')
+            if isfile(path):
+                d = {}
+                execfile(path, d)
+                lst.append(shorten_repo(d['repo']))
+            else:
+                lst.append('')
+            print fmt % tuple(lst)
         else:
             print fn
 
@@ -315,7 +350,7 @@ def remove_req(req):
         print "Package %r does not seem to be installed." % req.name
         return
     depend_warn([pkg], ignore_version=True)
-    call_egginst(pkg, remove=True)
+    egginst_remove(pkg)
 
 
 def get_dists(c, req, recur):
@@ -344,13 +379,13 @@ def get_dists(c, req, recur):
 def iter_dists_excl(dists, exclude_fn):
     """
     Iterates over all dists, excluding the ones whose filename is an element
-    of exclude_fn.  Yields both the distribution and filename.
+    of exclude_fn.  Yields the distribution.
     """
     for dist in dists:
-        fn = filename_dist(dist)
+        fn = dist_naming.filename_dist(dist)
         if fn in exclude_fn:
             continue
-        yield dist, fn
+        yield dist
 
 
 def main():
@@ -515,7 +550,7 @@ def main():
                       recur=not opts.no_deps)
 
     # Warn the user about packages which depend on what will be updated
-    depend_warn([filename_dist(d) for d in dists])
+    depend_warn([dist_naming.filename_dist(d) for d in dists])
 
     # Packages which are installed currently
     sys_inst = set(egginst.get_installed(sys.prefix))
@@ -531,19 +566,19 @@ def main():
     else:
         exclude = all_inst
         if opts.force:
-            exclude.discard(filename_dist(dists[-1]))
+            exclude.discard(dist_naming.filename_dist(dists[-1]))
 
     # Fetch distributions
     if not isdir(conf['local']):
         os.makedirs(conf['local'])
-    for dist, fn in iter_dists_excl(dists, exclude):
+    for dist in iter_dists_excl(dists, exclude):
         c.fetch_dist(dist, conf['local'],
                      check_md5=opts.force or opts.forceall,
                      dry_run=dry_run)
 
     # Remove packages (in reverse install order)
     for dist in dists[::-1]:
-        fn = filename_dist(dist)
+        fn = dist_naming.filename_dist(dist)
         if fn in all_inst:
             # if the distribution (which needs to be installed) is already
             # installed don't remove it
@@ -552,13 +587,13 @@ def main():
         # Only remove packages installed in prefix
         for fn_inst in prefix_inst:
             if cname == cname_fn(fn_inst):
-                call_egginst(fn_inst, remove=True)
+                egginst_remove(fn_inst)
 
     # Install packages
     installed_something = False
-    for dist, fn in iter_dists_excl(dists, exclude):
+    for dist in iter_dists_excl(dists, exclude):
         installed_something = True
-        call_egginst(join(conf['local'], fn))
+        egginst_install(conf, dist)
 
     if not installed_something:
         print "No update necessary, %s is up-to-date." % req
