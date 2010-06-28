@@ -58,16 +58,6 @@ def print_path():
                                  join(p, 'lib') for p in prefixes))
 
 
-def list_option(pat):
-    print "sys.prefix:", sys.prefix
-    egginst.print_installed(sys.prefix, pat)
-    if prefix == sys.prefix:
-        return
-    print
-    print "prefix:", prefix
-    egginst.print_installed(prefix, pat)
-
-
 def egginst_subprocess(pkg_path, remove):
     # only used on Windows
     path = join(sys.prefix, bin_dir_name, 'egginst-script.py')
@@ -82,6 +72,7 @@ def egginst_subprocess(pkg_path, remove):
     if verbose:
         print 'CALL: %r' % args
     subprocess.call(args)
+
 
 def call_egginst(pkg_path, remove=False):
     fn = basename(pkg_path)
@@ -189,6 +180,29 @@ def info_option(url, c, cname):
 
     print "Available versions: %s" % ', '.join(c.list_versions(cname))
     print_installed_info(cname)
+
+
+def print_installed(prefix, pat=None):
+    fmt = '%-20s %s'
+    print fmt % ('Project name', 'Version')
+    print 40 * '='
+    for fn in egginst.get_installed(prefix):
+        if pat and not pat.search(fn):
+            continue
+        if '-' in fn:
+            print fmt % tuple(fn[:-4].split('-', 1))
+        else:
+            print fn
+
+
+def list_option(pat):
+    print "sys.prefix:", sys.prefix
+    print_installed(sys.prefix, pat)
+    if prefix == sys.prefix:
+        return
+    print
+    print "prefix:", prefix
+    print_installed(prefix, pat)
 
 
 def whats_new(c):

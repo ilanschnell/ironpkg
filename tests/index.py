@@ -9,7 +9,6 @@ cwd = os.getcwd()
 c = Chain(verbose=0)
 for fn in ['index-add.txt', 'index-5.1.txt', 'index-5.0.txt']:
     c.add_repo('file://%s/' % cwd, fn)
-# c.test()
 
 def test_req(req, expected):
     got = [filename_dist(d) for d in c.install_order(req, True)]

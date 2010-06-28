@@ -303,14 +303,11 @@ def get_installed(prefix):
         yield d['egg_name']
 
 
-def print_installed(prefix, pat=None):
+def print_installed(prefix):
     fmt = '%-20s %s'
     print fmt % ('Project name', 'Version')
     print 40 * '='
-
     for fn in get_installed(prefix):
-        if pat and not pat.search(fn):
-            continue
         if '-' in fn:
             print fmt % tuple(fn[:-4].split('-', 1))
         else:
