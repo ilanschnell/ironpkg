@@ -23,6 +23,7 @@ MAGIC = {
     '\xce\xfa\xed\xfe': 'MachO-i386',
     '\xcf\xfa\xed\xfe': 'MachO-x86_64',
     '\xfe\xed\xfa\xce': 'MachO-ppc',
+    '\xfe\xed\xfa\xcf': 'MachO-ppc64',
     '\x7fELF': 'ELF',
 }
 

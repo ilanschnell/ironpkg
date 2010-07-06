@@ -1,3 +1,6 @@
-Enhancements:
+Bugs:
+  * There appears to be a small bug in the recursive dependency resolution
+    when only the package name is given as the requirement
 
+Enhancements:
   * More Documentation and Examples
