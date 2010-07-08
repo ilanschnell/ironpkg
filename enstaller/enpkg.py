@@ -205,7 +205,7 @@ def shorten_repo(repo):
     if m:
         return m.group(1)
     else:
-        return repo
+        return repo.replace('http://', '').replace('.enthought.com', '')
 
 
 def print_installed(prefix, pat=None):
@@ -272,17 +272,21 @@ def search(c, pat=None):
     Print the distributions available in a repo, i.e. a "virtual" repo made
     of a chain of (indexed) repos.
     """
-    fmt = "%-20s %s"
-    print fmt % ('Project name', 'Versions')
-    print 40 * '-'
+    fmt = "%-25s %-15s %s"
+    print fmt % ('Project name', 'Versions', 'Repository')
+    print 55 * '-'
 
-    names = set(spec['name'] for spec in c.index.itervalues())
+    names = set(spec['cname'] for spec in c.index.itervalues())
     for name in sorted(names, key=string.lower):
         if pat and not pat.search(name):
             continue
         versions = c.list_versions(name)
-        if versions:
-            print fmt % (name, ', '.join(versions))
+        if not versions:
+            continue
+        req = Req(name + ' ' + versions[-1])
+        dist = c.get_dist(req)
+        repo = dist_naming.repo_dist(dist)
+        print fmt % (name, ', '.join(versions),  shorten_repo(repo))
 
 
 def read_depend_files():
