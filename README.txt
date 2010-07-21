@@ -71,14 +71,11 @@ created.
 Installation:
 -------------
 
-The preferred and easiest way to install Enstaller is from source, using::
+The preferred and easiest way to install Enstaller from the executable egg,
+e.i. the Enstaller egg contains a bash header, and on Unix system, you can
+also download the egg and type::
 
-   $ python setup.py install
-
-You may also use pip to do this for you.  As the Enstaller egg contains
-a bash header, on Unix system, you can also download the egg and type::
-
-   $ ./Enstaller-4.2.1-1.egg
+   $ bash Enstaller-4.2.1-1.egg
    Bootstrapping: ...
    283 KB [.................................................................]
 
