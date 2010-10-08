@@ -127,10 +127,11 @@ def write_script(path, entry_pt, egg_name):
 #
 #   %(egg_name)s
 #
-import sys
-from %(module)s import %(func)s
+if __name__ == '__main__':
+    import sys
+    from %(module)s import %(func)s
 
-sys.exit(%(func)s())
+    sys.exit(%(func)s())
 ''' % locals())
     fo.close()
     os.chmod(path, 0755)

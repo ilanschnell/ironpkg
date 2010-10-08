@@ -1,6 +1,8 @@
 
 2010-XX-XX   4.2.2:
 -------------------
+* when egginst makes entry point scripts, it now guards the code
+  using "if __name__ == '__main__':"
 
 
 
