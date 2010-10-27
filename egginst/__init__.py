@@ -32,4 +32,4 @@ get_installed(prefix):
 print_installed(prefix):
     write a list of installed packages (in a formatted manner) to stdout.
 """
-from egginst.main import EggInst, get_installed, print_installed
+from egginst.main import EggInst, get_installed, print_installed, name_version

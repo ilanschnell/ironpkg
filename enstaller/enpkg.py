@@ -213,11 +213,13 @@ def print_installed(prefix, pat=None):
     print fmt % ('Project name', 'Version', 'Repository')
     print 60 * '='
     for fn in egginst.get_installed(prefix):
-        if pat and not pat.search(fn):
+        if pat and not pat.search(fn[:-4]):
             continue
-        if '-' in fn:
-            lst = list(fn[:-4].split('-', 1))
-            info = get_installed_info(prefix, cname_fn(fn))
+        lst = list(egginst.name_version(fn))
+        info = get_installed_info(prefix, cname_fn(fn))
+        if info is None:
+            lst.append('')
+        else:
             path = join(info['meta_dir'], '__enpkg__.txt')
             if isfile(path):
                 d = {}
@@ -225,9 +227,7 @@ def print_installed(prefix, pat=None):
                 lst.append(shorten_repo(d['repo']))
             else:
                 lst.append('')
-            print fmt % tuple(lst)
-        else:
-            print fn
+        print fmt % tuple(lst)
 
 
 def list_option(pat):

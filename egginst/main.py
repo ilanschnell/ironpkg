@@ -25,15 +25,20 @@ NS_PKG_PAT = re.compile(
     r'\(__name__\)\s*$')
 
 
-def projname(fn):
-    return fn.split('-')[0]
+def name_version(fn):
+    if fn.endswith('.egg'):
+        fn = fn[:-4]
+    if '-' in fn:
+        return tuple(fn.split('-', 1))
+    else:
+        return fn, ''
 
 
 class EggInst(object):
 
     def __init__(self, fpath, prefix, verbose=False, noapp=False):
         self.fpath = fpath
-        self.name = projname(basename(fpath))
+        self.name, dummy = name_version(basename(fpath))
         self.prefix = abspath(prefix)
         self.noapp = noapp
 
@@ -308,10 +313,7 @@ def print_installed(prefix):
     print fmt % ('Project name', 'Version')
     print 40 * '='
     for fn in get_installed(prefix):
-        if '-' in fn:
-            print fmt % tuple(fn[:-4].split('-', 1))
-        else:
-            print fn
+        print fmt % name_version(fn)
 
 
 def main():
