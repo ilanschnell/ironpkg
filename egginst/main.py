@@ -26,6 +26,9 @@ NS_PKG_PAT = re.compile(
 
 
 def name_version(fn):
+    """
+    Given the filename of a package, returns a tuple(name, version).
+    """
     if fn.endswith('.egg'):
         fn = fn[:-4]
     if '-' in fn:

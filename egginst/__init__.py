@@ -29,7 +29,10 @@ get_installed(prefix):
     Each element is the filename of the egg which was used to install the
     package.
 
+name_version(filename):
+    Given the filename of a package, returns a tuple(name, version).
+
 print_installed(prefix):
     write a list of installed packages (in a formatted manner) to stdout.
 """
-from egginst.main import EggInst, get_installed, print_installed, name_version
+from egginst.main import EggInst, get_installed, name_version, print_installed
