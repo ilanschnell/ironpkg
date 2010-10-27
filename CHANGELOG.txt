@@ -10,6 +10,9 @@
 * added debug information (the exception) to the warning which is printed
   when (un)installing the application item fails
 
+* changes targets (EGG-INFO/inst/targets.dat) to prepend (rather than append)
+  <sys.prefix>/lib in rpath.
+
 
 
 2010-06-02   4.2.1:
