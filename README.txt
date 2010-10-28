@@ -1,7 +1,10 @@
 The Enstaller (version 4) project is a managing and install tool
 for egg-based Python distributions.
 
-Enstaller consists of the sub-packages enstaller and egginst:
+Enstaller consists of the sub-packages enstaller (package managing
+tool) and egginst (package (un)install tool).  We find the clean
+separation into these two tasks, each of which having a well-defined
+scope, extremely useful.
 
 
 enstaller:
@@ -75,7 +78,7 @@ The preferred and easiest way to install Enstaller from the executable egg,
 e.i. the Enstaller egg contains a bash header, and on Unix system, you can
 also download the egg and type::
 
-   $ bash Enstaller-4.2.1-1.egg
+   $ bash Enstaller-4.2.2-1.egg
    Bootstrapping: ...
    283 KB [.................................................................]
 
