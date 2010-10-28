@@ -1,10 +1,8 @@
 import os
 import sys
 import bz2
-import string
 import zipfile
 from cStringIO import StringIO
-from collections import defaultdict
 from os.path import basename, getsize, isfile, isdir, join
 
 import metadata
