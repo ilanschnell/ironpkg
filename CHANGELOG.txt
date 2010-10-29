@@ -1,5 +1,5 @@
 
-2010-XX-XX   4.2.2:
+2010-10-29   4.2.2:
 -------------------
 * add new feature to enpkg which allows "enpkg -l" to list the
   source repository from which packages have been downloaded
