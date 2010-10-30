@@ -72,7 +72,7 @@ RC_TMPL = """\
 # Windows systems the backslaches in the directory path need to escaped, e.g.:
 # r'file://C:\\repository\\' or 'file://C:\\\\repository\\\\'
 IndexedRepos = [
-%(repos_lines)s]
+%(repo_section)s]
 
 # The following variable is optional and, if provided, point to a URL which
 # contains an index file with additional package information, such as the
@@ -112,27 +112,16 @@ def write(proxy=None):
     else:
         path = HOME_CONFIG_PATH
 
-    if (custom_tools and hasattr(custom_tools, 'epd_baseurl') and
-                         hasattr(custom_tools, 'epd_subdir')):
-        epd_repo = custom_tools.epd_baseurl + custom_tools.epd_subdir + '/'
-        userpass = input_userpass()
-    else:
-        epd_repo = None
-        userpass = None
-
-    if userpass:
+    if (custom_tools and hasattr(custom_tools, 'repo_section')):
         userpass_section = """
-# The EPD subscriber authentication is required to access the EPD repository
-# is listed below.
+# The EPD subscriber authentication is required to access the EPD repository:
 EPD_userpass = %r
-""" % userpass
-        repos_lines = (
-            '#    %r,\n' % epd_repo.replace('/eggs/', '/GPL-eggs/') +
-            '    %r,\n' % epd_repo)
+""" % input_userpass()
+        repo_section = custom_tools.repo_section
         comment_info = ''
     else:
         userpass_section = ''
-        repos_lines = ''
+        repo_section = ''
         comment_info = '#'
 
     py_ver = PY_VER
