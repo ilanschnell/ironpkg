@@ -1,5 +1,6 @@
-2010-XX-XX   4.2.3:
+2010-11-01   4.2.3:
 -------------------
+* simplified how default configuration file is created
 
 
 
