@@ -242,7 +242,7 @@ class EggInst(object):
                 appinst.uninstall_from_dat(path)
             else:
                 appinst.install_from_dat(path)
-        except Exception as e:
+        except Exception, e:
             print("Warning (%sinstalling application item):\n%r" %
                   ('un' if remove else '', e))
 
