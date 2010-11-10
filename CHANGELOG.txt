@@ -1,5 +1,9 @@
+
 2010-XX-XX   4.2.4:
 -------------------
+* fixed regular expression for placeholder in egginst/object_code.py
+
+* fixed syntax for Python 2.5
 
 
 

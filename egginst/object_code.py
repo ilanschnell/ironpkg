@@ -53,7 +53,7 @@ def find_lib(fn):
     return join('/ERROR/path/not/found', fn)
 
 
-_placehold_pat = re.compile('/PLACEHOLD' * 5 + '([^\0]*)\0')
+_placehold_pat = re.compile('/PLACEHOLD' * 5 + '([^\0\\s]*)\0')
 def fix_object_code(path):
     tp = get_object_type(path)
     if tp is None:
