@@ -9,12 +9,12 @@ from os.path import abspath, basename, join, islink, isfile, exists
 verbose = False
 
 # alt_replace_func is an optional function, which is applied to the
-# replacement string, see below
+# replacement string (after the placeholders haven substituted)
 alt_replace_func = None
 
 
 # extensions which are assumed to belong to files which don't contain
-# shared object code
+# object code
 NO_OBJ = ('.py', '.pyc', '.pyo', '.h', '.a', '.c', '.txt', '.html', '.xml',
           '.png', '.jpg', '.gif')
 
