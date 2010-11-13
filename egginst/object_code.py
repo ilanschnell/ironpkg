@@ -1,9 +1,8 @@
 # Changes library path in object code (ELF and Mach-O).
 
-import os
 import sys
 import re
-from os.path import abspath, basename, join, islink, isfile, exists
+from os.path import abspath, join, islink, isfile, exists
 
 
 verbose = False
@@ -53,7 +52,7 @@ def find_lib(fn):
     return join('/ERROR/path/not/found', fn)
 
 
-_placehold_pat = re.compile('/PLACEHOLD' * 5 + '([^\0\\s]*)\0')
+placehold_pat = re.compile('(/PLACEHOLD){5,}([^\0\\s]*)\0')
 def fix_object_code(path):
     tp = get_object_type(path)
     if tp is None:
@@ -61,7 +60,7 @@ def fix_object_code(path):
 
     f = open(path, 'r+b')
     data = f.read()
-    matches = list(_placehold_pat.finditer(data))
+    matches = list(placehold_pat.finditer(data))
     if not matches:
         f.close()
         return
@@ -69,16 +68,16 @@ def fix_object_code(path):
     if verbose:
         print "Fixing placeholders in:", path
     for m in matches:
-        gr1 = m.group(1)
-        if tp.startswith('MachO-') and basename(gr1) != 'PLACEHOLD':
+        gr2 = m.group(2)
+        if tp.startswith('MachO-') and gr2.startswith('/'):
             # deprecated: because we now use rpath on OSX as well
-            r = find_lib(basename(gr1))
+            r = find_lib(gr2[1:])
         else:
             rpaths = list(_targets)
-            # extend the list with rpath which which were already in the binary
-            rpaths.extend(p for p in gr1.split(os.pathsep)
-                          if not p.startswith('/PLACEHOLD'))
-            r = os.pathsep.join(rpaths)
+            # extend the list with rpath which were already in the binary,
+            # if any
+            rpaths.extend(p for p in gr2.split(':') if p)
+            r = ':'.join(rpaths)
 
         if alt_replace_func is not None:
             r = alt_replace_func(r)
