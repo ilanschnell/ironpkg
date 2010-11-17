@@ -69,10 +69,18 @@ def fix_object_code(path):
         print "Fixing placeholders in:", path
     for m in matches:
         gr2 = m.group(2)
+
+        # this should not be necessary as the regular expression is
+        # evaluated from left to right, meaning that greediness of
+        # the placeholder repetition comes before the greedy group2
+        while gr2.startswith('/PLACEHOLD'):
+            gr2 = gr2[10:]
+
         if tp.startswith('MachO-') and gr2.startswith('/'):
             # deprecated: because we now use rpath on OSX as well
             r = find_lib(gr2[1:])
         else:
+            assert gr2 == '' or gr2.startswith(':')
             rpaths = list(_targets)
             # extend the list with rpath which were already in the binary,
             # if any
