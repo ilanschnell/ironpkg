@@ -62,7 +62,8 @@ def create_proxy(src, bin_dir):
     fo = open(dst_script, 'w')
     fo.write('''\
 #!"%(python)s"
-# Proxy created by egginst
+# This proxy was created by egginst from an egg with special instructions
+#
 import sys
 import subprocess
 
