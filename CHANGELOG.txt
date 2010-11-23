@@ -1,5 +1,5 @@
 
-2010-XX-XX   4.2.4:
+2010-11-23   4.2.4:
 -------------------
 * fixed regular expression for placeholder in egginst/object_code.py to not
   allow whitespace, and also simplified object code placeholder handling
