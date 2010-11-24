@@ -87,8 +87,10 @@ def create_proxies(egg):
 
         if action == 'PROXY':
             ei = 'EGG-INFO/'
-            assert arcname.startswith(ei)
-            src = abspath(join(egg.meta_dir, arcname[len(ei):]))
+            if arcname.startswith(ei):
+                src = abspath(join(egg.meta_dir, arcname[len(ei):]))
+            else:
+                src = abspath(join(egg.prefix, arcname))
             if verbose:
                 print "     src: %r" % src
             egg.files.extend(create_proxy(src, egg.bin_dir))
