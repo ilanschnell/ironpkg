@@ -32,6 +32,7 @@ def write_exe(dst, script_type='console_scripts'):
     else:
         raise Exception("Did not except script_type=%r" % script_type)
 
+    rm_rf(dst)
     try:
         open(dst, 'wb').write(data)
     except IOError:
@@ -54,7 +55,6 @@ def create_proxy(src, bin_dir):
         dst_name = dst_name[4:]
 
     dst = join(bin_dir, dst_name)
-    rm_rf(dst)
     write_exe(dst)
 
     dst_script = dst[:-4] + '-script.py'
@@ -151,10 +151,6 @@ def create(egg, conf):
             fname = name
             if on_win:
                 exe_path = join(egg.bin_dir, '%s.exe' % name)
-                try:
-                    rm_rf(exe_path)
-                except WindowsError:
-                    pass
                 write_exe(exe_path, script_type)
                 egg.files.append(exe_path)
                 fname += '-script.py'
