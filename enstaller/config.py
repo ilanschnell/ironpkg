@@ -42,7 +42,7 @@ If you are not subscribed to EPD, hit Return.
         return ''
     for dummy in xrange(3):
         password = getpass('Password: ')
-        password2 = getpass('Confirm passowrd: ')
+        password2 = getpass('Confirm password: ')
         if password == password2:
             return username + ':' + password
 
