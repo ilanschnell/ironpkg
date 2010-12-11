@@ -25,29 +25,17 @@ NS_PKG_PAT = re.compile(
     r'\(__name__\)\s*$')
 
 
-def name_version(fn):
-    """
-    Given the filename of a package, returns a tuple(name, version).
-    """
-    if fn.endswith('.egg'):
-        fn = fn[:-4]
-    if '-' in fn:
-        return tuple(fn.split('-', 1))
-    else:
-        return fn, ''
-
-
 class EggInst(object):
 
     def __init__(self, fpath, prefix, verbose=False, noapp=False):
         self.fpath = fpath
-        self.name, dummy = name_version(basename(fpath))
+        self.cname = naming.cname_fn(basename(fpath))
         self.prefix = abspath(prefix)
         self.noapp = noapp
 
         # This is the directory which contains the EGG-INFO directories of all
         # installed packages
-        self.meta_dir = join(self.prefix, 'EGG-INFO', self.name)
+        self.meta_dir = join(self.prefix, 'EGG-INFO', self.cname)
         self.meta_txt = join(self.meta_dir, '__egginst__.txt')
 
         self.bin_dir = join(self.prefix, bin_dir_name)
@@ -258,7 +246,7 @@ class EggInst(object):
 
     def remove(self):
         if not isdir(self.meta_dir):
-            print "Error: Can't find meta data for:", self.name
+            print "Error: Can't find meta data for:", self.cname
             return
 
         self.read_meta()
@@ -309,7 +297,7 @@ def print_installed(prefix):
     print fmt % ('Project name', 'Version')
     print 40 * '='
     for fn in get_installed(prefix):
-        print fmt % name_version(fn)
+        print fmt % naming.name_version_fn(fn)
 
 
 def main():

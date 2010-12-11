@@ -16,10 +16,11 @@ from optparse import OptionParser
 
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
+from egginst.naming import canonical, name_version_fn, cname_fn
 
 import config
 from proxy.api import setup_proxy
-from utils import canonical, cname_fn, get_info, comparable_version
+from utils import get_info, comparable_version
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
                           parse_data, dist_naming)
 
@@ -83,21 +84,14 @@ def get_installed_info(prefix, cname):
     egg_info_dir = join(prefix, 'EGG-INFO')
     if not isdir(egg_info_dir):
         return None
-    for fn in os.listdir(egg_info_dir):
-        if canonical(fn) != cname:
-            continue
-        meta_txt = join(egg_info_dir, fn, '__egginst__.txt')
-        if not isfile(meta_txt):
-            continue
-        d = {}
-        execfile(meta_txt, d)
-        if cname_fn(d['egg_name']) == cname:
-            return dict(
-                egg_name=d['egg_name'],
+    meta_txt = join(egg_info_dir, cname, '__egginst__.txt')
+    if not isfile(meta_txt):
+        return
+    d = {}
+    execfile(meta_txt, d)
+    return dict(egg_name=d['egg_name'],
                 mtime=time.ctime(getmtime(meta_txt)),
-                meta_dir=dirname(meta_txt),
-            )
-    return None
+                meta_dir=dirname(meta_txt))
 
 
 def egginst_remove(pkg):
@@ -215,7 +209,7 @@ def print_installed(prefix, pat=None):
     for fn in egginst.get_installed(prefix):
         if pat and not pat.search(fn[:-4]):
             continue
-        lst = list(egginst.name_version(fn))
+        lst = list(name_version_fn(fn))
         info = get_installed_info(prefix, cname_fn(fn))
         if info is None:
             lst.append('')

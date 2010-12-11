@@ -1,6 +1,8 @@
 from dist_naming import split_eggname, filename_dist
 
-from enstaller.utils import PY_VER, canonical
+from enstaller.utils import PY_VER
+
+from egginst.naming import canonical
 
 
 class Req(object):

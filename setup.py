@@ -31,7 +31,7 @@ setup(
     ],
     entry_points = {
         "console_scripts": [
-             "enpkg = enstaller.enpkg:main",
+             "enpkg = enstaller.main:main",
              "egginst = egginst.main:main",
         ],
     },

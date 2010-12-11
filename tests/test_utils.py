@@ -1,7 +1,8 @@
 import random
 import unittest
 
-from enstaller.utils import comparable_version, canonical, cname_fn
+from egginst.naming import canonical, name_version_fn, cname_fn
+from enstaller.utils import comparable_version
 
 
 class TestUtils(unittest.TestCase):
@@ -11,12 +12,23 @@ class TestUtils(unittest.TestCase):
             ('NumPy', 'numpy'),
             ('MySql-python', 'mysql_python'),
             ('Python-dateutil', 'python_dateutil'),
-            ('Tables', 'pytables'),
             ]:
             self.assertEqual(canonical(name), cname)
 
     def test_cname_fn(self):
         self.assertEqual(cname_fn('VTK-5.4.2-1.egg'), 'vtk')
+
+    def test_naming(self):
+        for fn, name, ver, cname in [
+            ('NumPy-1.5-py2.6-win32.egg', 'NumPy', '1.5-py2.6-win32', 'numpy'),
+            ('NumPy-1.5-2.egg', 'NumPy', '1.5-2', 'numpy'),
+            ('NumPy-1.5.egg', 'NumPy', '1.5', 'numpy'),
+            ('Cython.egg', 'Cython', '', 'cython'),
+            ('Foo.zip', 'Foo.zip', '', 'foo.zip'),
+            ]:
+            self.assertEqual(name_version_fn(fn), (name, ver))
+            self.assertEqual(cname_fn(fn), cname)
+            self.assertEqual(canonical(name), cname)
 
     def test_comparable_version(self):
         for versions in (
