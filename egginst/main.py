@@ -17,7 +17,7 @@ from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
                            pprint_fn_action, rmdir_er, rm_rf, human_bytes)
-import egginst.scripts as scripts
+from egginst import naming, scripts
 
 
 NS_PKG_PAT = re.compile(
@@ -169,15 +169,8 @@ class EggInst(object):
 
 
     def get_dst(self, arcname):
-        if arcname == 'EGG-INFO/PKG-INFO':
-            name = self.name
-            try:
-                vers = basename(self.fpath).split('-')[1]
-            except IndexError:
-                vers = '0.0.0'
-            major, minor = sys.version_info[:2]
-            fn = "%(name)s-%(vers)s-py%(major)i.%(minor)i.egg-info" % locals()
-            return join(self.site_packages, fn)
+        if arcname == 'EGG-INFO/PKG-INFO' and self.fpath.endswith('.egg'):
+            return join(self.site_packages, basename(self.fpath) + '-info')
 
         for start, cond, dst_dir in [
             ('EGG-INFO/prefix/',  True,       self.prefix),
