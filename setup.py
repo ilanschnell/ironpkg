@@ -42,6 +42,7 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
         "Topic :: System :: Software Distribution",
         "Topic :: System :: Systems Administration",
     ],
