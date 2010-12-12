@@ -29,4 +29,4 @@ get_installed(prefix):
     Each element is the filename of the egg which was used to install the
     package.
 """
-from egginst.main import EggInst, get_installed
+from egginst.main import EggInst, get_installed, name_version_fn

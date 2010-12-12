@@ -16,11 +16,10 @@ from optparse import OptionParser
 
 import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
-from egginst.naming import canonical, name_version_fn, cname_fn
 
 import config
 from proxy.api import setup_proxy
-from utils import get_info, comparable_version
+from utils import canonical, cname_fn, get_info, comparable_version
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
                           parse_data, dist_naming)
 
@@ -209,7 +208,7 @@ def print_installed(prefix, pat=None):
     for fn in egginst.get_installed(prefix):
         if pat and not pat.search(fn[:-4]):
             continue
-        lst = list(name_version_fn(fn))
+        lst = list(egginst.name_version_fn(fn))
         info = get_installed_info(prefix, cname_fn(fn))
         if info is None:
             lst.append('')
@@ -292,8 +291,8 @@ def read_depend_files():
     if not isdir(egg_info_dir):
         return {}
     res = {}
-    for name in os.listdir(egg_info_dir):
-        path = join(egg_info_dir, name, 'spec', 'depend')
+    for dn in os.listdir(egg_info_dir):
+        path = join(egg_info_dir, dn, 'spec', 'depend')
         if isfile(path):
             spec = parse_data(open(path).read())
             add_Reqs_to_spec(spec)
@@ -333,20 +332,17 @@ def remove_req(req):
     Tries remove a package from prefix given a requirement object.
     This function is only used for the --remove option.
     """
-    for fn in egginst.get_installed(prefix):
-        if req.name != cname_fn(fn):
-            continue
-        pkg = fn[:-4]
-        if req.version:
-            v_a, b_a = pkg.split('-')[1:3]
-            if req.version != v_a or (req.build and req.build != int(b_a)):
-                print("Version mismatch: %s is installed cannot remove %s." %
-                      (pkg, req))
-                return
-        break
-    else:
+    d = get_installed_info(prefix, req.name)
+    if not d:
         print "Package %r does not seem to be installed." % req.name
         return
+    pkg = d['egg_name'][:-4]
+    if req.version:
+        v_a, b_a = pkg.split('-')[1:3]
+        if req.version != v_a or (req.build and req.build != int(b_a)):
+            print("Version mismatch: %s is installed cannot remove %s." %
+                  (pkg, req))
+            return    
     depend_warn([pkg], ignore_version=True)
     egginst_remove(pkg)
 

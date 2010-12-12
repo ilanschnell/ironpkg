@@ -7,7 +7,6 @@ from cStringIO import StringIO
 from os.path import abspath, expanduser
 
 from egginst.utils import human_bytes, rm_rf
-from egginst.naming import canonical
 from enstaller import __version__
 from enstaller.verlib import NormalizedVersion, IrrationalVersionError
 
@@ -17,6 +16,21 @@ PY_VER = '%i.%i' % sys.version_info[:2]
 
 def abs_expanduser(path):
     return abspath(expanduser(path))
+
+
+def canonical(s):
+    """ 
+    Return the canonical representations of a project name.
+    """ 
+    s = s.lower() 
+    s = s.replace('-', '_') 
+    if s == 'tables': 
+        s = 'pytables' 
+    return s 
+ 	 
+
+def cname_fn(fn): 
+    return canonical(fn.split('-')[0]) 
 
 
 def comparable_version(version):

@@ -1,8 +1,8 @@
 import random
 import unittest
 
-from egginst.naming import canonical, name_version_fn, cname_fn
-from enstaller.utils import comparable_version
+from egginst.main import name_version_fn
+from enstaller.utils import canonical, cname_fn, comparable_version
 
 
 class TestUtils(unittest.TestCase):
@@ -23,8 +23,6 @@ class TestUtils(unittest.TestCase):
             ('NumPy-1.5-py2.6-win32.egg', 'NumPy', '1.5-py2.6-win32', 'numpy'),
             ('NumPy-1.5-2.egg', 'NumPy', '1.5-2', 'numpy'),
             ('NumPy-1.5.egg', 'NumPy', '1.5', 'numpy'),
-            ('Cython.egg', 'Cython', '', 'cython'),
-            ('Foo.zip', 'Foo.zip', '', 'foo.zip'),
             ]:
             self.assertEqual(name_version_fn(fn), (name, ver))
             self.assertEqual(cname_fn(fn), cname)

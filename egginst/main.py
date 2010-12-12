@@ -17,7 +17,7 @@ from os.path import abspath, basename, dirname, join, isdir, isfile
 
 from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
                            pprint_fn_action, rmdir_er, rm_rf, human_bytes)
-from egginst import naming, scripts
+from egginst import scripts
 
 
 NS_PKG_PAT = re.compile(
@@ -25,11 +25,23 @@ NS_PKG_PAT = re.compile(
     r'\(__name__\)\s*$')
 
 
+def name_version_fn(fn):
+    """
+    Given the filename of a package, returns a tuple(name, version).
+    """
+    if fn.endswith('.egg'):
+        fn = fn[:-4]
+    if '-' in fn:
+        return tuple(fn.split('-', 1))
+    else:
+        return fn, ''
+
+
 class EggInst(object):
 
     def __init__(self, fpath, prefix, verbose=False, noapp=False):
         self.fpath = fpath
-        self.cname = naming.cname_fn(basename(fpath))
+        self.cname = name_version_fn(basename(fpath))[0].lower()
         self.prefix = abspath(prefix)
         self.noapp = noapp
 
@@ -297,7 +309,7 @@ def print_installed(prefix):
     print fmt % ('Project name', 'Version')
     print 40 * '='
     for fn in get_installed(prefix):
-        print fmt % naming.name_version_fn(fn)
+        print fmt % name_version_fn(fn)
 
 
 def main():
