@@ -10,7 +10,6 @@ eggs and it installs/uninstalls them.
 import os
 import sys
 import re
-import string
 import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
@@ -295,7 +294,7 @@ def get_installed(prefix):
     if not isdir(egg_info_dir):
         return
 
-    for fn in sorted(os.listdir(egg_info_dir), key=string.lower):
+    for fn in sorted(os.listdir(egg_info_dir)):
         meta_txt = join(egg_info_dir, fn, '__egginst__.txt')
         if not isfile(meta_txt):
             continue
