@@ -19,18 +19,18 @@ def abs_expanduser(path):
 
 
 def canonical(s):
-    """ 
+    """
     Return the canonical representations of a project name.
-    """ 
-    s = s.lower() 
-    s = s.replace('-', '_') 
-    if s == 'tables': 
-        s = 'pytables' 
-    return s 
- 	 
+    """
+    s = s.lower()
+    s = s.replace('-', '_')
+    if s == 'tables':
+        s = 'pytables'
+    return s
 
-def cname_fn(fn): 
-    return canonical(fn.split('-')[0]) 
+
+def cname_fn(fn):
+    return canonical(fn.split('-')[0])
 
 
 def comparable_version(version):

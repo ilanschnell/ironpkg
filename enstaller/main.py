@@ -342,7 +342,7 @@ def remove_req(req):
         if req.version != v_a or (req.build and req.build != int(b_a)):
             print("Version mismatch: %s is installed cannot remove %s." %
                   (pkg, req))
-            return    
+            return
     depend_warn([pkg], ignore_version=True)
     egginst_remove(pkg)
 
