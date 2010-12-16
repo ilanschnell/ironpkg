@@ -52,14 +52,14 @@ def find_lib(fn):
     return join('/ERROR/path/not/found', fn)
 
 
-placehold_pat = re.compile('(/PLACEHOLD){5,}([^\0\\s]*)\0')
+placehold_pat = re.compile(5 * '/PLACEHOLD' + '([^\0\\s]*)\0')
 def fix_object_code(path):
     tp = get_object_type(path)
     if tp is None:
         return
 
     f = open(path, 'r+b')
-    data = f.read()
+    data = f.read(262144)
     matches = list(placehold_pat.finditer(data))
     if not matches:
         f.close()
@@ -68,23 +68,19 @@ def fix_object_code(path):
     if verbose:
         print "Fixing placeholders in:", path
     for m in matches:
-        gr2 = m.group(2)
+        rest = m.group(1)
+        while rest.startswith('/PLACEHOLD'):
+            rest = rest[10:]
 
-        # this should not be necessary as the regular expression is
-        # evaluated from left to right, meaning that greediness of
-        # the placeholder repetition comes before the greedy group2
-        while gr2.startswith('/PLACEHOLD'):
-            gr2 = gr2[10:]
-
-        if tp.startswith('MachO-') and gr2.startswith('/'):
+        if tp.startswith('MachO-') and rest.startswith('/'):
             # deprecated: because we now use rpath on OSX as well
-            r = find_lib(gr2[1:])
+            r = find_lib(rest[1:])
         else:
-            assert gr2 == '' or gr2.startswith(':')
+            assert rest == '' or rest.startswith(':')
             rpaths = list(_targets)
             # extend the list with rpath which were already in the binary,
             # if any
-            rpaths.extend(p for p in gr2.split(':') if p)
+            rpaths.extend(p for p in rest.split(':') if p)
             r = ':'.join(rpaths)
 
         if alt_replace_func is not None:
