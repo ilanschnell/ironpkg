@@ -2,8 +2,8 @@
 
 2010-XX-XX   4.3.0:
 -------------------
-* metadata in now simply stored in EGG-INFO/<cname> directories,
-  where <cname> is the canonical project name
+* metadata in now simply stored in EGG-INFO/<name> directories,
+  where <name> is the lowercase project name
 
 * EGG-INFO/PKG-INFO files are simply stored using the egg name + '-info'
   in site-packages
