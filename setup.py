@@ -20,7 +20,7 @@ setup(
     name="Enstaller",
     author="Enthought, Inc.",
     author_email="info@enthought.com",
-    url = "http://code.enthought.com/projects/enstaller",
+    url = "https://github.com/enthought/enstaller",
     license="BSD",
     description = "Install and managing tool for egg-based packages",
     packages = [
