@@ -88,13 +88,13 @@ def open_with_auth(url):
         conf = config.read()
         if conf is None:
             raise Exception("Could not locate Enstaller configuration file")
-        userpass = conf.get('EPD_userpass')
-        if userpass:
-            auth = userpass
-        else:
-            print "WARNING: EPD_userpass missing in: %s" % config.get_path()
+        auth = conf.get('EPD_auth')
+        if auth is None:
+            userpass = conf.get('EPD_userpass')
+            if userpass:
+                auth = userpass.encode('base64').strip()
     if auth:
-        coded_auth = "Basic " + urllib2.unquote(auth).encode('base64').strip()
+        coded_auth = "Basic " + urllib2.unquote(auth)
         new_url = urlparse.urlunparse((scheme, host, path,
                                        params, query, frag))
         request = urllib2.Request(new_url)

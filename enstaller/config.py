@@ -28,23 +28,25 @@ def get_path():
     return None
 
 
-def input_userpass():
+def input_auth():
     from getpass import getpass
     print """\
 Welcome to Enstaller (version %s)!
 
 In order to access the EPD repository, please enter your
 username and password, which you use to subscribe to EPD.
-If you are not subscribed to EPD, hit Return.
+If you are not subscribed to EPD, just hit Return.
 """ % __version__
     username = raw_input('Username: ').strip()
     if not username:
-        return ''
+        return None
     for dummy in xrange(3):
         password = getpass('Password: ')
         password2 = getpass('Confirm password: ')
         if password == password2:
-            return username + ':' + password
+            userpass = username + ':' + password
+            return userpass.encode('base64').strip()
+    return None
 
 RC_TMPL = """\
 # Enstaller configuration file
@@ -57,7 +59,7 @@ RC_TMPL = """\
 #
 # This file was created by initially running the enpkg command.
 
-%(userpass_section)s
+%(auth_section)s
 # The enpkg command is searching for eggs in the list 'IndexedRepos'.
 # When enpkg is searching for an egg, it tries to find it in the order
 # of this list, and selects the first one that matches, ignoring
@@ -113,14 +115,19 @@ def write(proxy=None):
         path = HOME_CONFIG_PATH
 
     if (custom_tools and hasattr(custom_tools, 'repo_section')):
-        userpass_section = """
+        auth = input_auth()
+    else:
+        auth = None
+
+    if auth:
+        auth_section = """
 # The EPD subscriber authentication is required to access the EPD repository:
-EPD_userpass = %r
-""" % input_userpass()
+EPD_auth = %r
+""" % auth
         repo_section = custom_tools.repo_section
         comment_info = ''
     else:
-        userpass_section = ''
+        auth_section = ''
         repo_section = ''
         comment_info = '#'
 
@@ -164,8 +171,8 @@ def read():
         noapp=False,
         local=join(sys.prefix, 'LOCAL-REPO'),
     )
-    for k in ['EPD_userpass', 'IndexedRepos', 'info_url', 'prefix', 'proxy',
-              'noapp', 'local']:
+    for k in ['EPD_auth', 'EPD_userpass', 'IndexedRepos', 'info_url',
+              'prefix', 'proxy', 'noapp', 'local']:
         if not d.has_key(k):
             continue
         v = d[k]
