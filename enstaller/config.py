@@ -1,6 +1,7 @@
 # Copyright by Enthought, Inc.
 # Author: Ilan Schnell <ischnell@enthought.com>
 
+import re
 import os
 import sys
 import platform
@@ -121,7 +122,9 @@ def write(proxy=None):
 
     if auth:
         auth_section = """
-# The EPD subscriber authentication is required to access the EPD repository:
+# The EPD subscriber authentication is required to access the EPD repository.
+# To change this setting, use the 'enpkg --userpass' command which will ask
+# you for your username and password.
 EPD_auth = %r
 """ % auth
         repo_section = custom_tools.repo_section
@@ -145,6 +148,28 @@ EPD_auth = %r
     fo.close()
     print "Wrote configuration file:", path
     print 77 * '='
+
+
+def change_auth():
+    path = get_path()
+    if path is None:
+        print "The enstaller configuration file '.enstaller4rc' was not found."
+        sys.exit(1)
+    f = open(path, 'r+')
+    data = f.read()
+    auth = input_auth()
+    if auth:
+        pat = re.compile(r'^EPD_auth\s*=.*$', re.M)
+        authline = 'EPD_auth = %r' % auth
+        if pat.search(data):
+            data = pat.sub(authline, data)
+        else:
+            lines = data.splitlines()
+            lines.insert(10, authline)
+            data = '\n'.join(lines)
+        f.seek(0)
+        f.write(data)
+    f.close()
 
 
 def get_arch():

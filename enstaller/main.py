@@ -445,6 +445,10 @@ def main():
                  action="store_true",
                  help="use sys.prefix as the install prefix")
 
+    p.add_option("--userpass",
+                 action="store_true",
+                 help="change the EPD authentication in configuration")
+
     p.add_option('-v', "--verbose", action="store_true")
 
     p.add_option('--version', action="store_true")
@@ -456,7 +460,7 @@ def main():
 
     opts, args = p.parse_args()
 
-    if len(args) > 0 and (opts.config or opts.path):
+    if len(args) > 0 and (opts.config or opts.path or opts.userpass):
         p.error("Option takes no arguments")
 
     if opts.prefix and opts.sys_prefix:
@@ -476,6 +480,10 @@ def main():
 
     if opts.config:                               #  --config
         config.print_config()
+        return
+
+    if opts.userpass:                             #  --userpass
+        config.change_auth()
         return
 
     if config.get_path() is None:

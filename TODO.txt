@@ -3,6 +3,4 @@ Bugs:
     when only the package name is given as the requirement
 
 Enhancements:
-  * Username and password should not be stored in plain test in config file
-
   * More Documentation and Examples
