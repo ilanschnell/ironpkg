@@ -447,7 +447,7 @@ def main():
 
     p.add_option("--userpass",
                  action="store_true",
-                 help="change the EPD authentication in configuration")
+                 help="change EPD authentication in configuration file")
 
     p.add_option('-v', "--verbose", action="store_true")
 
