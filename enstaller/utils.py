@@ -82,9 +82,10 @@ def open_with_auth(url):
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
     assert not query
     auth, host = urllib2.splituser(netloc)
-    if (auth is None and custom_tools and
-                hasattr(custom_tools, 'epd_baseurl') and
-                url.startswith(custom_tools.epd_baseurl)):
+    if auth:
+        auth = urllib2.unquote(auth).encode('base64').strip()
+    elif (custom_tools and hasattr(custom_tools, 'epd_baseurl') and
+                           url.startswith(custom_tools.epd_baseurl)):
         conf = config.read()
         if conf is None:
             raise Exception("Could not locate Enstaller configuration file")
@@ -93,12 +94,12 @@ def open_with_auth(url):
             userpass = conf.get('EPD_userpass')
             if userpass:
                 auth = userpass.encode('base64').strip()
+
     if auth:
-        coded_auth = "Basic " + urllib2.unquote(auth)
         new_url = urlparse.urlunparse((scheme, host, path,
                                        params, query, frag))
         request = urllib2.Request(new_url)
-        request.add_header("Authorization", coded_auth)
+        request.add_header("Authorization", "Basic " + auth)
     else:
         request = urllib2.Request(url)
     request.add_header('User-Agent', 'Enstaller/%s' % __version__)
