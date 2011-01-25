@@ -166,7 +166,7 @@ def change_auth():
         else:
             lines = data.splitlines()
             lines.insert(10, authline)
-            data = '\n'.join(lines)
+            data = '\n'.join(lines) + '\n'
         f.seek(0)
         f.write(data)
     f.close()
