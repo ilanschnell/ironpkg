@@ -8,6 +8,9 @@
 * EGG-INFO/PKG-INFO files are simply stored using the egg name + '-info'
   in site-packages
 
+* EPD username and password are no longer stored in plain test in config
+  file; added --userpass option to enpkg
+
 
 
 2010-11-23   4.2.4:
