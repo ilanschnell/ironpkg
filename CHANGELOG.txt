@@ -1,4 +1,10 @@
-2010-01-16   4.3.0:
+2011-XX-XX   4.3.1:
+-------------------
+
+
+
+
+2011-01-16   4.3.0:
 -------------------
 * metadata in now simply stored in EGG-INFO/<name> directories,
   where <name> is the lowercase project name
