@@ -3,7 +3,6 @@
 
 
 
-
 2011-01-16   4.3.0:
 -------------------
 * metadata in now simply stored in EGG-INFO/<name> directories,
