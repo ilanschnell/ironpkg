@@ -106,6 +106,8 @@ def parse_data(data, index=False):
         assert isinstance(spec['size'], int)
         if 'mtime' in spec:
             var_names.append('mtime')
+        if 'commit' in spec:
+            var_names.append('commit')
 
     res = {}
     for name in var_names:
