@@ -146,6 +146,17 @@ def spec_from_dist(zip_path):
     return parse_data(rawspec_from_dist(zip_path))
 
 
+def commit_from_dist(zip_path):
+    arcname = 'EGG-INFO/spec/__commit__'
+    z = zipfile.ZipFile(zip_path)
+    if arcname in z.namelist():
+        res = 'commit = %r\n' % z.read(arcname).strip()
+    else:
+        res = ''
+    z.close()
+    return res
+
+
 def index_section(zip_path):
     """
     Returns a section corresponding to the zip-file, which can be appended
@@ -154,7 +165,9 @@ def index_section(zip_path):
     return ('==> %s <==\n' % basename(zip_path) +
             'size = %i\n'  % getsize(zip_path) +
             'md5 = %r\n' % md5_file(zip_path) +
-            'mtime = %r\n\n' % getmtime(zip_path) +
+            'mtime = %r\n' % getmtime(zip_path) +
+            commit_from_dist(zip_path) +
+            '\n' +
             rawspec_from_dist(zip_path) + '\n')
 
 
