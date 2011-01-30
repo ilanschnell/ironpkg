@@ -1,5 +1,7 @@
 2011-XX-XX   4.3.1:
 -------------------
+* add commit message to egg repository index file, if
+  EGG-INFO/spec/__commit__ exists
 
 
 
