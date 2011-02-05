@@ -13,7 +13,7 @@ from os.path import basename, dirname, getmtime, isdir, isfile, join
 from optparse import OptionParser
 
 import egginst
-from egginst.utils import bin_dir_name, pprint_fn_action
+from egginst.utils import pprint_fn_action
 
 import config
 from utils import canonical, cname_fn, comparable_version
@@ -22,29 +22,16 @@ from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
 
 
 # global options variables
-prefix = None
 dry_run = None
 verbose = None
 
 
-def print_path():
-    prefixes = [sys.prefix]
-    if prefix != sys.prefix:
-        prefixes.insert(0, prefix)
-    print "Prefixes:"
-    for p in prefixes:
-        print '    %s%s' % (p, ['', ' (sys)'][p == sys.prefix])
-    print
-
-    print "set PATH=%s" % (';'.join(join(p, bin_dir_name) for p in prefixes))
-
-
-def get_installed_info(prefix, cname):
+def get_installed_info(cname):
     """
     Returns a dictionary with information about the package specified by the
-    canonical name found in prefix, or None if the package is not found.
+    canonical name found in sys.prefix, or None if the package is not found.
     """
-    egg_info_dir = join(prefix, 'EGG-INFO')
+    egg_info_dir = join(sys.prefix, 'EGG-INFO')
     if not isdir(egg_info_dir):
         return None
     meta_txt = join(egg_info_dir, cname, '__egginst__.txt')
@@ -62,7 +49,7 @@ def egginst_remove(pkg):
     pprint_fn_action(fn, 'removing')
     if dry_run:
         return
-    ei = egginst.EggInst(pkg, prefix)
+    ei = egginst.EggInst(pkg)
     ei.remove()
 
 
@@ -74,9 +61,9 @@ def egginst_install(conf, dist):
     if dry_run:
         return
 
-    ei = egginst.EggInst(pkg_path, prefix)
+    ei = egginst.EggInst(pkg_path)
     ei.install()
-    info = get_installed_info(prefix, cname_fn(fn))
+    info = get_installed_info(cname_fn(fn))
     path = join(info['meta_dir'], '__enpkg__.txt')
     fo = open(path, 'w')
     fo.write("repo = %r\n" % repo)
@@ -84,13 +71,11 @@ def egginst_install(conf, dist):
 
 
 def check_write():
-    if not isdir(prefix):
-        os.makedirs(prefix)
-    path = join(prefix, 'hello.txt')
+    path = join(sys.prefix, 'hello.txt')
     try:
         open(path, 'w').write('Hello World!\n')
     except:
-        print "ERROR: Could not write simple file into:", prefix
+        print "ERROR: Could not write simple file into:", sys.prefix
         sys.exit(1)
     finally:
         if isfile(path):
@@ -98,20 +83,11 @@ def check_write():
 
 
 def print_installed_info(cname):
-    info = get_installed_info(prefix, cname)
+    info = get_installed_info(cname)
     if info is None:
         print "%s is not installed" % cname
     else:
         print "%(egg_name)s was installed on: %(mtime)s" % info
-
-    if prefix == sys.prefix:
-        return
-
-    info = get_installed_info(sys.prefix, cname)
-    if info is None:
-        print "%s is not installed in sys.prefix" % cname
-    else:
-        print "%(egg_name)s was installed in sys.prefix on: %(mtime)s" % info
 
 
 def info_option(c, cname):
@@ -141,15 +117,15 @@ def shorten_repo(repo):
         return repo.replace('http://', '').replace('.enthought.com', '')
 
 
-def print_installed(prefix, pat=None):
+def print_installed(pat=None):
     fmt = '%-20s %-20s %s'
     print fmt % ('Project name', 'Version', 'Repository')
     print 60 * '='
-    for fn in egginst.get_installed(prefix):
+    for fn in egginst.get_installed():
         if pat and not pat.search(fn[:-4]):
             continue
         lst = list(egginst.name_version_fn(fn))
-        info = get_installed_info(prefix, cname_fn(fn))
+        info = get_installed_info(cname_fn(fn))
         if info is None:
             lst.append('')
         else:
@@ -163,24 +139,12 @@ def print_installed(prefix, pat=None):
         print fmt % tuple(lst)
 
 
-def list_option(pat):
-    print "sys.prefix:", sys.prefix
-    print_installed(sys.prefix, pat)
-    if prefix == sys.prefix:
-        return
-    print
-    print "prefix:", prefix
-    print_installed(prefix, pat)
-
-
 def whats_new(c):
     fmt = '%-25s %-15s %s'
     print fmt % ('Name', 'installed', 'available')
     print 60* "="
 
-    inst = set(egginst.get_installed(sys.prefix))
-    if prefix != sys.prefix:
-        inst |= set(egginst.get_installed(prefix))
+    inst = set(egginst.get_installed())
 
     something_new = False
     for egg_name in inst:
@@ -227,7 +191,7 @@ def read_depend_files():
     Returns a dictionary mapping canonical project names to the spec
     dictionaries of the installed packages.
     """
-    egg_info_dir = join(prefix, 'EGG-INFO')
+    egg_info_dir = join(sys.prefix, 'EGG-INFO')
     if not isdir(egg_info_dir):
         return {}
     res = {}
@@ -269,10 +233,10 @@ def depend_warn(pkgs, ignore_version=False):
 
 def remove_req(req):
     """
-    Tries remove a package from prefix given a requirement object.
+    Tries remove a package from sys.prefix given a requirement object.
     This function is only used for the --remove option.
     """
-    d = get_installed_info(prefix, req.name)
+    d = get_installed_info(req.name)
     if not d:
         print "Package %r does not seem to be installed." % req.name
         return
@@ -356,17 +320,6 @@ def main():
                  action="store_true",
                  help="neither download nor install dependencies")
 
-    p.add_option("--path",
-                 action="store_true",
-                 help="based on the configuration, display how to set the "
-                      "PATH and PYTHONPATH environment variables")
-
-    p.add_option("--prefix",
-                 action="store",
-                 help="install prefix (disregarding of any settings in "
-                      "the config file)",
-                 metavar='PATH')
-
     p.add_option("--remove",
                  action="store_true",
                  help="remove a package")
@@ -375,10 +328,6 @@ def main():
                  action="store_true",
                  help="search the index in the repo (chain) of packages "
                       "and display versions available.")
-
-    p.add_option("--sys-prefix",
-                 action="store_true",
-                 help="use sys.prefix as the install prefix")
 
     p.add_option('-v', "--verbose", action="store_true")
 
@@ -393,9 +342,6 @@ def main():
 
     if len(args) > 0 and (opts.config or opts.path):
         p.error("Option takes no arguments")
-
-    if opts.prefix and opts.sys_prefix:
-        p.error("Options --prefix and --sys-prefix exclude each ohter")
 
     if opts.force and opts.forceall:
         p.error("Options --force and --forceall exclude each ohter")
@@ -419,22 +365,12 @@ def main():
 
     conf = config.read()                          #  conf
 
-    global prefix, dry_run, version               #  set globals
-    if opts.sys_prefix:
-        prefix = sys.prefix
-    elif opts.prefix:
-        prefix = opts.prefix
-    else:
-        prefix = conf['prefix']
+    global dry_run, version                       #  set globals
     dry_run = opts.dry_run
     version = opts.version
 
-    if opts.path:                                 #  --path
-        print_path()
-        return
-
     if opts.list:                                 #  --list
-        list_option(pat)
+        print_installed(pat)
         return
 
     c = Chain(conf['IndexedRepos'], verbose)      #  init chain
@@ -461,7 +397,6 @@ def main():
         p.error("A requirement is a name and an optional version")
     req = Req(' '.join(args))
 
-    print "prefix:", prefix
     check_write()
     if opts.remove:                               #  --remove
         remove_req(req)
@@ -474,18 +409,13 @@ def main():
     depend_warn([dist_naming.filename_dist(d) for d in dists])
 
     # Packages which are installed currently
-    sys_inst = set(egginst.get_installed(sys.prefix))
-    if prefix == sys.prefix:
-        prefix_inst = sys_inst
-    else:
-        prefix_inst = set(egginst.get_installed(prefix))
-    all_inst = sys_inst | prefix_inst
+    inst = set(egginst.get_installed())
 
     # These are the packahes which are being excluded from being installed
     if opts.forceall:
         exclude = set()
     else:
-        exclude = all_inst
+        exclude = inst
         if opts.force:
             exclude.discard(dist_naming.filename_dist(dists[-1]))
 
@@ -500,13 +430,12 @@ def main():
     # Remove packages (in reverse install order)
     for dist in dists[::-1]:
         fn = dist_naming.filename_dist(dist)
-        if fn in all_inst:
+        if fn in inst:
             # if the distribution (which needs to be installed) is already
             # installed don't remove it
             continue
         cname = cname_fn(fn)
-        # Only remove packages installed in prefix
-        for fn_inst in prefix_inst:
+        for fn_inst in inst:
             if cname == cname_fn(fn_inst):
                 egginst_remove(fn_inst)
 

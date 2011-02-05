@@ -3,9 +3,6 @@ import shutil
 from os.path import isdir, isfile, join
 
 
-bin_dir_name = 'Scripts'
-
-
 def pprint_fn_action(fn, action):
     """
     Pretty print the distribution name (filename) and an action, the width

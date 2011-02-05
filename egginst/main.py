@@ -13,8 +13,7 @@ import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
-from egginst.utils import (bin_dir_name,
-                           pprint_fn_action, rmdir_er, rm_rf, human_bytes)
+from egginst.utils import pprint_fn_action, rmdir_er, rm_rf, human_bytes
 from egginst import scripts
 
 
@@ -32,25 +31,23 @@ def name_version_fn(fn):
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix, verbose=False):
+    def __init__(self, fpath, verbose=False):
         self.fpath = fpath
         self.cname = name_version_fn(basename(fpath))[0].lower()
-        self.prefix = abspath(prefix)
 
         # This is the directory which contains the EGG-INFO directories of all
         # installed packages
-        self.meta_dir = join(self.prefix, 'EGG-INFO', self.cname)
+        self.meta_dir = join(sys.prefix, 'EGG-INFO', self.cname)
         self.meta_txt = join(self.meta_dir, '__egginst__.txt')
-
-        self.bin_dir = join(self.prefix, bin_dir_name)
-        self.site_packages = join(self.prefix, r'Lib\site-packages')
+        self.bin_dir = sys.prefix
+        self.site_packages = join(sys.prefix, r'Lib\site-packages')
 
         self.files = []
         self.verbose = verbose
 
     def rel_prefix(self, path):
-        assert abspath(path).startswith(self.prefix)
-        return path[len(self.prefix) + 1:]
+        assert abspath(path).startswith(sys.prefix)
+        return path[len(sys.prefix) + 1:]
 
 
     def install(self):
@@ -96,7 +93,7 @@ class EggInst(object):
         fo = open(self.meta_txt, 'w')
         fo.write('# egginst metadata\n')
         fo.write('egg_name = %r\n' % basename(self.fpath))
-        fo.write('prefix = %r\n' % self.prefix)
+        fo.write('prefix = %r\n' % sys.prefix)
         fo.write('installed_size = %i\n' % self.installed_size)
         fo.write('rel_files = [\n')
         fo.write('  %r,\n' % self.rel_prefix(self.meta_txt))
@@ -110,7 +107,7 @@ class EggInst(object):
         execfile(self.meta_txt, d)
         for name in ['egg_name', 'prefix', 'installed_size', 'rel_files']:
             setattr(self, name, d[name])
-        self.files = [join(self.prefix, f) for f in d['rel_files']]
+        self.files = [join(sys.prefix, f) for f in d['rel_files']]
 
 
     def lines_from_arcname(self, arcname,
@@ -150,7 +147,7 @@ class EggInst(object):
 
     def get_dst(self, arcname):
         for start, cond, dst_dir in [
-            ('EGG-INFO/prefix/',  True,       self.prefix),
+            ('EGG-INFO/prefix/',  True,       sys.prefix),
             ('EGG-INFO/scripts/', True,       self.bin_dir),
             ('EGG-INFO/',         True,       self.meta_dir),
             ('',                  True,       self.site_packages),
@@ -181,7 +178,7 @@ class EggInst(object):
         if not isfile(path):
             return
         from subprocess import call
-        call([sys.executable, path, '--prefix', self.prefix],
+        call([sys.executable, path, '--prefix', sys.prefix],
              cwd=dirname(path))
 
     def rmdirs(self):
@@ -220,13 +217,13 @@ class EggInst(object):
         sys.stdout.flush()
 
 
-def get_installed(prefix):
+def get_installed():
     """
     Generator returns a sorted list of all installed packages.
     Each element is the filename of the egg which was used to install the
     package.
     """
-    egg_info_dir = join(prefix, 'EGG-INFO')
+    egg_info_dir = join(sys.prefix, 'EGG-INFO')
     if not isdir(egg_info_dir):
         return
 
@@ -239,11 +236,11 @@ def get_installed(prefix):
         yield d['egg_name']
 
 
-def print_installed(prefix):
+def print_installed():
     fmt = '%-20s %s'
     print fmt % ('Project name', 'Version')
     print 40 * '='
-    for fn in get_installed(prefix):
+    for fn in get_installed():
         print fmt % name_version_fn(fn)
 
 
@@ -256,11 +253,6 @@ def main():
     p.add_option('-l', "--list",
                  action="store_true",
                  help="list all installed packages")
-
-    p.add_option("--prefix",
-                 action="store",
-                 default=sys.prefix,
-                 help="install prefix, defaults to %default")
 
     p.add_option('-r', "--remove",
                  action="store_true",
@@ -277,16 +269,14 @@ def main():
         print "Enstaller version:", __version__
         return
 
-    prefix = abspath(opts.prefix)
-
     if opts.list:
         if args:
             p.error("the --list option takes no arguments")
-        print_installed(prefix)
+        print_installed()
         return
 
     for path in args:
-        ei = EggInst(path, prefix, opts.verbose)
+        ei = EggInst(path, opts.verbose)
         fn = basename(path)
         if opts.remove:
             pprint_fn_action(fn, 'removing')
