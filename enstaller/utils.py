@@ -1,9 +1,7 @@
-import bz2
 import sys
 import hashlib
 import urlparse
 import urllib2
-from cStringIO import StringIO
 from os.path import abspath, expanduser
 
 from egginst.utils import human_bytes, rm_rf
@@ -19,11 +17,7 @@ def canonical(s):
     """
     Return the canonical representations of a project name.
     """
-    s = s.lower()
-    s = s.replace('-', '_')
-    if s == 'tables':
-        s = 'pytables'
-    return s
+    return s.lower()
 
 
 def cname_fn(fn):
@@ -70,8 +64,6 @@ def open_with_auth(url):
     """
     Open a urllib2 request, handling HTTP authentication
     """
-    import enstaller.config as config
-
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
     assert not query
     auth, host = urllib2.splituser(netloc)
