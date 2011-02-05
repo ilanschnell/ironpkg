@@ -1,7 +1,9 @@
-The Enstaller (version 4) project is a managing and install tool
-for egg-based Python distributions.
+IronPkg is a fork of enstaller to support IronPython
+====================================================
 
-Enstaller consists of the sub-packages enstaller (package managing
+This is a managing and install tool for egg-based Python distributions.
+
+IronPkg consists of the sub-packages enstaller (package managing
 tool) and egginst (package (un)install tool).  We find the clean
 separation into these two tasks, each of which having a well-defined
 scope, extremely useful.
