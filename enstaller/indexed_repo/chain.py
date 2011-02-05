@@ -1,6 +1,5 @@
 import os
 import sys
-import bz2
 import zipfile
 from cStringIO import StringIO
 from os.path import basename, getsize, isfile, isdir, join
@@ -37,7 +36,7 @@ class Chain(object):
             print '\t%r' % r
 
 
-    def add_repo(self, repo, index_fn='index-depend.bz2'):
+    def add_repo(self, repo, index_fn='index-depend.txt'):
         """
         Add a repo to the chain, i.e. read the index file of the url,
         parse it and update the index.
@@ -68,9 +67,6 @@ class Chain(object):
         write_data_from_url(faux, index_url)
         index_data = faux.getvalue()
         faux.close()
-
-        if index_fn.endswith('.bz2'):
-            index_data = bz2.decompress(index_data)
 
         new_index = metadata.parse_depend_index(index_data)
         for spec in new_index.itervalues():

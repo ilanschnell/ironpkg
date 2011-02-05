@@ -1,7 +1,6 @@
 import os
 import sys
 import re
-import bz2
 import string
 import zipfile
 from cStringIO import StringIO
@@ -117,7 +116,7 @@ def parse_data(data, index=False):
 
 def parse_depend_index(data):
     """
-    Given the data of index-depend.bz2, return a dict mapping each distname
+    Given the data of index-depend.txt, return a dict mapping each distname
     to a dict mapping variable names to their values.
     """
     d = parse_index(data)
@@ -173,24 +172,9 @@ def index_section(zip_path):
             rawspec_from_dist(zip_path) + '\n')
 
 
-def write_txt_bz2(path, data):
-    """
-    Writes the 'data' to the file 'path' (which must end with '.txt'),
-    as well as the bz2 compressed data to a file alongside 'data', where the
-    txt extension is replaced by bz2.
-    """
-    fo = open(path, 'w')
-    fo.write(data)
-    fo.close()
-    assert path.endswith('.txt'), path
-    fo = open(path[:-4] + '.bz2', 'wb')
-    fo.write(bz2.compress(data))
-    fo.close()
-
-
 def update_index(dir_path, force=False, verbose=False):
     """
-    Updates index-depend.txt and index-depend.bz2 in the directory specified.
+    Updates index-depend.txt in the directory specified.
     If index-depend.txt already exists, its content (which contains
     modification time stamps) is used to create the updated file.
     This can be disabled using the force option.
@@ -227,5 +211,4 @@ def update_index(dir_path, force=False, verbose=False):
 
     if verbose:
         print
-    write_txt_bz2(txt_path, faux.getvalue())
     faux.close()
