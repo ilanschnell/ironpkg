@@ -60,7 +60,7 @@ def md5_file(path):
     return h.hexdigest()
 
 
-def open_with_auth(url):
+def open_url(url):
     """
     Open a urllib2 request, handling HTTP authentication
     """
@@ -89,7 +89,7 @@ def write_data_from_url(fo, url, md5=None, size=None):
         fi = open(path, 'rb')
     elif url.startswith('http://'):
         try:
-            fi = open_with_auth(url)
+            fi = open_url(url)
         except urllib2.URLError, e:
             raise urllib2.URLError("\n%s\nCannot open URL:\n    %s" % (e, url))
     else:
