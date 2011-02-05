@@ -9,7 +9,7 @@ from enstaller import __version__
 from utils import abs_expanduser
 
 
-CONFIG_FN = ".enstaller4rc"
+CONFIG_FN = ".ironpkg"
 HOME_CONFIG_PATH = abs_expanduser("~/" + CONFIG_FN)
 SYSTEM_CONFIG_PATH = join(sys.prefix, CONFIG_FN)
 
@@ -26,26 +26,6 @@ def get_path():
 
     return None
 
-
-def input_auth():
-    from getpass import getpass
-    print """\
-Welcome to Enstaller (version %s)!
-
-In order to access the EPD repository, please enter your
-username and password, which you use to subscribe to EPD.
-If you are not subscribed to EPD, just hit Return.
-""" % __version__
-    username = raw_input('Username: ').strip()
-    if not username:
-        return None
-    for dummy in xrange(3):
-        password = getpass('Password: ')
-        password2 = getpass('Confirm password: ')
-        if password == password2:
-            userpass = username + ':' + password
-            return userpass.encode('base64').strip()
-    return None
 
 RC_TMPL = """\
 # IronPkg configuration file
@@ -93,9 +73,7 @@ def read():
     d = {}
     execfile(get_path(), d)
     read.cache = dict( # defaults
-        info_url=None,
         prefix=sys.prefix,
-        noapp=False,
         local=join(sys.prefix, 'LOCAL-REPO'),
     )
     for k in ['IndexedRepos', 'prefix', 'local']:
@@ -111,7 +89,7 @@ def read():
 
 
 def print_config():
-    print "Enstaller version:", __version__
+    print "IronPkg version:", __version__
     print "sys.prefix:", sys.prefix
     print "platform:", platform.platform()
     print "architecture:", platform.architecture()[0]
@@ -122,7 +100,7 @@ def print_config():
     conf = read()
     print
     print "config file setting:"
-    for k in ['info_url', 'prefix', 'local']:
+    for k in ['prefix', 'local']:
         print "    %s = %r" % (k, conf[k])
     print "    IndexedRepos:"
     for repo in conf['IndexedRepos']:

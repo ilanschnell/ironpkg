@@ -17,22 +17,21 @@ f.close()
 
 
 setup(
-    name="Enstaller",
+    name="IronPkg",
     author="Enthought, Inc.",
     author_email="info@enthought.com",
-    url = "https://github.com/enthought/enstaller",
+    url = "https://github.com/ilanschnell/ironpkg",
     license="BSD",
     description = "Install and managing tool for egg-based packages",
     packages = [
         'egginst',
         'enstaller',
         'enstaller/indexed_repo',
-        'enstaller/proxy',
     ],
     entry_points = {
         "console_scripts": [
-             "enpkg = enstaller.main:main",
-             "egginst = egginst.main:main",
+             "ironpkg = enstaller.main:main",
+             "ironegg = egginst.main:main",
         ],
     },
     classifiers = [

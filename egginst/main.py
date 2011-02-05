@@ -19,11 +19,6 @@ from egginst.utils import (bin_dir_name, rel_site_packages,
 from egginst import scripts
 
 
-NS_PKG_PAT = re.compile(
-    r'\s*__import__\([\'"]pkg_resources[\'"]\)\.declare_namespace'
-    r'\(__name__\)\s*$')
-
-
 def name_version_fn(fn):
     """
     Given the filename of a package, returns a tuple(name, version).
@@ -38,11 +33,10 @@ def name_version_fn(fn):
 
 class EggInst(object):
 
-    def __init__(self, fpath, prefix, verbose=False, noapp=False):
+    def __init__(self, fpath, prefix, verbose=False):
         self.fpath = fpath
         self.cname = name_version_fn(basename(fpath))[0].lower()
         self.prefix = abspath(prefix)
-        self.noapp = noapp
 
         # This is the directory which contains the EGG-INFO directories of all
         # installed packages
@@ -75,7 +69,6 @@ class EggInst(object):
         self.z.close()
         scripts.fix_scripts(self)
         self.run('post_egginst.py')
-        self.install_app()
         self.write_meta()
 
 
@@ -157,9 +150,6 @@ class EggInst(object):
 
 
     def get_dst(self, arcname):
-        if arcname == 'EGG-INFO/PKG-INFO' and self.fpath.endswith('.egg'):
-            return join(self.site_packages, basename(self.fpath) + '-info')
-
         for start, cond, dst_dir in [
             ('EGG-INFO/prefix/',  True,       self.prefix),
             ('EGG-INFO/scripts/', True,       self.bin_dir),
@@ -170,26 +160,13 @@ class EggInst(object):
                 return abspath(join(dst_dir, arcname[len(start):]))
         raise Exception("Didn't expect to get here")
 
-    py_pat = re.compile(r'^(.+)\.py(c|o)?$')
-    so_pat = re.compile(r'^lib.+\.so')
-    py_obj = '.pyd'
     def write_arcname(self, arcname):
         if arcname.endswith('/') or arcname.startswith('.unused'):
-            return
-        m = self.py_pat.match(arcname)
-        if m and (m.group(1) + self.py_obj) in self.arcnames:
-            # .py, .pyc, .pyo next to .so are not written
             return
         path = self.get_dst(arcname)
         dn, fn = os.path.split(path)
         data = self.z.read(arcname)
-        if fn in ['__init__.py', '__init__.pyc']:
-            tmp = arcname.rstrip('c')
-            if tmp in self.arcnames and NS_PKG_PAT.match(self.z.read(tmp)):
-                if fn == '__init__.py':
-                    data = ''
-                if fn == '__init__.pyc':
-                    return
+
         self.files.append(path)
         if not isdir(dn):
             os.makedirs(dn)
@@ -197,35 +174,8 @@ class EggInst(object):
         fo = open(path, 'wb')
         fo.write(data)
         fo.close()
-        if (arcname.startswith(('EGG-INFO/usr/bin/', 'EGG-INFO/scripts/')) or
-                fn.endswith(('.dylib', '.pyd', '.so')) or
-                (arcname.startswith('EGG-INFO/usr/lib/') and
-                 self.so_pat.match(fn))):
+        if arcname.startswith(('EGG-INFO/scripts/')) or fn.endswith('.pyd'):
             os.chmod(path, 0755)
-
-
-    def install_app(self, remove=False):
-        if self.noapp:
-            return
-
-        path = join(self.meta_dir, 'inst', 'appinst.dat')
-        if not isfile(path):
-            return
-
-        try:
-            import appinst
-        except ImportError:
-            return
-
-        try:
-            if remove:
-                appinst.uninstall_from_dat(path)
-            else:
-                appinst.install_from_dat(path)
-        except Exception, e:
-            print("Warning (%sinstalling application item):\n%r" %
-                  ('un' if remove else '', e))
-
 
     def run(self, fn):
         path = join(self.meta_dir, fn)
@@ -252,7 +202,6 @@ class EggInst(object):
         cur = n = 0
         nof = len(self.files) # number of files
         sys.stdout.write('%9s [' % human_bytes(self.installed_size))
-        self.install_app(remove=True)
         self.run('pre_egguninst.py')
 
         for p in self.files:
@@ -309,10 +258,6 @@ def main():
                  action="store_true",
                  help="list all installed packages")
 
-    p.add_option("--noapp",
-                 action="store_true",
-                 help="don't install/remove application menu items")
-
     p.add_option("--prefix",
                  action="store",
                  default=sys.prefix,
@@ -342,7 +287,7 @@ def main():
         return
 
     for path in args:
-        ei = EggInst(path, prefix, opts.verbose, opts.noapp)
+        ei = EggInst(path, prefix, opts.verbose)
         fn = basename(path)
         if opts.remove:
             pprint_fn_action(fn, 'removing')

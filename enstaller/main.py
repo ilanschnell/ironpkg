@@ -8,7 +8,6 @@ import os
 import re
 import sys
 import string
-import subprocess
 import textwrap
 import time
 from os.path import basename, dirname, getmtime, isdir, isfile, join
@@ -26,7 +25,6 @@ from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
 # global options variables
 prefix = None
 dry_run = None
-noapp = None
 verbose = None
 
 
@@ -39,39 +37,9 @@ def print_path():
         print '    %s%s' % (p, ['', ' (sys)'][p == sys.prefix])
     print
 
-    if sys.platform == 'win32':
-        cmd = 'set'
-    else:
-        cmd = 'export'
-
-    print "%s PATH=%s" % (cmd, os.pathsep.join(
-                                 join(p, bin_dir_name) for p in prefixes))
+    print "set PATH=%s" % (';'.join(join(p, bin_dir_name) for p in prefixes))
     if prefix != sys.prefix:
-        print "%s PYTHONPATH=%s" % (cmd, join(prefix, rel_site_packages))
-
-    if sys.platform != 'win32':
-        if sys.platform == 'darwin':
-            name = 'DYLD_LIBRARY_PATH'
-        else:
-            name = 'LD_LIBRARY_PATH'
-        print "%s %s=%s" % (cmd, name, os.pathsep.join(
-                                 join(p, 'lib') for p in prefixes))
-
-
-def egginst_subprocess(pkg_path, remove):
-    # only used on Windows
-    path = join(sys.prefix, bin_dir_name, 'egginst-script.py')
-    args = [sys.executable, path, '--prefix', prefix]
-    if dry_run:
-        args.append('--dry-run')
-    if remove:
-        args.append('--remove')
-    if noapp:
-        args.append('--noapp')
-    args.append(pkg_path)
-    if verbose:
-        print 'CALL: %r' % args
-    subprocess.call(args)
+        print "set PYTHONPATH=%s" % join(prefix, rel_site_packages)
 
 
 def get_installed_info(prefix, cname):
@@ -94,30 +62,22 @@ def get_installed_info(prefix, cname):
 
 def egginst_remove(pkg):
     fn = basename(pkg)
-    if sys.platform == 'win32' and fn.startswith(('AppInst-', 'pywin32-')):
-        print "Starting subprocess:"
-        egginst_subprocess(pkg, remove=True)
-        return
     pprint_fn_action(fn, 'removing')
     if dry_run:
         return
-    ei = egginst.EggInst(pkg, prefix, noapp=noapp)
+    ei = egginst.EggInst(pkg, prefix)
     ei.remove()
 
 
 def egginst_install(conf, dist):
     repo, fn = dist_naming.split_dist(dist)
     pkg_path = join(conf['local'], fn)
-    if sys.platform == 'win32' and fn.startswith(('AppInst-', 'pywin32-')):
-        print "Starting subprocess:"
-        egginst_subprocess(pkg_path, remove=False)
-        return
 
     pprint_fn_action(fn, 'installing')
     if dry_run:
         return
 
-    ei = egginst.EggInst(pkg_path, prefix, noapp=noapp)
+    ei = egginst.EggInst(pkg_path, prefix)
     ei.install()
     info = get_installed_info(prefix, cname_fn(fn))
     path = join(info['meta_dir'], '__enpkg__.txt')
@@ -157,24 +117,8 @@ def print_installed_info(cname):
         print "%(egg_name)s was installed in sys.prefix on: %(mtime)s" % info
 
 
-def info_option(url, c, cname):
+def info_option(c, cname):
     print "Canonic.:", cname
-    if url:
-        info = get_info(url)
-        if cname in info:
-            spec = info[cname]
-            print "Name    :", spec['name']
-            print "License :", spec['license']
-            print "Summary :", spec['summary']
-            print
-            for line in textwrap.wrap(' '.join(spec['description'].split()),
-                                      77):
-                print line
-        else:
-            print "No information about %r in %r" % (cname, url)
-    else:
-        print "No 'info_url' in .enstaller4rc"
-    print
     print "In repositories:"
     req = Req(cname)
     for repo in c.repos:
@@ -439,10 +383,6 @@ def main():
                  action="store_true",
                  help="use sys.prefix as the install prefix")
 
-    p.add_option("--userpass",
-                 action="store_true",
-                 help="change EPD authentication in configuration file")
-
     p.add_option('-v', "--verbose", action="store_true")
 
     p.add_option('--version', action="store_true")
@@ -454,7 +394,7 @@ def main():
 
     opts, args = p.parse_args()
 
-    if len(args) > 0 and (opts.config or opts.path or opts.userpass):
+    if len(args) > 0 and (opts.config or opts.path):
         p.error("Option takes no arguments")
 
     if opts.prefix and opts.sys_prefix:
@@ -476,17 +416,13 @@ def main():
         config.print_config()
         return
 
-    if opts.userpass:                             #  --userpass
-        config.change_auth()
-        return
-
     if config.get_path() is None:
         # create config file if it dosn't exist
         config.write()
 
     conf = config.read()                          #  conf
 
-    global prefix, dry_run, noapp, version        #  set globals
+    global prefix, dry_run, version               #  set globals
     if opts.sys_prefix:
         prefix = sys.prefix
     elif opts.prefix:
@@ -494,7 +430,6 @@ def main():
     else:
         prefix = conf['prefix']
     dry_run = opts.dry_run
-    noapp = conf['noapp']
     version = opts.version
 
     if opts.path:                                 #  --path
@@ -514,7 +449,7 @@ def main():
     if opts.info:                                 #  --info
         if len(args) != 1:
             p.error("Option requires one argument (name of package)")
-        info_option(conf['info_url'], c, canonical(args[0]))
+        info_option(c, canonical(args[0]))
         return
 
     if opts.whats_new:                            # --whats-new
