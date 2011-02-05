@@ -1,6 +1,6 @@
 from dist_naming import split_eggname, filename_dist
 
-from enstaller.utils import PY_VER, canonical
+from enstaller.utils import canonical
 
 
 class Req(object):
@@ -38,8 +38,6 @@ class Req(object):
         must be in the list of required versions.
         """
         assert spec['metadata_version'] >= '1.1', spec
-        if spec['python'] not in (None, PY_VER):
-            return False
         if self.strictness == 0:
             return True
         if spec['cname'] != self.name:
