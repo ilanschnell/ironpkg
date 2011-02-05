@@ -352,7 +352,7 @@ def main():
 
     if opts.version:                              #  --version
         from enstaller import __version__
-        print "Enstaller version:", __version__
+        print "IronPkg version:", __version__
         return
 
     if opts.config:                               #  --config
