@@ -11,9 +11,6 @@ from enstaller import __version__
 from enstaller.verlib import NormalizedVersion, IrrationalVersionError
 
 
-PY_VER = '%i.%i' % sys.version_info[:2]
-
-
 def abs_expanduser(path):
     return abspath(expanduser(path))
 
@@ -74,34 +71,12 @@ def open_with_auth(url):
     Open a urllib2 request, handling HTTP authentication
     """
     import enstaller.config as config
-    try:
-        import custom_tools
-    except ImportError:
-        custom_tools = None
 
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
     assert not query
     auth, host = urllib2.splituser(netloc)
-    if auth:
-        auth = urllib2.unquote(auth).encode('base64').strip()
-    elif (custom_tools and hasattr(custom_tools, 'epd_baseurl') and
-                           url.startswith(custom_tools.epd_baseurl)):
-        conf = config.read()
-        if conf is None:
-            raise Exception("Could not locate Enstaller configuration file")
-        auth = conf.get('EPD_auth')
-        if auth is None:
-            userpass = conf.get('EPD_userpass')
-            if userpass:
-                auth = userpass.encode('base64').strip()
 
-    if auth:
-        new_url = urlparse.urlunparse((scheme, host, path,
-                                       params, query, frag))
-        request = urllib2.Request(new_url)
-        request.add_header("Authorization", "Basic " + auth)
-    else:
-        request = urllib2.Request(url)
+    request = urllib2.Request(url)
     request.add_header('User-Agent', 'Enstaller/%s' % __version__)
     return urllib2.urlopen(request)
 

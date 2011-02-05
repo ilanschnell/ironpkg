@@ -14,7 +14,7 @@ import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
-from egginst.utils import (on_win, bin_dir_name, rel_site_packages,
+from egginst.utils import (bin_dir_name, rel_site_packages,
                            pprint_fn_action, rmdir_er, rm_rf, human_bytes)
 from egginst import scripts
 
@@ -69,18 +69,7 @@ class EggInst(object):
 
         self.extract()
 
-        if on_win:
-            scripts.create_proxies(self)
-
-        else:
-            import links
-            import object_code
-
-            if self.verbose:
-                links.verbose = object_code.verbose = True
-
-            links.create(self)
-            object_code.fix_files(self)
+        scripts.create_proxies(self)
 
         self.entry_points()
         self.z.close()
@@ -173,7 +162,6 @@ class EggInst(object):
 
         for start, cond, dst_dir in [
             ('EGG-INFO/prefix/',  True,       self.prefix),
-            ('EGG-INFO/usr/',     not on_win, self.prefix),
             ('EGG-INFO/scripts/', True,       self.bin_dir),
             ('EGG-INFO/',         True,       self.meta_dir),
             ('',                  True,       self.site_packages),
@@ -184,7 +172,7 @@ class EggInst(object):
 
     py_pat = re.compile(r'^(.+)\.py(c|o)?$')
     so_pat = re.compile(r'^lib.+\.so')
-    py_obj = '.pyd' if on_win else '.so'
+    py_obj = '.pyd'
     def write_arcname(self, arcname):
         if arcname.endswith('/') or arcname.startswith('.unused'):
             return

@@ -1,17 +1,10 @@
-import sys
 import os
 import shutil
-from os.path import isdir, isfile, islink, join
+from os.path import isdir, isfile, join
 
 
-on_win = sys.platform == 'win32'
-
-if on_win:
-    bin_dir_name = 'Scripts'
-    rel_site_packages = r'Lib\site-packages'
-else:
-    bin_dir_name = 'bin'
-    rel_site_packages = 'lib/python%i.%i/site-packages' % sys.version_info[:2]
+bin_dir_name = 'Scripts'
+rel_site_packages = r'Lib\site-packages'
 
 
 def pprint_fn_action(fn, action):
@@ -37,24 +30,14 @@ def rmdir_er(dn):
 
 
 def rm_rf(path, verbose=False):
-    if not on_win and islink(path):
-        # Note that we have to check if the destination is a link because
-        # exists('/path/to/dead-link') will return False, although
-        # islink('/path/to/dead-link') is True.
-        if verbose:
-            print "Removing: %r (link)" % path
-        os.unlink(path)
-
-    elif isfile(path):
+    if isfile(path):
         if verbose:
             print "Removing: %r (file)" % path
-        if sys.platform == 'win32':
-            try:
-                os.unlink(path)
-            except WindowsError:
-                pass
-        else:
+
+        try:
             os.unlink(path)
+        except WindowsError:
+            pass
 
     elif isdir(path):
         if verbose:

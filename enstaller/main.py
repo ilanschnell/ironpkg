@@ -18,7 +18,6 @@ import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
-from proxy.api import setup_proxy
 from utils import canonical, cname_fn, get_info, comparable_version
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
                           parse_data, dist_naming)
@@ -427,11 +426,6 @@ def main():
                       "the config file)",
                  metavar='PATH')
 
-    p.add_option("--proxy",
-                 action="store",
-                 help="use a proxy for downloads",
-                 metavar='URL')
-
     p.add_option("--remove",
                  action="store_true",
                  help="remove a package")
@@ -488,16 +482,9 @@ def main():
 
     if config.get_path() is None:
         # create config file if it dosn't exist
-        config.write(opts.proxy)
+        config.write()
 
     conf = config.read()                          #  conf
-
-    if opts.proxy:                                #  --proxy
-        setup_proxy(opts.proxy)
-    elif conf['proxy']:
-        setup_proxy(conf['proxy'])
-    else:
-        setup_proxy()
 
     global prefix, dry_run, noapp, version        #  set globals
     if opts.sys_prefix:
