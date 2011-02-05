@@ -9,7 +9,6 @@ eggs and it installs/uninstalls them.
 """
 import os
 import sys
-import re
 import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile

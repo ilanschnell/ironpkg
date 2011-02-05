@@ -8,7 +8,6 @@ import os
 import re
 import sys
 import string
-import textwrap
 import time
 from os.path import basename, dirname, getmtime, isdir, isfile, join
 from optparse import OptionParser
@@ -17,7 +16,7 @@ import egginst
 from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
 
 import config
-from utils import canonical, cname_fn, get_info, comparable_version
+from utils import canonical, cname_fn, comparable_version
 from indexed_repo import (Chain, Req, add_Reqs_to_spec, spec_as_req,
                           parse_data, dist_naming)
 
