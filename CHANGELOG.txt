@@ -1,8 +1,12 @@
-2011-XX-XX   4.3.1:
+2011-XX-XX   1.0.0:
 -------------------
+* initial fork and cleanup
+
+
+============================================================================
+
 * add commit message to egg repository index file, if
   EGG-INFO/spec/__commit__ exists
-
 
 
 2011-01-16   4.3.0:
