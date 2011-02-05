@@ -13,7 +13,7 @@ from os.path import basename, dirname, getmtime, isdir, isfile, join
 from optparse import OptionParser
 
 import egginst
-from egginst.utils import bin_dir_name, rel_site_packages, pprint_fn_action
+from egginst.utils import bin_dir_name, pprint_fn_action
 
 import config
 from utils import canonical, cname_fn, comparable_version
@@ -37,8 +37,6 @@ def print_path():
     print
 
     print "set PATH=%s" % (';'.join(join(p, bin_dir_name) for p in prefixes))
-    if prefix != sys.prefix:
-        print "set PYTHONPATH=%s" % join(prefix, rel_site_packages)
 
 
 def get_installed_info(prefix, cname):

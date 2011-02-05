@@ -1,6 +1,6 @@
 # Author: Ilan Schnell <ischnell@enthought.com>
 """\
-egginst is a simple tool for installing and uninstalling eggs.  The tool
+ironpkg is a simple tool for installing and uninstalling eggs.  The tool
 is brain dead in the sense that it does not care if the eggs it installs
 are for the correct platform, it's dependencies got installed, another
 package needs to be uninstalled prior to the install, and so on.  Those tasks
@@ -13,7 +13,7 @@ import zipfile
 import ConfigParser
 from os.path import abspath, basename, dirname, join, isdir, isfile
 
-from egginst.utils import (bin_dir_name, rel_site_packages,
+from egginst.utils import (bin_dir_name,
                            pprint_fn_action, rmdir_er, rm_rf, human_bytes)
 from egginst import scripts
 
@@ -43,7 +43,7 @@ class EggInst(object):
         self.meta_txt = join(self.meta_dir, '__egginst__.txt')
 
         self.bin_dir = join(self.prefix, bin_dir_name)
-        self.site_packages = join(self.prefix, rel_site_packages)
+        self.site_packages = join(self.prefix, r'Lib\site-packages')
 
         self.files = []
         self.verbose = verbose

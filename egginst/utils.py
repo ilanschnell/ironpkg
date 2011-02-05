@@ -4,7 +4,6 @@ from os.path import isdir, isfile, join
 
 
 bin_dir_name = 'Scripts'
-rel_site_packages = r'Lib\site-packages'
 
 
 def pprint_fn_action(fn, action):

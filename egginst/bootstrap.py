@@ -2,7 +2,6 @@ import sys
 from os.path import isfile, join
 
 
-
 def main(prefix=sys.prefix, verbose=False):
     """
     To bootstrap Enstaller into a Python environment, used the following
@@ -44,9 +43,9 @@ def fix_easy_pth(pth):
 
 def remove_and_fix():
     # Remove and fix some files in site-packages
-    from egginst.utils import rm_rf, rel_site_packages
+    from egginst.utils import rm_rf
 
-    site_dir = join(sys.prefix, rel_site_packages)
+    site_dir = join(sys.prefix, r'Lib\site-packages')
 
     # Remove old Enstaller files which could cause problems
     for fn in ['Enstaller.pth', 'Enstaller.egg-link']:
