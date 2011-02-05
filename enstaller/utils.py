@@ -69,7 +69,7 @@ def open_with_auth(url):
     auth, host = urllib2.splituser(netloc)
 
     request = urllib2.Request(url)
-    request.add_header('User-Agent', 'Enstaller/%s' % __version__)
+    request.add_header('User-Agent', 'IronPkg/%s' % __version__)
     return urllib2.urlopen(request)
 
 
@@ -97,10 +97,10 @@ def write_data_from_url(fo, url, md5=None, size=None):
 
     h = hashlib.new('md5')
 
-    if size and size < 16384:
-        buffsize = 1
-    else:
+    if size and size < 131072:
         buffsize = 256
+    else:
+        buffsize = 16384
 
     while True:
         chunk = fi.read(buffsize)
