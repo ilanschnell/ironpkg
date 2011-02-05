@@ -70,18 +70,6 @@ def egginst_install(conf, dist):
     fo.close()
 
 
-def check_write():
-    path = join(sys.prefix, 'hello.txt')
-    try:
-        open(path, 'w').write('Hello World!\n')
-    except:
-        print "ERROR: Could not write simple file into:", sys.prefix
-        sys.exit(1)
-    finally:
-        if isfile(path):
-            os.unlink(path)
-
-
 def print_installed_info(cname):
     info = get_installed_info(cname)
     if info is None:
@@ -340,7 +328,7 @@ def main():
 
     opts, args = p.parse_args()
 
-    if len(args) > 0 and (opts.config or opts.path):
+    if len(args) > 0 and opts.config:
         p.error("Option takes no arguments")
 
     if opts.force and opts.forceall:
@@ -397,7 +385,6 @@ def main():
         p.error("A requirement is a name and an optional version")
     req = Req(' '.join(args))
 
-    check_write()
     if opts.remove:                               #  --remove
         remove_req(req)
         return
