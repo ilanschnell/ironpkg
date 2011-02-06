@@ -39,12 +39,12 @@ RC_TMPL = """\
 # This file was created by initially running the enpkg command.
 
 # Notice also that only indexed repositories, i.e. HTTP directories which
-# contain a file 'index-depend.bz2' (next to the eggs), can be listed here.
+# contain a file 'index-depend.txt' (next to the eggs), can be listed here.
 # For local repositories, the index file is optional.  Remember that on
 # Windows systems the backslaches in the directory path need to escaped, e.g.:
 # r'file://C:\\repository\\' or 'file://C:\\\\repository\\\\'
 IndexedRepos = [
-  'http://www.enthought.com/repo/.ipy'
+  'http://www.enthought.com/repo/.iron/eggs',
 ]
 """
 
