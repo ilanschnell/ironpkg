@@ -2,7 +2,7 @@ import sys
 from os.path import isfile, join
 
 
-def main(prefix=sys.prefix, verbose=False):
+def main(verbose=False):
     """
     To bootstrap Enstaller into a Python environment, used the following
     code:
@@ -19,7 +19,7 @@ def main(prefix=sys.prefix, verbose=False):
     egg_path = sys.path[0]
 
     print "Bootstrapping:", egg_path
-    ei = egginst.EggInst(egg_path, prefix, verbose)
+    ei = egginst.EggInst(egg_path, verbose)
     ei.install()
 
 
@@ -64,15 +64,13 @@ def cli():
     """
     from optparse import OptionParser
     from enstaller import __version__
+    sys_prefix = sys.prefix
 
-    p = OptionParser(usage="<executable egg> [options]",
-                     description="bootstraps Enstaller %(__version__)s into "
-                                 "the current Python environment" % locals())
-
-    p.add_option("--prefix",
-                 action="store",
-                 default=sys.prefix,
-                 help="install prefix, defaults to %default")
+    p = OptionParser(
+        usage="<executable egg> [options]",
+        description=
+            "bootstraps Enstaller %(__version__)s into "
+            "the IronPython environment %(sys_prefix)s" % locals())
 
     p.add_option('-v', "--verbose", action="store_true")
 
@@ -84,6 +82,6 @@ def cli():
         print "Enstaller version:", __version__
         return
 
-    main(opts.prefix, opts.verbose)
+    main(opts.verbose)
 
     remove_and_fix()

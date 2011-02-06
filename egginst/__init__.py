@@ -24,7 +24,7 @@ remove():
 Functions:
 ----------
 
-get_installed(prefix):
+get_installed():
     Generator returns a sorted list of all installed packages.
     Each element is the filename of the egg which was used to install the
     package.

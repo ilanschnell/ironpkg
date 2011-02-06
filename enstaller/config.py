@@ -72,15 +72,15 @@ def read():
 
     d = {}
     execfile(get_path(), d)
-    read.cache = dict( # defaults
-        prefix=sys.prefix,
+    read.cache = dict(
+        # defaults
         local=join(sys.prefix, 'LOCAL-REPO'),
     )
-    for k in ['IndexedRepos', 'prefix', 'local']:
+    for k in ['IndexedRepos', 'local']:
         if not d.has_key(k):
             continue
         v = d[k]
-        if k in ['prefix', 'local']:
+        if k == 'local':
             read.cache[k] = abs_expanduser(v)
         else:
             read.cache[k] = v
@@ -100,7 +100,7 @@ def print_config():
     conf = read()
     print
     print "config file setting:"
-    for k in ['prefix', 'local']:
+    for k in ['local']:
         print "    %s = %r" % (k, conf[k])
     print "    IndexedRepos:"
     for repo in conf['IndexedRepos']:
