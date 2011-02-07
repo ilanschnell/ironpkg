@@ -26,19 +26,17 @@ def rmdir_er(dn):
 
 
 def rm_rf(path, verbose=False):
-    if isfile(path):
-        if verbose:
-            print "Removing: %r (file)" % path
-
-        try:
+    try:
+        if isfile(path):
+            if verbose:
+                print "Removing: %r (file)" % path
             os.unlink(path)
-        except WindowsError:
-            pass
-
-    elif isdir(path):
-        if verbose:
-            print "Removing: %r (directory)" % path
-        shutil.rmtree(path)
+        elif isdir(path):
+            if verbose:
+                print "Removing: %r (directory)" % path
+            shutil.rmtree(path)
+    except WindowsError:
+        pass
 
 
 def human_bytes(n):
