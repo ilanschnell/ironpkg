@@ -6,11 +6,11 @@ from enstaller import __version__
 from enstaller.indexed_repo.metadata import data_from_spec
 
 
-spec = dict(
+SPEC = dict(
     name="ironpkg",
     version=__version__,
     build=1,
-    arch='x86',
+    arch=None,
     platform='cli',
     osdist=None,
     python=None,
@@ -18,8 +18,9 @@ spec = dict(
 )
 
 
-def build_egg(path):
-    z = zipfile.ZipFile(path, 'w', zipfile.ZIP_STORED)
+def build_egg(spec):
+    fn = '%(name)s-%(version)s-%(build)s.egg' % spec
+    z = zipfile.ZipFile(fn, 'w', zipfile.ZIP_STORED)
     for root, dirs, files in os.walk('.'):
         if not root[2:].startswith(('egginst', 'enstaller')):
             continue
@@ -32,5 +33,37 @@ def build_egg(path):
     z.close()
 
 
+def build_py(spec):
+    eggfn = '%(name)s-%(version)s-%(build)s.egg' % spec
+    eggdata = open(eggfn, 'rb').read()
+
+    fo = open('%(name)s-%(version)s.py' % spec, 'w')
+    fo.write("""\
+import sys
+import tempfile
+import zipfile
+from os.path import join
+from optparse import OptionParser
+
+eggdata = %(eggdata)r
+
+def cli():
+    tmp_dir = tempfile.mkdtemp()
+    egg_path = join(tmp_dir, %(eggfn)r)
+    fo = open(egg_path, 'wb')
+    fo.write(eggdata)
+    fo.close()
+    sys.path.insert(0, egg_path)
+    import egginst.bootstrap import main
+    main()
+    shutil.rmtree(tmp_dir)
+
 if __name__ == '__main__':
-    build_egg('%(name)s-%(version)s-%(build)s.egg' % spec)
+    cli()
+""" % locals())
+    fo.close()
+
+
+if __name__ == '__main__':
+    build_egg(SPEC)
+    build_py(SPEC)
