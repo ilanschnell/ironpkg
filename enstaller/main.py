@@ -250,9 +250,6 @@ def get_dists(c, req, recur):
         if versions:
             print "Versions for package %r are: %s" % (req.name,
                                                        ', '.join(versions))
-        else:
-            print
-            print "You may want to run: easy_install %s" % req.name
         sys.exit(1)
 
     if verbose:
