@@ -40,7 +40,6 @@ def build_py(spec):
     fo = open('%(name)s-%(version)s.py' % spec, 'w')
     fo.write("""\
 import sys
-import tempfile
 import zipfile
 from os.path import join
 from optparse import OptionParser
@@ -48,15 +47,13 @@ from optparse import OptionParser
 eggdata = %(eggdata)r
 
 def cli():
-    tmp_dir = tempfile.mkdtemp()
-    egg_path = join(tmp_dir, %(eggfn)r)
+    egg_path = join(%(eggfn)r)
     fo = open(egg_path, 'wb')
     fo.write(eggdata)
     fo.close()
     sys.path.insert(0, egg_path)
-    import egginst.bootstrap import main
+    from egginst.bootstrap import main
     main()
-    shutil.rmtree(tmp_dir)
 
 if __name__ == '__main__':
     cli()
