@@ -30,6 +30,10 @@ def build_egg(spec):
             path = join(root, fn)
             z.write(path, path[2:].replace('\\', '/'))
     z.writestr('EGG-INFO/spec/depend', data_from_spec(spec))
+    z.writestr('EGG-INFO/entry_points.txt', """[console_scripts]
+ironegg = egginst.main:main
+ironpkg = enstaller.main:main
+""")
     z.close()
 
 

@@ -129,7 +129,7 @@ def create(egg, conf):
         fname = name
 
         exe_path = join(egg.bin_dir, '%s.exe' % name)
-        write_exe(exe_path, script_type)
+        write_exe(exe_path)
         egg.files.append(exe_path)
         fname += '-script.py'
 
