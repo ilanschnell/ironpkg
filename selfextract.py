@@ -2,7 +2,8 @@
 Self installs IronPkg into the current IronPython environment.
 
 Options:
-  --install
+  -h, --help     show this help message and exit
+  --install      self install
 """
 import os
 import sys
@@ -43,12 +44,8 @@ def self_install():
     ei.install()
 
 
-def cli():
+if __name__ == '__main__':
     if '--install' in sys.argv:
         self_install()
     else:
         print __doc__
-
-
-if __name__ == '__main__':
-    cli()
