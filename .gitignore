@@ -1,6 +1,3 @@
 *~
 *.pyc
-*.egg-info
-build
-dist
-ilan.sh
+*.egg
