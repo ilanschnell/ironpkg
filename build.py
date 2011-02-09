@@ -38,30 +38,12 @@ ironpkg = enstaller.main:main
 
 
 def build_py(spec):
-    eggfn = '%(name)s-%(version)s-%(build)s.egg' % spec
-    eggdata = open(eggfn, 'rb').read()
+    eggname = '%(name)s-%(version)s-%(build)s.egg' % spec
+    eggdata = open(eggname, 'rb').read()
+    code = open('selfextract.py', 'r').read()
 
     fo = open('%(name)s-%(version)s.py' % spec, 'w')
-    fo.write("""\
-import sys
-import zipfile
-from os.path import join
-from optparse import OptionParser
-
-eggdata = %(eggdata)r
-
-def cli():
-    egg_path = join(%(eggfn)r)
-    fo = open(egg_path, 'wb')
-    fo.write(eggdata)
-    fo.close()
-    sys.path.insert(0, egg_path)
-    from egginst.bootstrap import main
-    main()
-
-if __name__ == '__main__':
-    cli()
-""" % locals())
+    fo.write(code % locals())
     fo.close()
 
 
