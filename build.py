@@ -41,9 +41,10 @@ def build_py(spec):
     eggname = '%(name)s-%(version)s-%(build)s.egg' % spec
     eggdata = open(eggname, 'rb').read()
     code = open('selfextract.py', 'r').read()
-
+    code = code.replace('"EGGDATA"', repr(eggdata))
+    code = code.replace('"EGGNAME"', repr(eggname))
     fo = open('%(name)s-%(version)s.py' % spec, 'w')
-    fo.write(code % locals())
+    fo.write(code)
     fo.close()
 
 

@@ -4,10 +4,10 @@ from os.path import join
 from optparse import OptionParser
 
 
-eggdata = '%(eggdata)s'
+eggdata = "EGGDATA"
 
 def cli():
-    egg_path = join('%(eggname)s')
+    egg_path = join("EGGNAME")
     fo = open(egg_path, 'wb')
     fo.write(eggdata)
     fo.close()
