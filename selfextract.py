@@ -7,12 +7,13 @@ Options:
 """
 import os
 import sys
+import base64
 import tempfile
 import zipfile
 from os.path import dirname, isdir, join
 
 
-eggdata = "EGGDATA"
+eggdata = base64.b64decode('EGGDATA')
 
 
 def unzip(zip_file, dir_path):
@@ -32,7 +33,7 @@ def unzip(zip_file, dir_path):
 
 def self_install():
     tmp_dir = tempfile.mkdtemp()
-    egg_path = join(tmp_dir, "EGGNAME")
+    egg_path = join(tmp_dir, 'EGGNAME')
     fo = open(egg_path, 'wb')
     fo.write(eggdata)
     fo.close()

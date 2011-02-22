@@ -1,4 +1,5 @@
 import os
+import base64
 import zipfile
 from os.path import join
 
@@ -20,7 +21,7 @@ SPEC = dict(
 
 def build_egg(spec):
     fn = '%(name)s-%(version)s-%(build)s.egg' % spec
-    z = zipfile.ZipFile(fn, 'w', zipfile.ZIP_STORED)
+    z = zipfile.ZipFile(fn, 'w', zipfile.ZIP_DEFLATED)
     for root, dirs, files in os.walk('.'):
         if not root[2:].startswith(('egginst', 'enstaller')):
             continue
@@ -41,8 +42,8 @@ def build_py(spec):
     eggname = '%(name)s-%(version)s-%(build)s.egg' % spec
     eggdata = open(eggname, 'rb').read()
     code = open('selfextract.py', 'r').read()
-    code = code.replace('"EGGDATA"', repr(eggdata))
-    code = code.replace('"EGGNAME"', repr(eggname))
+    code = code.replace('EGGDATA', base64.b64encode(eggdata))
+    code = code.replace('EGGNAME', eggname)
     fo = open('%(name)s-%(version)s.py' % spec, 'w')
     fo.write(code)
     fo.close()
