@@ -13,7 +13,7 @@ import zipfile
 from os.path import dirname, isdir, join
 
 
-eggdata = base64.b64decode('EGGDATA')
+b64eggdata = 'EGGDATA'
 
 
 def unzip(zip_file, dir_path):
@@ -35,7 +35,7 @@ def self_install():
     tmp_dir = tempfile.mkdtemp()
     egg_path = join(tmp_dir, 'EGGNAME')
     fo = open(egg_path, 'wb')
-    fo.write(eggdata)
+    fo.write(base64.b64decode(b64eggdata))
     fo.close()
     unzip(egg_path, tmp_dir)
     sys.path.insert(0, tmp_dir)
