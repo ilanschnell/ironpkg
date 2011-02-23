@@ -6,7 +6,7 @@ import string
 from os.path import basename, isdir, isfile, join
 
 
-chars = string.letters + string.digits + '_'
+chars = string.letters + string.digits
 
 
 def mk_tmp_dir():
@@ -51,7 +51,7 @@ def rm_rf(path, verbose=False):
         except (WindowsError, IOError):
             tmp_dir = mk_tmp_dir()
             rand = ''.join(random.choice(chars) for x in xrange(10))
-            os.rename(path, join(tmp_dir, rand + basename(path)))
+            os.rename(path, join(tmp_dir, '%s_%s' % (rand, basename(path))))
     elif isdir(path):
         if verbose:
             print "Removing: %r (directory)" % path
