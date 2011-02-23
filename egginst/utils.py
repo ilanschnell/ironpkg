@@ -1,7 +1,23 @@
 import os
+import sys
+import random
 import shutil
-import tempfile
+import string
 from os.path import basename, isdir, isfile, join
+
+
+chars = string.letters + string.digits + '_'
+
+
+def mk_tmp_dir():
+    tmp_dir = join(sys.prefix, '.tmp_ironpkg')
+    try:
+        shutil.rmtree(tmp_dir)
+    except (WindowsError, IOError):
+        pass
+    if not isdir(tmp_dir):
+        os.mkdir(tmp_dir)
+    return tmp_dir
 
 
 def pprint_fn_action(fn, action):
@@ -33,9 +49,9 @@ def rm_rf(path, verbose=False):
         try:
             os.unlink(path)
         except (WindowsError, IOError):
-            tmp_dir = tempfile.mkdtemp()
-            #print path
-            os.rename(path, join(tmp_dir, basename(path)))
+            tmp_dir = mk_tmp_dir()
+            rand = ''.join(random.sample(chars) for x in xrange(10))
+            os.rename(path, join(tmp_dir, rand + basename(path)))
     elif isdir(path):
         if verbose:
             print "Removing: %r (directory)" % path
