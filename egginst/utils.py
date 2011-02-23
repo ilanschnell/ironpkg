@@ -50,7 +50,7 @@ def rm_rf(path, verbose=False):
             os.unlink(path)
         except (WindowsError, IOError):
             tmp_dir = mk_tmp_dir()
-            rand = ''.join(random.sample(chars, 1) for x in xrange(10))
+            rand = ''.join(random.choice(chars) for x in xrange(10))
             os.rename(path, join(tmp_dir, rand + basename(path)))
     elif isdir(path):
         if verbose:
