@@ -1,6 +1,7 @@
 import os
 import shutil
-from os.path import isdir, isfile, join
+import tempfile
+from os.path import basename, isdir, isfile, join
 
 
 def pprint_fn_action(fn, action):
@@ -26,17 +27,18 @@ def rmdir_er(dn):
 
 
 def rm_rf(path, verbose=False):
-    try:
-        if isfile(path):
-            if verbose:
-                print "Removing: %r (file)" % path
+    if isfile(path):
+        if verbose:
+            print "Removing: %r (file)" % path
+        try:
             os.unlink(path)
-        elif isdir(path):
-            if verbose:
-                print "Removing: %r (directory)" % path
-            shutil.rmtree(path)
-    except WindowsError:
-        pass
+        except (WindowsError, IOError):
+            tmp_dir = tempfile.mkdtemp()
+            os.rename(path, join(tmp_dir, basename(path)))
+    elif isdir(path):
+        if verbose:
+            print "Removing: %r (directory)" % path
+        shutil.rmtree(path)
 
 
 def human_bytes(n):
