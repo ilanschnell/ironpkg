@@ -186,7 +186,10 @@ def read_depend_files():
     for dn in os.listdir(egg_info_dir):
         path = join(egg_info_dir, dn, 'spec', 'depend')
         if isfile(path):
-            spec = parse_data(open(path).read())
+            fi = open(path)
+            data = fi.read()
+            fi.close()
+            spec = parse_data(data)
             add_Reqs_to_spec(spec)
             res[spec['cname']] = spec
     return res

@@ -34,6 +34,7 @@ def rm_rf(path, verbose=False):
             os.unlink(path)
         except (WindowsError, IOError):
             tmp_dir = tempfile.mkdtemp()
+            #print path
             os.rename(path, join(tmp_dir, basename(path)))
     elif isdir(path):
         if verbose:
