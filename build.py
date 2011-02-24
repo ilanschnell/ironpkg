@@ -1,5 +1,6 @@
 import os
 import base64
+import hashlib
 import zipfile
 from os.path import join
 
@@ -41,9 +42,11 @@ ironpkg = enstaller.main:main
 def build_py(spec):
     eggname = '%(name)s-%(version)s-%(build)s.egg' % spec
     eggdata = open(eggname, 'rb').read()
+    eggmd5 = hashlib.md5(eggdata).hexdigest()
     code = open('selfextract.py', 'r').read()
-    code = code.replace('EGGDATA', base64.b64encode(eggdata))
     code = code.replace('EGGNAME', eggname)
+    code = code.replace('EGGDATA', base64.b64encode(eggdata))
+    code = code.replace('EGGMD5', eggmd5)
     fo = open('%(name)s-%(version)s.py' % spec, 'w')
     fo.write(code)
     fo.close()

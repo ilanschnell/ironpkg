@@ -1,5 +1,7 @@
 """\
 Self installs IronPkg into the current IronPython environment.
+egg: EGGNAME
+md5: EGGMD5
 
 Options:
   -h, --help     show this help message and exit
@@ -8,6 +10,7 @@ Options:
 import os
 import sys
 import base64
+import hashlib
 import tempfile
 import zipfile
 from os.path import dirname, isdir, join
@@ -34,8 +37,10 @@ def unzip(zip_file, dir_path):
 def self_install():
     tmp_dir = tempfile.mkdtemp()
     egg_path = join(tmp_dir, 'EGGNAME')
+    data = base64.b64decode(b64eggdata)
+    assert hashlib.md5(data).hexdigest() == 'EGGMD5'
     fo = open(egg_path, 'wb')
-    fo.write(base64.b64decode(b64eggdata))
+    fo.write(data)
     fo.close()
     unzip(egg_path, tmp_dir)
     sys.path.insert(0, tmp_dir)
