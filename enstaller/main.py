@@ -417,7 +417,7 @@ def main():
     # Remove packages (in reverse install order)
     for dist in dists[::-1]:
         fn = dist_naming.filename_dist(dist)
-        if fn in inst and not opts.force:
+        if fn in inst:
             # if the distribution (which needs to be installed) is already
             # installed don't remove it
             continue
